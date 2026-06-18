@@ -1,5 +1,6 @@
 from fastapi import Depends
 
+from src.data.entities.approval import ApprovalType
 from src.data.repositories.approval_repo import ApprovalRepo
 from src.modules.approvals.schemas import QueueCountResponse, QueueListResponse
 
@@ -10,11 +11,11 @@ async def list_queues(
     counts = await repo.get_queue_counts()
     queues = [
         QueueCountResponse(
-            approval_type=str(item["approval_type"].value),
-            transaction_type=str(item["transaction_type"].value),
-            count=item["count"],
+            approval_type=str(approval_type.value),
+            transaction_type=str(transaction_type.value),
+            count=count,
         )
-        for item in counts
+        for approval_type, transaction_type, count in counts
     ]
 
     all_approval_types = ["LISTING_POST", "DEPOSIT", "CLOSURE", "CANCELLATION", "SOLD_OUT"]

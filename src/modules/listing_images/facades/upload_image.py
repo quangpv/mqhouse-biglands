@@ -1,6 +1,6 @@
 import uuid
 
-from fastapi import Depends, HTTPException, UploadFile, status
+from fastapi import Depends, UploadFile
 
 from src.data.entities.listing import ListingStatus
 from src.data.entities.listing_image import ListingImageEntity
@@ -11,7 +11,7 @@ from src.modules.listing_images.mapper import image_to_response
 from src.modules.listing_images.schemas import ImageResponse
 from src.platform.auth import get_current_user
 from src.platform.config import settings
-from src.shared.errors.exceptions import NotFoundError
+from src.shared.errors.exceptions import BadRequestError, ConflictError, ForbiddenError, NotFoundError
 
 
 async def upload_image(
@@ -25,18 +25,18 @@ async def upload_image(
     if listing is None:
         raise NotFoundError("Listing not found")
     if listing.created_by_id != current_user.id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only the listing owner can upload images")
+        raise ForbiddenError("Only the listing owner can upload images")
 
     if file.content_type not in ("image/jpeg", "image/png", "image/webp"):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Only JPEG, PNG, and WEBP files are allowed")
+        raise BadRequestError("Only JPEG, PNG, and WEBP files are allowed")
 
     contents = await file.read()
     if len(contents) > settings.max_upload_size_mb * 1024 * 1024:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"File exceeds {settings.max_upload_size_mb}MB limit")
+        raise BadRequestError(f"File exceeds {settings.max_upload_size_mb}MB limit")
 
     count = await image_repo.count_by_listing(listing_id)
     if count >= 20:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Maximum 20 images per listing")
+        raise ConflictError("Maximum 20 images per listing")
 
     import os
     os.makedirs(settings.upload_dir, exist_ok=True)

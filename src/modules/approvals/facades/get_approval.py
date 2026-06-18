@@ -1,39 +1,55 @@
 import uuid
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends
 
+from src.data.entities.approval import ApprovalType
 from src.data.repositories.approval_repo import ApprovalRepo
-from src.modules.approvals.mapper import queue_item_to_response
 from src.modules.approvals.schemas import ApprovalDetailResponse
+from src.shared.errors.exceptions import NotFoundError
 
 
 async def get_approval(
     listing_id: uuid.UUID,
     repo: ApprovalRepo = Depends(ApprovalRepo),
 ) -> ApprovalDetailResponse:
-    item = await repo.get_pending_listing_post(listing_id)
-    if item is None:
-        item = await repo.get_pending_deal_event_by_listing(listing_id)
+    listing = await repo.get_pending_listing_post(listing_id)
+    if listing is not None:
+        existing = await repo.get_approval_by_listing_and_type(listing_id, ApprovalType.LISTING_POST)
+        return ApprovalDetailResponse(
+            id=listing.id,
+            listing_id=listing.id,
+            listing_code=listing.code,
+            approval_type=ApprovalType.LISTING_POST.value,
+            transaction_type=listing.transaction_type.value,
+            title=listing.title,
+            price=listing.price,
+            listing_status=listing.status.value,
+            created_at=listing.created_at,
+            has_existing_approval=existing is not None,
+            existing_decision=existing.decision.value if existing else None,
+        )
 
-    if item is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No pending approval found for this listing")
+    result = await repo.get_pending_deal_event_by_listing(listing_id)
+    if result is None:
+        raise NotFoundError("No pending approval found for this listing")
 
-    existing = await repo.get_approval_by_listing_and_type(listing_id, item["approval_type"])
+    listing, event, approval_type = result
+    existing = await repo.get_approval_by_listing_and_type(listing_id, approval_type)
 
     return ApprovalDetailResponse(
-        id=item["id"],
-        listing_id=item["listing_id"],
-        listing_code=item["listing_code"],
-        approval_type=item["approval_type"].value,
-        transaction_type=item["transaction_type"].value,
-        title=item.get("title"),
-        price=item.get("price"),
-        listing_status=item["status"].value if hasattr(item["status"], "value") else str(item["status"]),
-        created_at=item["created_at"],
-        customer_name=item.get("customer_name"),
-        customer_phone=item.get("customer_phone"),
-        deposit_amount=item.get("deposit_amount"),
-        event_notes=item.get("event_notes"),
+        id=listing.id,
+        listing_id=listing.id,
+        listing_code=listing.code,
+        approval_type=approval_type.value,
+        transaction_type=listing.transaction_type.value,
+        title=listing.title,
+        price=listing.price,
+        listing_status=listing.status.value,
+        created_at=event.created_at,
+        customer_name=event.customer_name,
+        customer_phone=event.customer_phone,
+        deposit_amount=event.deposit_amount,
+        event_notes=event.notes,
         has_existing_approval=existing is not None,
         existing_decision=existing.decision.value if existing else None,
     )

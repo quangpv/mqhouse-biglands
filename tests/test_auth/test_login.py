@@ -11,7 +11,7 @@ async def test_agent_with_valid_credentials_can_log_in(client: AsyncClient) -> N
         )
         assert response.status_code == 200
         data = response.json()
-        assert "access_token" in data
+        assert "token" in data
         assert data["token_type"] == "bearer"
 
 @pytest.mark.asyncio

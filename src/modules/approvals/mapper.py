@@ -1,21 +1,40 @@
+from src.data.entities.approval import ApprovalType
+from src.data.entities.deal_event import DealEventEntity
+from src.data.entities.listing import ListingEntity
 from src.modules.approvals.schemas import ApproveResponse, QueueItemResponse
 
 
-def queue_item_to_response(item: dict) -> QueueItemResponse:
+def listing_to_queue_item(listing: ListingEntity) -> QueueItemResponse:
     return QueueItemResponse(
-        id=item["id"],
-        listing_id=item["listing_id"],
-        listing_code=item["listing_code"],
-        approval_type=item["approval_type"].value,
-        transaction_type=item["transaction_type"].value,
-        title=item.get("title"),
-        price=item.get("price"),
-        status=item["status"].value if hasattr(item["status"], "value") else str(item["status"]),
-        created_at=item["created_at"],
-        customer_name=item.get("customer_name"),
-        customer_phone=item.get("customer_phone"),
-        deposit_amount=item.get("deposit_amount"),
-        event_notes=item.get("event_notes"),
+        id=listing.id,
+        listing_id=listing.id,
+        listing_code=listing.code,
+        approval_type=ApprovalType.LISTING_POST.value,
+        transaction_type=listing.transaction_type.value,
+        title=listing.title,
+        price=listing.price,
+        status=listing.status.value,
+        created_at=listing.created_at,
+    )
+
+
+def deal_event_to_queue_item(
+    listing: ListingEntity, event: DealEventEntity, approval_type: ApprovalType
+) -> QueueItemResponse:
+    return QueueItemResponse(
+        id=listing.id,
+        listing_id=listing.id,
+        listing_code=listing.code,
+        approval_type=approval_type.value,
+        transaction_type=listing.transaction_type.value,
+        title=listing.title,
+        price=listing.price,
+        status=listing.status.value,
+        created_at=event.created_at,
+        customer_name=event.customer_name,
+        customer_phone=event.customer_phone,
+        deposit_amount=event.deposit_amount,
+        event_notes=event.notes,
     )
 
 

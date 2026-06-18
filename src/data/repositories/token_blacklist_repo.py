@@ -8,7 +8,10 @@ from src.data.entities.token_blacklist import TokenBlacklistEntity
 from src.platform.dependencies import get_db
 
 
-class TokenBlacklistRepo:
+from src.data.repositories._base import Repo
+
+
+class TokenBlacklistRepo(Repo):
     def __init__(self, db: AsyncSession = Depends(get_db)):
         self.db = db
 

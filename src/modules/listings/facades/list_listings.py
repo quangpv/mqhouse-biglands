@@ -1,12 +1,11 @@
 from fastapi import Depends, Query
 
-from src.data.entities.user import UserEntity
+from src.data.entities.user import UserEntity, UserRole
 from src.data.repositories.listing_repo import ListingRepo
 from src.modules.listings.mapper import listing_to_response
 from src.modules.listings.schemas import ListingListResponse, ListingResponse
 from src.platform.auth import get_current_user
-from src.platform.dependencies import get_db
-from src.shared.pagination import build_paginated_response, paginate
+from src.shared.pagination import build_paginated_response
 
 
 async def list_listings(
@@ -21,10 +20,11 @@ async def list_listings(
     sort_order: str | None = Query(default=None),
     owner_id: str | None = Query(default=None, description="Filter by owner. Use 'me' for current user."),
     current_user: UserEntity | None = Depends(get_current_user),
-    db=Depends(get_db),
     repo: ListingRepo = Depends(ListingRepo),
 ) -> ListingListResponse:
     resolved_owner_id = current_user.id if owner_id == "me" else (None if owner_id is None else owner_id)
+    if resolved_owner_id is None and current_user is not None and current_user.role != UserRole.ADMIN:
+        resolved_owner_id = current_user.id
     query = repo.build_list_query(
         search=search,
         transaction_type=transaction_type,
@@ -35,7 +35,7 @@ async def list_listings(
         sort_order=sort_order,
         owner_id=resolved_owner_id,
     )
-    rows, total = await paginate(db, query, page=page, size=size)
+    rows, total = await repo.paginated_list(query, page=page, size=size)
     items = [listing_to_response(l) for l in rows]
     total_count = await repo.count_active()
     return ListingListResponse(

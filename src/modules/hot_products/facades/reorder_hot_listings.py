@@ -1,25 +1,17 @@
 from fastapi import Depends
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.data.entities.listing import ListingEntity
 from src.data.repositories.listing_repo import ListingRepo
 from src.modules.hot_products.mapper import listing_to_hot_response
 from src.modules.hot_products.schemas import HotListingResponse, ReorderHotListingsRequest
-from src.platform.dependencies import get_db
 from src.shared.errors.exceptions import BadRequestError, NotFoundError
 
 
 async def reorder_hot_listings(
     data: ReorderHotListingsRequest,
     listing_repo: ListingRepo = Depends(ListingRepo),
-    db: AsyncSession = Depends(get_db),
 ) -> list[HotListingResponse]:
-    hot_result = await db.execute(
-        select(ListingEntity).where(ListingEntity.is_hot.is_(True))
-    )
-    existing_hot = {str(l.id) for l in hot_result.scalars().all()}
-    submitted_ids = {str(lid) for lid in data.listing_ids}
+    existing_hot = await listing_repo.get_hot_listing_ids()
+    submitted_ids = set(data.listing_ids)
 
     if not submitted_ids.issubset(existing_hot):
         raise BadRequestError("All listing_ids must be currently promoted hot listings")

@@ -1,22 +1,20 @@
 import uuid
 from datetime import datetime, timezone
 
-from fastapi import Depends, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import Depends
 
 from src.data.entities.approval import ApprovalEntity, ApprovalType, DecisionType
 from src.data.entities.deal_event import DealEventEntity, DealEventType
 from src.data.entities.listing import ListingStatus
 from src.data.entities.notification import ReferenceType
 from src.data.entities.user import UserEntity
-from src.data.notifications import send_notification
 from src.data.repositories.approval_repo import ApprovalRepo
 from src.data.repositories.deal_event_repo import DealEventRepo
 from src.data.repositories.listing_repo import ListingRepo
+from src.data.repositories.notification_repo import NotificationRepo
 from src.modules.approvals.mapper import approval_to_response
 from src.modules.approvals.schemas import ApproveResponse
 from src.platform.auth import get_current_user
-from src.platform.dependencies import get_db
 from src.shared.errors.exceptions import ConflictError, NotFoundError
 
 APPROVED_STATUS_MAP = {
@@ -41,17 +39,14 @@ async def approve_item(
     listing_repo: ListingRepo = Depends(ListingRepo),
     deal_repo: DealEventRepo = Depends(DealEventRepo),
     approval_repo: ApprovalRepo = Depends(ApprovalRepo),
-    db: AsyncSession = Depends(get_db),
+    notification_repo: NotificationRepo = Depends(NotificationRepo),
 ) -> ApproveResponse:
     listing = await listing_repo.get_with_lock(listing_id)
     if listing is None:
         raise NotFoundError("Listing not found")
 
     if listing.created_by_id == current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="Approver cannot approve their own listing",
-        )
+        raise ConflictError("Approver cannot approve their own listing")
 
     approval_type = None
     deal_event = None
@@ -120,8 +115,8 @@ async def approve_item(
         ApprovalType.CANCELLATION: "cancellation_confirmed",
         ApprovalType.SOLD_OUT: "sold_out_confirmed",
     }[approval_type]
-    await send_notification(
-        db=db, user_id=listing.created_by_id, event_type=event_type_key,
+    await notification_repo.send(
+        user_id=listing.created_by_id, event_type=event_type_key,
         title=f"Listing {listing.code} {approval_type.value.lower().replace('_', ' ')} approved",
         body=f"Your listing {listing.title} has been approved by {current_user.full_name}.",
         reference_type=ReferenceType.LISTING, reference_id=listing_id,

@@ -8,7 +8,10 @@ from src.data.entities.user import UserEntity, UserRole
 from src.platform.dependencies import get_db
 
 
-class UserRepo:
+from src.data.repositories._base import Repo
+
+
+class UserRepo(Repo):
     def __init__(self, db: AsyncSession = Depends(get_db)):
         self.db = db
 

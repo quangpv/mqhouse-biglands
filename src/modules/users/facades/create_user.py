@@ -1,4 +1,4 @@
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends
 from sqlalchemy.exc import IntegrityError
 
 from src.data.entities.user import UserEntity
@@ -7,6 +7,7 @@ from src.modules.users.mapper import user_to_response
 from src.modules.users.schemas import CreateUserRequest, UserResponse
 from src.platform.auth import get_current_user
 from src.platform.security import hash_password
+from src.shared.errors.exceptions import ConflictError
 
 
 async def create_user(
@@ -27,6 +28,6 @@ async def create_user(
     try:
         user = await repo.create(user)
     except IntegrityError:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Username already exists")
+        raise ConflictError("Username already exists")
 
     return user_to_response(user)

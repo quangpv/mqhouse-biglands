@@ -1,5 +1,4 @@
-from fastapi import Depends, status
-from fastapi.responses import Response
+from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from src.data.repositories.token_blacklist_repo import TokenBlacklistRepo
@@ -12,7 +11,7 @@ bearer_scheme = HTTPBearer(auto_error=False)
 async def logout(
     credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
     blacklist_repo: TokenBlacklistRepo = Depends(TokenBlacklistRepo),
-) -> Response:
+) -> None:
     if credentials is None:
         raise UnauthorizedError("Missing authorization header")
     payload = decode_jwt(credentials.credentials)
@@ -21,4 +20,3 @@ async def logout(
     if jti and exp:
         from datetime import datetime, timezone
         await blacklist_repo.add(jti, datetime.fromtimestamp(exp, tz=timezone.utc))
-    return Response(status_code=status.HTTP_204_NO_CONTENT)

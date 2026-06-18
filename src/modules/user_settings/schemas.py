@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-from src.data.notifications import DEFAULT_PREFS
+from src.data.repositories.notification_repo import DEFAULT_PREFS
 
 
 class NotificationPreferencesResponse(BaseModel):

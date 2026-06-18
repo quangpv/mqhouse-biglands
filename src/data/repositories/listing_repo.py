@@ -10,7 +10,10 @@ from src.platform.config import settings
 from src.platform.dependencies import get_db
 
 
-class ListingRepo:
+from src.data.repositories._base import Repo
+
+
+class ListingRepo(Repo):
     def __init__(self, db: AsyncSession = Depends(get_db)):
         self.db = db
 
@@ -45,10 +48,16 @@ class ListingRepo:
         await self.db.refresh(listing)
         return listing
 
-    async def delete(self, listing_id: uuid.UUID) -> None:
+    async def hard_delete(self, listing_id: uuid.UUID) -> None:
         listing = await self.get(listing_id)
         if listing:
             await self.db.delete(listing)
+            await self.db.flush()
+
+    async def delete(self, listing_id: uuid.UUID) -> None:
+        listing = await self.get(listing_id)
+        if listing:
+            listing.deleted_at = datetime.now(timezone.utc)
             await self.db.flush()
 
     async def count_active(self) -> int:
@@ -77,6 +86,27 @@ class ListingRepo:
             )
         )
         return list(result.scalars().all())
+
+    async def get_hot_listings(self) -> list[ListingEntity]:
+        result = await self.db.execute(
+            select(ListingEntity)
+            .where(ListingEntity.is_hot.is_(True))
+            .order_by(ListingEntity.hot_order.asc().nullslast())
+        )
+        return list(result.scalars().all())
+
+    async def get_hot_listing_ids(self) -> set[uuid.UUID]:
+        result = await self.db.execute(
+            select(ListingEntity.id).where(ListingEntity.is_hot.is_(True))
+        )
+        return {row[0] for row in result}
+
+    async def count_hot_listings(self) -> int:
+        from sqlalchemy import func
+        result = await self.db.execute(
+            select(func.count(ListingEntity.id)).where(ListingEntity.is_hot.is_(True))
+        )
+        return result.scalar_one()
 
     def build_list_query(
         self,

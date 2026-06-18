@@ -8,7 +8,10 @@ from src.data.entities.listing_image import ListingImageEntity
 from src.platform.dependencies import get_db
 
 
-class ListingImageRepo:
+from src.data.repositories._base import Repo
+
+
+class ListingImageRepo(Repo):
     def __init__(self, db: AsyncSession = Depends(get_db)):
         self.db = db
 

@@ -1,4 +1,4 @@
-from src.data.notifications import DEFAULT_PREFS
+from src.data.repositories.notification_repo import DEFAULT_PREFS
 from src.modules.user_settings.schemas import NotificationPreferencesResponse
 
 

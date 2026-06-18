@@ -1,17 +1,14 @@
 import uuid
 
 from fastapi import Depends
-from sqlalchemy import func, select
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.data.entities.listing import ListingEntity, ListingStatus
+from src.data.entities.listing import ListingStatus
 from src.data.entities.user import UserEntity
 from src.data.repositories.listing_repo import ListingRepo
 from src.modules.hot_products.mapper import listing_to_hot_response
 from src.modules.hot_products.schemas import HotListingResponse
 from src.platform.auth import get_current_user
 from src.platform.config import settings
-from src.platform.dependencies import get_db
 from src.shared.errors.exceptions import ConflictError, NotFoundError
 
 
@@ -19,7 +16,6 @@ async def promote_to_hot(
     listing_id: uuid.UUID,
     current_user: UserEntity = Depends(get_current_user),
     listing_repo: ListingRepo = Depends(ListingRepo),
-    db: AsyncSession = Depends(get_db),
 ) -> HotListingResponse:
     listing = await listing_repo.get(listing_id)
     if listing is None:
@@ -29,10 +25,7 @@ async def promote_to_hot(
     if listing.is_hot:
         return listing_to_hot_response(listing)
 
-    count_result = await db.execute(
-        select(func.count(ListingEntity.id)).where(ListingEntity.is_hot.is_(True))
-    )
-    hot_count = count_result.scalar_one()
+    hot_count = await listing_repo.count_hot_listings()
     if hot_count >= settings.max_hot_items:
         raise ConflictError(detail=f"Maximum {settings.max_hot_items} hot listings allowed")
 

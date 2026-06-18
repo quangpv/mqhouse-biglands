@@ -8,7 +8,10 @@ from src.data.entities.deal_event import DealEventEntity, DealEventType
 from src.platform.dependencies import get_db
 
 
-class DealEventRepo:
+from src.data.repositories._base import Repo
+
+
+class DealEventRepo(Repo):
     def __init__(self, db: AsyncSession = Depends(get_db)):
         self.db = db
 
