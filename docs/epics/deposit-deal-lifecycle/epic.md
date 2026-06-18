@@ -61,5 +61,5 @@ was actually closed.
 - BR-001 Only one active deposit per listing.
 - BR-002 Deal closure requires a confirmed deposit.
 - BR-003 Cancellation requires a confirmed deposit.
-- BR-004 Only the listing creator can report these events.
+- BR-004 Any agent can report these events on any listing, regardless of ownership.
 - BR-005 Only approver can confirm these events.

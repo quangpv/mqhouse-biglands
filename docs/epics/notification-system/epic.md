@@ -50,4 +50,4 @@ they are only communicated via the listing page. Approvers miss pending tasks.
 
 ## Business Rules
 
-- BR-010 Users see only their own notifications.
+- BR-010 Notifications are role-scoped: agents see relevant notifications; admins see all system-wide notifications.

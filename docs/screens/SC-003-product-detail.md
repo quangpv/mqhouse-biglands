@@ -39,7 +39,16 @@ View full details of a single listing and perform deal actions (report deposit, 
 - Owner phone ("Số điện thoại chủ nhà:") — hidden behind icon
 - Listing date ("Ngày đăng:")
 
-### Action Buttons (context-dependent)
+### Action Buttons (role-dependent)
+
+**Owner (listing creator) — viewing own listing:**
+- "Chỉnh sửa lại thông tin hàng" (Edit listing) — enabled for own listings only
+- Full 4 deal action buttons
+
+**Non-owner (other agent's or admin's listing):**
+- Only 4 deal action buttons (no Edit button)
+
+**Deal action buttons (all roles, context-dependent):**
 - "Báo khách cọc" (Report Deposit) — enabled when Còn hàng
 - "Báo hết hàng" (Report Sold-Out) — enabled when Còn hàng
 - "Báo khách chốt hàng" (Report Deal Closure) — disabled until deposit reported
@@ -73,6 +82,8 @@ Còn hàng → (Báo khách cọc) → Đã cọc → (Báo khách chốt hàng)
                                       → (Báo khách huỷ cọc) → Huỷ cọc
 Còn hàng → (Báo hết hàng) → Hết hàng
 ```
+
+> **Note**: Any agent can report deposit/sold-out/cancellation/closure on any listing, not just their own. However, only the listing owner can edit listing info.
 
 ## Entities
 

@@ -3,7 +3,7 @@
 ## User Story
 
 As an Agent
-I want to report that a customer has placed a deposit on my listing
+I want to report that a customer has placed a deposit on a listing
 So that the deposit is recorded and other agents know the property is pending
 
 ## Description
@@ -15,7 +15,6 @@ Deposit Reported event and notifies approvers.
 ## Preconditions
 
 - User is logged in as Agent
-- Listing belongs to current user
 - Listing status is ACTIVE
 - No active deposit exists on this listing
 
@@ -23,7 +22,7 @@ Deposit Reported event and notifies approvers.
 
 ### Happy Path
 
-Given I am viewing my ACTIVE listing
+Given I am viewing an ACTIVE listing
 When I click "Báo khách cọc"
 Then I see a form for customer name, phone, and deposit amount
 When I fill in the fields and submit
@@ -46,12 +45,6 @@ Then I see a validation error
 Given another agent already reported a deposit on the same listing (not yet approved)
 When I attempt to report a deposit
 Then I see an error: "A deposit is already pending on this listing"
-
-### Permission Rules
-
-Given I am viewing another agent's listing
-When I look for the "Báo khách cọc" button
-Then the button is not visible
 
 ## Business Rules
 

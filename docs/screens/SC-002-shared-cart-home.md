@@ -20,10 +20,14 @@ Main deal-pool page where agents browse all available listings.
 - "Giỏ hàng của tôi" (My Cart) — links to `/gio-hang`
 - "Thông báo" (Notifications) — links to `/thong-bao`, shows unread count badge
 
-> **Role-gated items** (visible only to ADMIN/APPROVER roles):
+> **Admin sidebar** (full access):
 > - "Sản phẩm HOT" (Hot Products) — links to `/admin/san-pham-hot`
 > - "Quản lý người dùng" (User Management) — links to `/admin/quan-ly-nguoi-dung`
 > - 3 transaction-type accordion menus (BÁN, CHO THUÊ, SANG NHƯỢNG), each with 5 approval queue links showing pending counts
+>
+> **Agent sidebar** (limited to 3 items):
+> - Only "Trang giỏ hàng chung", "Giỏ hàng của tôi", and "Thông báo" are visible
+> - Admin-only routes (`/admin/*`) return "Bạn không có quyền truy cập trang này"
 
 ### Main Content
 

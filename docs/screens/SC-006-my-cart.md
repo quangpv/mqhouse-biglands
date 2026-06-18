@@ -16,6 +16,8 @@ View the current user's own listings — organized by posting status.
 - "Từ chối (N)" — Rejected
 - "Quá hạn (N)" — Expired
 
+> **Role difference**: Agent sees all 4 tabs. Admin sees only 2 tabs: "Đã đăng" and "Quá hạn" (no Chờ duyệt / Từ chối). This is because admin posts go directly live without approval.
+
 ### Search
 - Textbox with placeholder: "Mã sản phẩm, tiêu đề, nội dung, địa chỉ"
 

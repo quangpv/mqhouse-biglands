@@ -1,0 +1,3 @@
+[     175ms] [WARNING] Swiper Loop Warning: The number of slides is not enough for loop mode, it will be disabled and not function properly. You need to add more slides (or make duplicates) or lower the values of slidesPerView and slidesPerGroup parameters @ https://biglands.vn/_nuxt/NdHjGAtE.js:162
+[     197ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://biglands.vn/gio-hang/213bbf87-e816-44d0-ae6b-1be12b6f4ea9:0
+[     682ms] [WARNING] Swiper Loop Warning: The number of slides is not enough for loop mode, it will be disabled and not function properly. You need to add more slides (or make duplicates) or lower the values of slidesPerView and slidesPerGroup parameters @ https://biglands.vn/_nuxt/NdHjGAtE.js:162

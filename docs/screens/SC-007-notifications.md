@@ -22,6 +22,11 @@ View system notifications: deal events, status changes, and transaction updates.
 ### Page Header
 - H1 heading: "Thông báo"
 
+### Scope (role-dependent)
+- **Agent**: Sees only their own relevant notifications (observed: 4,397 total, 44 unread for Mr Quân)
+- **Admin**: Sees all system-wide notifications (observed: 8,529 total)
+- Confirms BR-010 (updated) — notifications are scoped by role
+
 ### Filter Tabs
 - "Tất cả" (All) / "Chưa đọc" (Unread)
 - Category filters:

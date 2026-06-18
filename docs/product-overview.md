@@ -21,9 +21,9 @@ with a structured pipeline: listing → deposit → deal closure → sold-out.
 
 | Role | Capabilities |
 |------|-------------|
-| **Agent** | Browse shared cart, create/edit own listings, report deposits, report sold-out/deal closure/cancellation on own listings |
+| **Agent** | Browse shared cart, create/edit own listings, report deposits/sold-out/closure/cancellation on ANY listing (not just own), access only 3 sidebar items |
 | **Approver** | All Agent capabilities + approve/reject listings, deposits, cancellations, closures, and sold-out status across one or more transaction categories |
-| **Admin** | All Approver capabilities + manage users, manage hot products, manage system notifications |
+| **Admin** | All Approver capabilities + manage users, manage hot products, see all system-wide notifications, full sidebar with 15 approval queues |
 
 ## Main Workflows
 

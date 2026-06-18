@@ -270,13 +270,13 @@ stateDiagram-v2
 - BR-001 A listing can only have one active deposit at a time.
 - BR-002 Cancellation can only be reported after a deposit has been reported.
 - BR-003 Closure can only be reported after a deposit has been reported.
-- BR-004 Only the listing creator (agent) can report deposit, closure, cancellation, or sold-out.
+- BR-004 Any agent can report deposit, closure, cancellation, or sold-out on any listing (not just their own). Only the listing owner can edit listing info.
 - BR-005 Only an APPROVER or ADMIN can confirm approval/rejection decisions.
 - BR-006 A rejected listing returns to DRAFT status for revision.
 - BR-007 A listing must have at least one image before submission.
 - BR-008 Commission must be specified for all transaction types (SANG_NHUONG, CHO_THUE, BAN).
 - BR-009 Hot products are visible on the homepage with a HOT badge.
-- BR-010 Users can only see their own notifications.
+- BR-010 Users can see notifications scoped to their role: agents see only relevant notifications, admins see all system-wide notifications.
 - BR-011 Commission can be either a percentage (%) or fixed amount (VNĐ).
 - BR-012 Product code is auto-generated in format YYMMDD + random digits (e.g., 2505202605828).
 - BR-013 Location uses a 3-level cascade: City → District → Ward (Ward disabled until District selected).

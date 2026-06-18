@@ -19,12 +19,14 @@ Approve or reject items in a single queue. One template applies to all 15 queues
 - Queue name (e.g., "Duyệt bài đăng — BÁN")
 - Pending count
 
-### Item List (table/grid)
-Each item shows:
+### Item List (listing cards)
+Each item is displayed as a listing card (not a table grid):
 - Listing title (linked to product detail)
 - Product code
 - Agent name
 - Submitted date
+- Cover image
+- Status badge
 - Status-specific details:
   - Deposit: customer name, phone, amount
   - Closure/cancellation/sold-out: reporter name, notes
@@ -45,6 +47,11 @@ Each item shows:
 - Listing
 - Approval
 - DealEvent
+
+## Access
+
+- **Admin only**: All 15 queues accessible via sidebar accordion menus
+- **Agent**: Not accessible — returns "Bạn không có quyền truy cập trang này"
 
 ## Related Stories
 

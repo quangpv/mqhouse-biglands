@@ -19,7 +19,7 @@ Columns:
 - Full name
 - Username
 - Phone
-- Role (AGENT / APPROVER / ADMIN)
+- Role (displays organization/team names like "MQ Land", "ID Land" — not AGENT/APPROVER/ADMIN enum values as documented in entity definitions)
 - Status (Active / Inactive badge)
 - Created date
 - Actions (Edit, Deactivate/Activate)

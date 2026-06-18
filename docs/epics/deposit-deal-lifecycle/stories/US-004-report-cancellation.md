@@ -15,7 +15,6 @@ pending approval.
 ## Preconditions
 
 - User is logged in as Agent
-- Listing belongs to current user
 - Listing status is DEPOSITED
 
 ## Acceptance Criteria

@@ -14,7 +14,6 @@ Deal Closure). This creates a Closure Reported event pending approval.
 ## Preconditions
 
 - User is logged in as Agent
-- Listing belongs to current user
 - Listing status is DEPOSITED (deposit confirmed)
 
 ## Acceptance Criteria

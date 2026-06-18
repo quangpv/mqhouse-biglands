@@ -1,0 +1,2 @@
+[      28ms] [ERROR] Blocked confirm('Bạn có thực sự muốn rời đi? Bạn có các thay đổi chưa lưu!') during beforeunload. @ https://biglands.vn/gio-hang/tao/:0
+[   10837ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://biglands.vn/gio-hang/213bbf87-e816-44d0-ae6b-1be12b6f4ea9:0
