@@ -30,21 +30,21 @@ async def get(result: ListingDetailResponse = Depends(get_listing)):
     return result
 
 
-@router.put("/{listing_id}", response_model=ListingResponse, dependencies=[Depends(require_role("AGENT", "ADMIN"))])
+@router.put("/{listing_id}", response_model=ListingResponse, dependencies=[Depends(require_role("AGENT", "APPROVER", "ADMIN"))])
 async def update(result: ListingResponse = Depends(update_listing)):
     return result
 
 
-@router.delete("/{listing_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(require_role("AGENT", "ADMIN"))])
+@router.delete("/{listing_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(require_role("AGENT", "APPROVER", "ADMIN"))])
 async def delete(result = Depends(delete_listing)):
     return result
 
 
-@router.post("/{listing_id}/submit", response_model=ListingResponse, dependencies=[Depends(require_role("AGENT", "ADMIN"))])
+@router.post("/{listing_id}/submit", response_model=ListingResponse, dependencies=[Depends(require_role("AGENT", "APPROVER", "ADMIN"))])
 async def submit(result: ListingResponse = Depends(submit_listing)):
     return result
 
 
-@router.post("/{listing_id}/withdraw", response_model=ListingResponse, dependencies=[Depends(require_role("AGENT", "ADMIN"))])
+@router.post("/{listing_id}/withdraw", response_model=ListingResponse, dependencies=[Depends(require_role("AGENT", "APPROVER", "ADMIN"))])
 async def withdraw(result: ListingResponse = Depends(withdraw_listing)):
     return result

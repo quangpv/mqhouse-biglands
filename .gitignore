@@ -1,2 +1,4 @@
 crawler.py
 data/
+uploads/
+__pycache__/

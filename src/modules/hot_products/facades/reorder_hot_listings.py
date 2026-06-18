@@ -27,13 +27,18 @@ async def reorder_hot_listings(
     if len(data.listing_ids) != len(set(data.listing_ids)):
         raise BadRequestError("Duplicate listing_ids are not allowed")
 
+    listings = await listing_repo.get_by_ids(data.listing_ids)
+    listing_map = {l.id: l for l in listings}
+
     updated = []
     for idx, lid in enumerate(data.listing_ids):
-        listing = await listing_repo.get(lid)
+        listing = listing_map.get(lid)
         if listing is None:
             raise NotFoundError(f"Listing {lid} not found")
         listing.hot_order = idx + 1
-        listing = await listing_repo.save(listing)
         updated.append(listing)
+
+    for listing in updated:
+        listing = await listing_repo.save(listing)
 
     return [listing_to_hot_response(l) for l in updated]

@@ -1,6 +1,7 @@
 from fastapi import Depends, Body
 
 from src.data.repositories.user_repo import UserRepo
+from src.modules.auth.mapper import user_to_response
 from src.modules.auth.schemas import LoginRequest, LoginResponse
 from src.platform.security import create_jwt, verify_password
 from src.shared.errors.exceptions import UnauthorizedError
@@ -18,5 +19,5 @@ async def login(
     if not verify_password(data.password, user.password_hash):
         raise UnauthorizedError("Invalid credentials")
 
-    token = create_jwt(user.id, user.role.value)
-    return LoginResponse(access_token=token)
+    jwt_token = create_jwt(user.id, user.role.value)
+    return LoginResponse(token=jwt_token, user=user_to_response(user))

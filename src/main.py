@@ -4,7 +4,9 @@ from typing import Any
 
 from fastapi import FastAPI
 
+from src.data.expire_listings import expire_listings
 from src.platform.config import settings
+from src.platform.scheduler import AppScheduler
 from src.modules.auth import module as auth_module
 from src.modules.users import module as users_module
 from src.modules.listings import module as listings_module
@@ -29,10 +31,15 @@ MODULES: list[Callable[[], Any]] = [
     user_settings_module,
 ]
 
+scheduler = AppScheduler()
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
+    scheduler.add_job(expire_listings, trigger="interval", minutes=5, id="expire_listings")
+    scheduler.start()
     yield
+    scheduler.stop()
 
 
 def create_app() -> FastAPI:

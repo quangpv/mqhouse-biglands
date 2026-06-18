@@ -1,15 +1,20 @@
 import uuid
 
 from fastapi import Depends, HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.data.entities.deal_event import DealEventEntity, DealEventType
 from src.data.entities.listing import ListingStatus
-from src.data.entities.user import UserEntity
+from src.data.entities.notification import ReferenceType
+from src.data.entities.user import UserEntity, UserRole
+from src.data.notifications import send_notification
 from src.data.repositories.deal_event_repo import DealEventRepo
 from src.data.repositories.listing_repo import ListingRepo
+from src.data.repositories.user_repo import UserRepo
 from src.modules.deal_events.mapper import deal_event_to_response
 from src.modules.deal_events.schemas import DealEventResponse, ReportClosureRequest
 from src.platform.auth import get_current_user
+from src.platform.dependencies import get_db
 from src.shared.errors.exceptions import NotFoundError
 
 
@@ -19,6 +24,8 @@ async def report_closure(
     current_user: UserEntity = Depends(get_current_user),
     repo: ListingRepo = Depends(ListingRepo),
     deal_repo: DealEventRepo = Depends(DealEventRepo),
+    user_repo: UserRepo = Depends(UserRepo),
+    db: AsyncSession = Depends(get_db),
 ) -> DealEventResponse:
     listing = await repo.get(listing_id)
     if listing is None:
@@ -33,4 +40,14 @@ async def report_closure(
         notes=data.notes,
     )
     event = await deal_repo.create(event)
+
+    approvers = await user_repo.list_by_role(UserRole.APPROVER)
+    for approver in approvers:
+        await send_notification(
+            db=db, user_id=approver.id, event_type="closure_reported",
+            title=f"Closure reported for listing {listing.code}",
+            body=f"A closure has been reported by {current_user.full_name}.",
+            reference_type=ReferenceType.DEAL_EVENT, reference_id=event.id,
+        )
+
     return deal_event_to_response(event)

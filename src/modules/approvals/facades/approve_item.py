@@ -2,17 +2,21 @@ import uuid
 from datetime import datetime, timezone
 
 from fastapi import Depends, HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.data.entities.approval import ApprovalEntity, ApprovalType, DecisionType
-from src.data.entities.deal_event import DealEventType
+from src.data.entities.deal_event import DealEventEntity, DealEventType
 from src.data.entities.listing import ListingStatus
+from src.data.entities.notification import ReferenceType
 from src.data.entities.user import UserEntity
+from src.data.notifications import send_notification
 from src.data.repositories.approval_repo import ApprovalRepo
 from src.data.repositories.deal_event_repo import DealEventRepo
 from src.data.repositories.listing_repo import ListingRepo
 from src.modules.approvals.mapper import approval_to_response
 from src.modules.approvals.schemas import ApproveResponse
 from src.platform.auth import get_current_user
+from src.platform.dependencies import get_db
 from src.shared.errors.exceptions import ConflictError, NotFoundError
 
 APPROVED_STATUS_MAP = {
@@ -37,10 +41,17 @@ async def approve_item(
     listing_repo: ListingRepo = Depends(ListingRepo),
     deal_repo: DealEventRepo = Depends(DealEventRepo),
     approval_repo: ApprovalRepo = Depends(ApprovalRepo),
+    db: AsyncSession = Depends(get_db),
 ) -> ApproveResponse:
-    listing = await listing_repo.get(listing_id)
+    listing = await listing_repo.get_with_lock(listing_id)
     if listing is None:
         raise NotFoundError("Listing not found")
+
+    if listing.created_by_id == current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Approver cannot approve their own listing",
+        )
 
     approval_type = None
     deal_event = None
@@ -81,10 +92,18 @@ async def approve_item(
     await listing_repo.save(listing)
 
     if deal_event is not None:
-        deal_event.event_type = APPROVAL_TO_CONFIRMED_EVENT[approval_type]
-        deal_event.confirmed_by_id = current_user.id
-        deal_event.confirmed_at = now
-        await deal_repo.save(deal_event)
+        confirmed_event = DealEventEntity(
+            listing_id=listing_id,
+            event_type=APPROVAL_TO_CONFIRMED_EVENT[approval_type],
+            reported_by_id=deal_event.reported_by_id,
+            confirmed_by_id=current_user.id,
+            confirmed_at=now,
+            notes=deal_event.notes,
+            customer_name=deal_event.customer_name,
+            customer_phone=deal_event.customer_phone,
+            deposit_amount=deal_event.deposit_amount,
+        )
+        await deal_repo.create(confirmed_event)
 
     approval = ApprovalEntity(
         listing_id=listing_id,
@@ -93,6 +112,20 @@ async def approve_item(
         decided_by_id=current_user.id,
     )
     approval = await approval_repo.create(approval)
+
+    event_type_key = {
+        ApprovalType.LISTING_POST: "listing_post_approved",
+        ApprovalType.DEPOSIT: "deposit_confirmed",
+        ApprovalType.CLOSURE: "closure_confirmed",
+        ApprovalType.CANCELLATION: "cancellation_confirmed",
+        ApprovalType.SOLD_OUT: "sold_out_confirmed",
+    }[approval_type]
+    await send_notification(
+        db=db, user_id=listing.created_by_id, event_type=event_type_key,
+        title=f"Listing {listing.code} {approval_type.value.lower().replace('_', ' ')} approved",
+        body=f"Your listing {listing.title} has been approved by {current_user.full_name}.",
+        reference_type=ReferenceType.LISTING, reference_id=listing_id,
+    )
 
     return approval_to_response({
         "id": approval.id,

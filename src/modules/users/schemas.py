@@ -20,6 +20,7 @@ class UpdateUserRequest(BaseModel):
     full_name: str | None = Field(None, min_length=1, max_length=255)
     phone: str | None = Field(None, max_length=20)
     email: str | None = Field(None, max_length=255)
+    password: str | None = Field(None, min_length=6)
 
 
 class AssignRoleRequest(BaseModel):

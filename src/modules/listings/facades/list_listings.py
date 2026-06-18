@@ -1,6 +1,6 @@
 from fastapi import Depends, Query
 
-from src.data.entities.user import UserEntity, UserRole
+from src.data.entities.user import UserEntity
 from src.data.repositories.listing_repo import ListingRepo
 from src.modules.listings.mapper import listing_to_response
 from src.modules.listings.schemas import ListingListResponse, ListingResponse
@@ -19,11 +19,12 @@ async def list_listings(
     filter_by: str | None = Query(default=None),
     sort_by: str | None = Query(default=None),
     sort_order: str | None = Query(default=None),
+    owner_id: str | None = Query(default=None, description="Filter by owner. Use 'me' for current user."),
     current_user: UserEntity | None = Depends(get_current_user),
     db=Depends(get_db),
     repo: ListingRepo = Depends(ListingRepo),
 ) -> ListingListResponse:
-    owner_id = current_user.id if current_user.role != UserRole.ADMIN else None
+    resolved_owner_id = current_user.id if owner_id == "me" else (None if owner_id is None else owner_id)
     query = repo.build_list_query(
         search=search,
         transaction_type=transaction_type,
@@ -32,7 +33,7 @@ async def list_listings(
         filter_by=filter_by,
         sort_by=sort_by,
         sort_order=sort_order,
-        owner_id=owner_id,
+        owner_id=resolved_owner_id,
     )
     rows, total = await paginate(db, query, page=page, size=size)
     items = [listing_to_response(l) for l in rows]

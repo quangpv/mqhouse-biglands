@@ -12,21 +12,21 @@ from src.platform.auth import require_role
 router = APIRouter(prefix="/listings/{listing_id}/deal-events", tags=["deal_events"])
 
 
-@router.post("/deposit", response_model=DealEventResponse, status_code=status.HTTP_201_CREATED, dependencies=[Depends(require_role("AGENT", "ADMIN"))])
+@router.post("/deposit", response_model=DealEventResponse, status_code=status.HTTP_201_CREATED, dependencies=[Depends(require_role("AGENT", "APPROVER", "ADMIN"))])
 async def deposit(result: DealEventResponse = Depends(report_deposit)):
     return result
 
 
-@router.post("/closure", response_model=DealEventResponse, status_code=status.HTTP_201_CREATED, dependencies=[Depends(require_role("AGENT", "ADMIN"))])
+@router.post("/closure", response_model=DealEventResponse, status_code=status.HTTP_201_CREATED, dependencies=[Depends(require_role("AGENT", "APPROVER", "ADMIN"))])
 async def closure(result: DealEventResponse = Depends(report_closure)):
     return result
 
 
-@router.post("/cancellation", response_model=DealEventResponse, status_code=status.HTTP_201_CREATED, dependencies=[Depends(require_role("AGENT", "ADMIN"))])
+@router.post("/cancellation", response_model=DealEventResponse, status_code=status.HTTP_201_CREATED, dependencies=[Depends(require_role("AGENT", "APPROVER", "ADMIN"))])
 async def cancellation(result: DealEventResponse = Depends(report_cancellation)):
     return result
 
 
-@router.post("/sold-out", response_model=DealEventResponse, status_code=status.HTTP_201_CREATED, dependencies=[Depends(require_role("AGENT", "ADMIN"))])
+@router.post("/sold-out", response_model=DealEventResponse, status_code=status.HTTP_201_CREATED, dependencies=[Depends(require_role("AGENT", "APPROVER", "ADMIN"))])
 async def sold_out(result: DealEventResponse = Depends(report_sold_out)):
     return result

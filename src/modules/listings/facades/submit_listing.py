@@ -1,14 +1,19 @@
 import uuid
 
 from fastapi import Depends, HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.data.entities.listing import ListingStatus
-from src.data.entities.user import UserEntity
-from src.data.repositories.listing_repo import ListingRepo
+from src.data.entities.notification import ReferenceType
+from src.data.entities.user import UserEntity, UserRole
+from src.data.notifications import send_notification
 from src.data.repositories.listing_image_repo import ListingImageRepo
+from src.data.repositories.listing_repo import ListingRepo
+from src.data.repositories.user_repo import UserRepo
 from src.modules.listings.mapper import listing_to_response
 from src.modules.listings.schemas import ListingResponse
 from src.platform.auth import get_current_user
+from src.platform.dependencies import get_db
 from src.shared.errors.exceptions import NotFoundError
 from src.shared.utils.status_machine import validate_transition
 
@@ -18,6 +23,8 @@ async def submit_listing(
     current_user: UserEntity = Depends(get_current_user),
     repo: ListingRepo = Depends(ListingRepo),
     image_repo: ListingImageRepo = Depends(ListingImageRepo),
+    user_repo: UserRepo = Depends(UserRepo),
+    db: AsyncSession = Depends(get_db),
 ) -> ListingResponse:
     listing = await repo.get(listing_id)
     if listing is None:
@@ -34,4 +41,14 @@ async def submit_listing(
 
     listing.status = ListingStatus.PENDING_APPROVAL
     listing = await repo.save(listing)
+
+    approvers = await user_repo.list_by_role(UserRole.APPROVER)
+    for approver in approvers:
+        await send_notification(
+            db=db, user_id=approver.id, event_type="listing_post_created",
+            title=f"New listing pending approval: {listing.code}",
+            body=f"Listing {listing.title} has been submitted by {current_user.full_name}.",
+            reference_type=ReferenceType.LISTING, reference_id=listing_id,
+        )
+
     return listing_to_response(listing)

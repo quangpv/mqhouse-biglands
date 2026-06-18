@@ -4,6 +4,7 @@ from fastapi import Depends, HTTPException, status
 
 from src.data.entities.listing import ListingStatus
 from src.data.entities.user import UserEntity
+from src.data.repositories.deal_event_repo import DealEventRepo
 from src.data.repositories.listing_repo import ListingRepo
 from src.modules.listings.mapper import listing_to_response
 from src.modules.listings.schemas import ListingResponse
@@ -16,6 +17,7 @@ async def withdraw_listing(
     listing_id: uuid.UUID,
     current_user: UserEntity = Depends(get_current_user),
     repo: ListingRepo = Depends(ListingRepo),
+    deal_repo: DealEventRepo = Depends(DealEventRepo),
 ) -> ListingResponse:
     listing = await repo.get(listing_id)
     if listing is None:
@@ -23,6 +25,12 @@ async def withdraw_listing(
 
     if listing.created_by_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only the listing owner can withdraw")
+
+    if await deal_repo.has_active_deposit(listing_id):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Cannot withdraw listing with an active pending deposit. Cancel the deposit first.",
+        )
 
     validate_transition(listing.status, ListingStatus.DRAFT)
 

@@ -23,6 +23,7 @@ def create_jwt(user_id: uuid.UUID, role: str) -> str:
         "sub": str(user_id),
         "role": role,
         "iat": now,
+        "jti": str(uuid.uuid4()),
         "exp": now + timedelta(minutes=settings.jwt_expire_minutes),
     }
     return jwt.encode(payload, settings.secret_key, algorithm=settings.jwt_algorithm)

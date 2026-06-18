@@ -1,7 +1,7 @@
 import uuid
 
 from fastapi import Depends
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.data.entities.listing import ListingEntity, ListingStatus
@@ -30,9 +30,9 @@ async def promote_to_hot(
         return listing_to_hot_response(listing)
 
     count_result = await db.execute(
-        select(ListingEntity).where(ListingEntity.is_hot.is_(True))
+        select(func.count(ListingEntity.id)).where(ListingEntity.is_hot.is_(True))
     )
-    hot_count = len(count_result.scalars().all())
+    hot_count = count_result.scalar_one()
     if hot_count >= settings.max_hot_items:
         raise ConflictError(detail=f"Maximum {settings.max_hot_items} hot listings allowed")
 

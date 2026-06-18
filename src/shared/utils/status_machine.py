@@ -8,7 +8,7 @@ STATUS_TRANSITIONS: dict[ListingStatus, set[ListingStatus]] = {
     ListingStatus.CON_HANG: {ListingStatus.DA_COC, ListingStatus.HET_HANG, ListingStatus.DRAFT, ListingStatus.QUA_HAN},
     ListingStatus.DA_COC: {ListingStatus.DA_CHOT, ListingStatus.HUY_COC},
     ListingStatus.DA_CHOT: set(),
-    ListingStatus.HUY_COC: {ListingStatus.CON_HANG},
+    ListingStatus.HUY_COC: set(),
     ListingStatus.HET_HANG: set(),
     ListingStatus.QUA_HAN: set(),
 }

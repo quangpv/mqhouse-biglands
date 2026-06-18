@@ -71,6 +71,7 @@ class UpdateListingRequest(BaseModel):
     road_width: str | None = None
     owner_phone: str | None = None
     video_url: str | None = None
+    action: str | None = None  # "submit" to immediately submit for approval after update
 
 
 class ListingResponse(BaseModel):

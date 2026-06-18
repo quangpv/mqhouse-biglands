@@ -4,6 +4,7 @@ from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from src.data.entities.user import UserEntity
+from src.data.repositories.token_blacklist_repo import TokenBlacklistRepo
 from src.data.repositories.user_repo import UserRepo
 from src.platform.security import decode_jwt
 from src.shared.errors.exceptions import ForbiddenError, UnauthorizedError
@@ -14,6 +15,7 @@ bearer_scheme = HTTPBearer(auto_error=False)
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
     repo: UserRepo = Depends(UserRepo),
+    blacklist_repo: TokenBlacklistRepo = Depends(TokenBlacklistRepo),
 ) -> UserEntity:
     if credentials is None:
         raise UnauthorizedError("Missing authorization header")
@@ -22,6 +24,10 @@ async def get_current_user(
     user_id = payload.get("sub")
     if user_id is None:
         raise UnauthorizedError("Invalid or expired token")
+
+    jti = payload.get("jti")
+    if jti and await blacklist_repo.is_blacklisted(jti):
+        raise UnauthorizedError("Token has been revoked")
 
     user = await repo.get(uuid.UUID(user_id))
     if user is None:

@@ -2,17 +2,21 @@ import uuid
 from datetime import datetime, timezone
 
 from fastapi import Depends
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.data.entities.approval import ApprovalEntity, ApprovalType, DecisionType
 from src.data.entities.deal_event import DealEventType
 from src.data.entities.listing import ListingStatus
+from src.data.entities.notification import ReferenceType
 from src.data.entities.user import UserEntity
+from src.data.notifications import send_notification
 from src.data.repositories.approval_repo import ApprovalRepo
 from src.data.repositories.deal_event_repo import DealEventRepo
 from src.data.repositories.listing_repo import ListingRepo
 from src.modules.approvals.mapper import approval_to_response
 from src.modules.approvals.schemas import ApproveResponse, RejectRequest
 from src.platform.auth import get_current_user
+from src.platform.dependencies import get_db
 from src.shared.errors.exceptions import ConflictError, NotFoundError
 
 REJECTED_STATUS_MAP = {
@@ -31,8 +35,9 @@ async def reject_item(
     listing_repo: ListingRepo = Depends(ListingRepo),
     deal_repo: DealEventRepo = Depends(DealEventRepo),
     approval_repo: ApprovalRepo = Depends(ApprovalRepo),
+    db: AsyncSession = Depends(get_db),
 ) -> ApproveResponse:
-    listing = await listing_repo.get(listing_id)
+    listing = await listing_repo.get_with_lock(listing_id)
     if listing is None:
         raise NotFoundError("Listing not found")
 
@@ -72,8 +77,6 @@ async def reject_item(
     await listing_repo.save(listing)
 
     if deal_event is not None:
-        deal_event.confirmed_by_id = current_user.id
-        deal_event.confirmed_at = now
         deal_event.notes = data.reason
         await deal_repo.save(deal_event)
 
@@ -85,6 +88,20 @@ async def reject_item(
         reason=data.reason,
     )
     approval = await approval_repo.create(approval)
+
+    event_type_key = {
+        ApprovalType.LISTING_POST: "listing_post_rejected",
+        ApprovalType.DEPOSIT: "deposit_rejected",
+        ApprovalType.CLOSURE: "closure_rejected",
+        ApprovalType.CANCELLATION: "cancellation_rejected",
+        ApprovalType.SOLD_OUT: "sold_out_rejected",
+    }[approval_type]
+    await send_notification(
+        db=db, user_id=listing.created_by_id, event_type=event_type_key,
+        title=f"Listing {listing.code} {approval_type.value.lower().replace('_', ' ')} rejected",
+        body=f"Your listing {listing.title} was rejected. Reason: {data.reason}",
+        reference_type=ReferenceType.LISTING, reference_id=listing_id,
+    )
 
     return approval_to_response({
         "id": approval.id,
