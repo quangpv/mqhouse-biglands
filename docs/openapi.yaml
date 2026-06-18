@@ -1,0 +1,2404 @@
+openapi: "3.0.3"
+info:
+  title: Biglands API
+  description: |
+    Biglands — Bất động sản CHDV platform. API for managing property listings,
+    deposits, deal lifecycle, user management, approvals, and notifications.
+
+    **Base URL**: `/api/v1`
+    **Auth**: Bearer JWT (24h expiry)
+    **Pagination**: offset-based (`page`, `size`)
+  version: "1.0.0"
+
+servers:
+  - url: /api/v1
+    description: Biglands API v1
+
+paths:
+  # ──────────────────────────────────────────────
+  #  AUTH
+  # ──────────────────────────────────────────────
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Authenticate user
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Invalidate current session
+      operationId: logout
+      security:
+        - BearerAuth: []
+      responses:
+        "204":
+          description: Logout successful
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /auth/me:
+    get:
+      tags: [Auth]
+      summary: Get current user profile
+      operationId: getCurrentUser
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Current user data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  # ──────────────────────────────────────────────
+  #  USERS
+  # ──────────────────────────────────────────────
+  /users:
+    post:
+      tags: [Users]
+      summary: Create a new user (Admin only)
+      operationId: createUser
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateUserRequest"
+      responses:
+        "201":
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          description: Username already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+    get:
+      tags: [Users]
+      summary: List all users (Admin only)
+      operationId: listUsers
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/page"
+        - $ref: "#/components/parameters/size"
+        - name: role
+          in: query
+          schema:
+            $ref: "#/components/schemas/UserRole"
+          description: Filter by role
+          required: false
+        - name: isActive
+          in: query
+          schema:
+            type: boolean
+          description: Filter by active status
+          required: false
+        - name: search
+          in: query
+          schema:
+            type: string
+            maxLength: 100
+          description: Search by name, username, or phone
+          required: false
+      responses:
+        "200":
+          description: Paginated user list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /users/{id}:
+    get:
+      tags: [Users]
+      summary: Get user by ID
+      operationId: getUser
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/userId"
+      responses:
+        "200":
+          description: User data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    put:
+      tags: [Users]
+      summary: Update user info (Admin only)
+      operationId: updateUser
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/userId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserRequest"
+      responses:
+        "200":
+          description: User updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /users/{id}/deactivate:
+    patch:
+      tags: [Users]
+      summary: Deactivate a user (Admin only; last-Admin protection)
+      operationId: deactivateUser
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/userId"
+      responses:
+        "200":
+          description: User deactivated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Cannot deactivate last active Admin (USR-I01)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /users/{id}/reactivate:
+    patch:
+      tags: [Users]
+      summary: Reactivate a deactivated user (Admin only)
+      operationId: reactivateUser
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/userId"
+      responses:
+        "200":
+          description: User reactivated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /users/{id}/role:
+    patch:
+      tags: [Users]
+      summary: Assign role to user (Admin only; last-Admin protection)
+      operationId: assignRole
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/userId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssignRoleRequest"
+      responses:
+        "200":
+          description: Role updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Cannot change role of last active Admin (USR-I01)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  # ──────────────────────────────────────────────
+  #  LISTINGS
+  # ──────────────────────────────────────────────
+  /listings:
+    post:
+      tags: [Listings]
+      summary: Create a new listing (Agent/Admin)
+      operationId: createListing
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateListingRequest"
+      responses:
+        "201":
+          description: Listing created (DRAFT or PENDING_APPROVAL depending on save vs submit)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Listing"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+    get:
+      tags: [Listings]
+      summary: Browse listings with search, filters, and pagination
+      operationId: listListings
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/page"
+        - $ref: "#/components/parameters/size"
+        - name: q
+          in: query
+          schema:
+            type: string
+            maxLength: 200
+          description: Search term (matches code, title, description, address, ward, district)
+          required: false
+        - name: transactionType
+          in: query
+          schema:
+            $ref: "#/components/schemas/TransactionType"
+          required: false
+        - name: status
+          in: query
+          schema:
+            $ref: "#/components/schemas/ListingStatus"
+          required: false
+          description: "Default: CON_HANG, DA_COC (visible listings only)"
+        - name: filter
+          in: query
+          schema:
+            type: string
+            enum: [all, hot, pinned]
+          description: Filter tab
+          required: false
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum: [createdAt, price, viewCount]
+          default: createdAt
+          required: false
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+          default: desc
+          required: false
+      responses:
+        "200":
+          description: Paginated listing list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListingListResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /listings/{id}:
+    get:
+      tags: [Listings]
+      summary: Get listing detail with full data
+      operationId: getListing
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/listingId"
+      responses:
+        "200":
+          description: Full listing detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListingDetailResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    put:
+      tags: [Listings]
+      summary: Edit listing (owner only)
+      operationId: updateListing
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/listingId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateListingRequest"
+      responses:
+        "200":
+          description: Listing updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Listing"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    delete:
+      tags: [Listings]
+      summary: Delete a DRAFT listing (owner only)
+      operationId: deleteListing
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/listingId"
+      responses:
+        "204":
+          description: Listing permanently deleted
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+          description: "Only DRAFT listings can be deleted (LST-I06)"
+
+  # ──────────────────────────────────────────────
+  #  LISTING ACTIONS
+  # ──────────────────────────────────────────────
+  /listings/{id}/submit:
+    post:
+      tags: [Listings]
+      summary: Submit DRAFT listing for approval
+      operationId: submitListing
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/listingId"
+      responses:
+        "200":
+          description: Listing moved to PENDING_APPROVAL
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Listing"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+          description: "Missing required fields or images (LST-C03)"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: "Listing is not in DRAFT status"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /listings/{id}/withdraw:
+    post:
+      tags: [Listings]
+      summary: Withdraw CON_HANG listing back to DRAFT
+      operationId: withdrawListing
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/listingId"
+      responses:
+        "200":
+          description: Listing returned to DRAFT
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Listing"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: "Listing status is not CON_HANG"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  # ──────────────────────────────────────────────
+  #  LISTING IMAGES
+  # ──────────────────────────────────────────────
+  /listings/{id}/images:
+    post:
+      tags: [Images]
+      summary: Upload an image to a listing
+      operationId: uploadImage
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/listingId"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Image file (JPEG, PNG, WEBP; max 10MB)
+              required: [file]
+      responses:
+        "201":
+          description: Image uploaded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListingImage"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+          description: "Max 20 images per listing (BR-014) or invalid file type"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    put:
+      tags: [Images]
+      summary: Reorder images for a listing
+      operationId: reorderImages
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/listingId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReorderImagesRequest"
+      responses:
+        "200":
+          description: Images reordered
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ListingImage"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /listings/{listingId}/images/{imageId}:
+    delete:
+      tags: [Images]
+      summary: Delete an image from a listing
+      operationId: deleteImage
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/listingId"
+        - $ref: "#/components/parameters/imageId"
+      responses:
+        "204":
+          description: Image deleted
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /listings/{listingId}/images/{imageId}/primary:
+    put:
+      tags: [Images]
+      summary: Set an image as the primary (cover) image
+      operationId: setPrimaryImage
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/listingId"
+        - $ref: "#/components/parameters/imageId"
+      responses:
+        "200":
+          description: Primary image set
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListingImage"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # ──────────────────────────────────────────────
+  #  DEAL EVENTS
+  # ──────────────────────────────────────────────
+  /listings/{id}/deal-events/deposit:
+    post:
+      tags: [Deal Events]
+      summary: Report a customer deposit (Agent)
+      operationId: reportDeposit
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/listingId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReportDepositRequest"
+      responses:
+        "201":
+          description: Deposit reported — pending approval
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DealEvent"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: "Listing not in CON_HANG status or duplicate active deposit (DE-I02)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /listings/{id}/deal-events/closure:
+    post:
+      tags: [Deal Events]
+      summary: Report deal closure (Agent)
+      operationId: reportClosure
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/listingId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReportClosureRequest"
+      responses:
+        "201":
+          description: Closure reported — pending approval
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DealEvent"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: "Listing not in DA_COC status"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /listings/{id}/deal-events/cancellation:
+    post:
+      tags: [Deal Events]
+      summary: Report deposit cancellation (Agent)
+      operationId: reportCancellation
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/listingId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReportCancellationRequest"
+      responses:
+        "201":
+          description: Cancellation reported — pending approval
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DealEvent"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: "Listing not in DA_COC status"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /listings/{id}/deal-events/sold-out:
+    post:
+      tags: [Deal Events]
+      summary: Report listing as sold out (Agent)
+      operationId: reportSoldOut
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/listingId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReportSoldOutRequest"
+      responses:
+        "201":
+          description: Sold-out reported — pending approval
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DealEvent"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: "Listing not in CON_HANG status"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  # ──────────────────────────────────────────────
+  #  APPROVALS
+  # ──────────────────────────────────────────────
+  /approvals/queues:
+    get:
+      tags: [Approvals]
+      summary: List approval queues grouped by type and transaction type
+      operationId: listApprovalQueues
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Queue summary with pending counts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApprovalQueuesResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /approvals/queues/{queueType}:
+    get:
+      tags: [Approvals]
+      summary: List items pending approval in a specific queue
+      operationId: listApprovalQueueItems
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: queueType
+          in: path
+          required: true
+          schema:
+            type: string
+            enum:
+              - listing-post
+              - deposit
+              - closure
+              - cancellation
+              - sold-out
+          description: Approval queue type
+        - name: transactionType
+          in: query
+          schema:
+            $ref: "#/components/schemas/TransactionType"
+          description: Filter by transaction type
+          required: false
+        - $ref: "#/components/parameters/page"
+        - $ref: "#/components/parameters/size"
+      responses:
+        "200":
+          description: Paginated list of pending items
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApprovalQueueItemListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /approvals/{id}:
+    get:
+      tags: [Approvals]
+      summary: Get approval record detail
+      operationId: getApprovalDetail
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/approvalId"
+      responses:
+        "200":
+          description: Approval record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Approval"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /approvals/{id}/approve:
+    post:
+      tags: [Approvals]
+      summary: Approve a pending item
+      operationId: approveItem
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/approvalId"
+      responses:
+        "200":
+          description: Item approved; listing status updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Approval"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: "Already processed (APP-I02)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /approvals/{id}/reject:
+    post:
+      tags: [Approvals]
+      summary: Reject a pending item with reason
+      operationId: rejectItem
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/approvalId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RejectRequest"
+      responses:
+        "200":
+          description: Item rejected; listing returned to previous status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Approval"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+          description: "Rejection reason is required (APP-C02)"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: "Already processed (APP-I02)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /approvals/bulk-approve:
+    post:
+      tags: [Approvals]
+      summary: Bulk approve multiple pending listing-post items
+      operationId: bulkApprove
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BulkApproveRequest"
+      responses:
+        "200":
+          description: Bulk approval result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BulkApproveResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+          description: "At least one listing must be selected"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  # ──────────────────────────────────────────────
+  #  HOT PRODUCTS
+  # ──────────────────────────────────────────────
+  /listings/{id}/promote:
+    post:
+      tags: [Hot Products]
+      summary: Promote a CON_HANG listing to Hot (Admin only)
+      operationId: promoteToHot
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/listingId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PromoteToHotRequest"
+      responses:
+        "200":
+          description: Listing promoted to Hot
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Listing"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+          description: "Max 14 hot items exceeded (LST-C08)"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: "Listing must be in CON_HANG status (LST-C07)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+    delete:
+      tags: [Hot Products]
+      summary: Remove a listing from Hot (Admin only)
+      operationId: unpromoteFromHot
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/listingId"
+      responses:
+        "200":
+          description: Listing removed from Hot
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Listing"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /hot-listings:
+    get:
+      tags: [Hot Products]
+      summary: Get all hot listings sorted by hotOrder
+      operationId: getHotListings
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: List of hot listings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Listing"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /hot-listings/reorder:
+    put:
+      tags: [Hot Products]
+      summary: Reorder hot listings (Admin only)
+      operationId: reorderHotListings
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReorderHotListingsRequest"
+      responses:
+        "200":
+          description: Hot listings reordered
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Listing"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  # ──────────────────────────────────────────────
+  #  NOTIFICATIONS
+  # ──────────────────────────────────────────────
+  /notifications:
+    get:
+      tags: [Notifications]
+      summary: List current user's notifications (newest first)
+      operationId: listNotifications
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/page"
+        - $ref: "#/components/parameters/size"
+        - name: isRead
+          in: query
+          schema:
+            type: boolean
+          description: Filter by read status
+          required: false
+      responses:
+        "200":
+          description: Paginated notification list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /notifications/unread-count:
+    get:
+      tags: [Notifications]
+      summary: Get unread notification count
+      operationId: getUnreadCount
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Unread count
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                    minimum: 0
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /notifications/{id}/read:
+    patch:
+      tags: [Notifications]
+      summary: Mark a single notification as read
+      operationId: markNotificationRead
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/notificationId"
+      responses:
+        "200":
+          description: Notification marked as read
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Notification"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /notifications/read-all:
+    post:
+      tags: [Notifications]
+      summary: Mark all current user's notifications as read
+      operationId: markAllNotificationsRead
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: All notifications marked as read
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  updated:
+                    type: integer
+                    description: Number of notifications updated
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  # ──────────────────────────────────────────────
+  #  USER PINS
+  # ──────────────────────────────────────────────
+  /listings/{id}/pin:
+    put:
+      tags: [Pins]
+      summary: Pin a listing (toggle; idempotent)
+      operationId: pinListing
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/listingId"
+      responses:
+        "200":
+          description: Listing pinned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserPin"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    delete:
+      tags: [Pins]
+      summary: Unpin a listing (idempotent)
+      operationId: unpinListing
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/listingId"
+      responses:
+        "204":
+          description: Listing unpinned
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /users/me/pins:
+    get:
+      tags: [Pins]
+      summary: List current user's pinned listings
+      operationId: listMyPins
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/page"
+        - $ref: "#/components/parameters/size"
+      responses:
+        "200":
+          description: Paginated list of pinned listings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListingListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  # ──────────────────────────────────────────────
+  #  USER SETTINGS (ME)
+  # ──────────────────────────────────────────────
+  /users/me/notification-preferences:
+    get:
+      tags: [User Settings]
+      summary: Get current user's notification preferences
+      operationId: getNotificationPreferences
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Notification preferences
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationPreferences"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+    put:
+      tags: [User Settings]
+      summary: Update notification preferences
+      operationId: updateNotificationPreferences
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NotificationPreferences"
+      responses:
+        "200":
+          description: Preferences updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationPreferences"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: "JWT Bearer token. Issued via POST /auth/login. Expires in 24h."
+
+  parameters:
+    page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+      description: Page number (1-indexed)
+      required: false
+
+    size:
+      name: size
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+      description: Items per page
+      required: false
+
+    userId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: User UUID
+
+    listingId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Listing UUID
+
+    imageId:
+      name: imageId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Image UUID
+
+    approvalId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Approval UUID
+
+    notificationId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Notification UUID
+
+  responses:
+    ValidationError:
+      description: "Validation error — field-level or business-rule violation"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+
+    Unauthorized:
+      description: "Missing, invalid, or expired authentication token"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+
+    Forbidden:
+      description: "Authenticated but insufficient permissions or not the resource owner"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+
+    NotFound:
+      description: "Requested resource was not found"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+
+    Conflict:
+      description: "Resource conflict or invalid state transition"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+
+  schemas:
+    # ── Enums ──────────────────────────────────
+    UserRole:
+      type: string
+      enum: [AGENT, APPROVER, ADMIN]
+      description: "User role. ADMIN creates all users; APPROVER reviews listings; AGENT creates listings."
+
+    TransactionType:
+      type: string
+      enum: [SANG_NHUONG, CHO_THUE, BAN]
+      description: "Transaction type for a listing."
+
+    ListingStatus:
+      type: string
+      enum: [DRAFT, PENDING_APPROVAL, CON_HANG, DA_COC, HET_HANG, DA_CHOT, HUY_COC, QUA_HAN]
+      description: "Listing status machine. See domain-model.md §11 for state transitions."
+
+    CommissionType:
+      type: string
+      enum: [PERCENTAGE, FLAT]
+      description: "Required per BR-008, SC-004. PERCENTAGE = % of price; FLAT = fixed VND amount."
+
+    PropertyType:
+      type: string
+      enum: [NHA_PHO, CAN_HO, CHDV, DAT, BIET_THU, VAN_PHONG, MAT_BANG, KHO_XUONG, NHA_TRO, KHAC]
+      description: "Property type categories from create form Loại field."
+
+    EventType:
+      type: string
+      enum:
+        - DEPOSIT_REPORTED
+        - DEPOSIT_CONFIRMED
+        - CLOSURE_REPORTED
+        - CLOSURE_CONFIRMED
+        - CANCELLATION_REPORTED
+        - CANCELLATION_CONFIRMED
+        - SOLD_OUT_REPORTED
+        - SOLD_OUT_CONFIRMED
+
+    ApprovalType:
+      type: string
+      enum: [LISTING_POST, DEPOSIT, CANCELLATION, CLOSURE, SOLD_OUT]
+
+    Decision:
+      type: string
+      enum: [APPROVED, REJECTED]
+
+    ReferenceType:
+      type: string
+      enum: [LISTING, APPROVAL, DEAL_EVENT]
+
+    QueueType:
+      type: string
+      enum: [listing-post, deposit, closure, cancellation, sold-out]
+      description: "Approval queue type (URL-safe slug matching ApprovalType)"
+
+    # ── Auth ──────────────────────────────────
+    LoginRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+          maxLength: 100
+          description: Login username
+        password:
+          type: string
+          format: password
+          minLength: 8
+          maxLength: 128
+          description: Account password
+      description: "Username/password authentication. Password hashed with bcrypt/Argon2 (server-side)."
+
+    LoginResponse:
+      type: object
+      required: [token, user]
+      properties:
+        token:
+          type: string
+          description: JWT Bearer token (24h expiry)
+        user:
+          $ref: "#/components/schemas/User"
+
+    # ── User ──────────────────────────────────
+    User:
+      type: object
+      required: [id, fullName, username, role, isActive, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        fullName:
+          type: string
+          maxLength: 255
+        username:
+          type: string
+          maxLength: 100
+          description: Unique login username (USR-C01)
+        phone:
+          type: string
+          maxLength: 20
+          nullable: true
+        email:
+          type: string
+          format: email
+          maxLength: 255
+          nullable: true
+        role:
+          $ref: "#/components/schemas/UserRole"
+        isActive:
+          type: boolean
+          description: "User can log in and perform actions when true"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        createdBy:
+          type: string
+          format: uuid
+          nullable: true
+          description: Admin who created this user (USR-C05)
+
+    CreateUserRequest:
+      type: object
+      required: [fullName, username, password]
+      properties:
+        fullName:
+          type: string
+          maxLength: 255
+          minLength: 1
+          description: Display name
+        username:
+          type: string
+          maxLength: 100
+          minLength: 3
+          pattern: "^[a-zA-Z0-9_]+$"
+          description: Login username (unique — USR-C01)
+        phone:
+          type: string
+          maxLength: 20
+          description: Contact phone
+        email:
+          type: string
+          format: email
+          maxLength: 255
+          description: Email address
+        password:
+          type: string
+          format: password
+          minLength: 8
+          maxLength: 128
+          description: "Password (min 8 chars — USR-C02)"
+        role:
+          $ref: "#/components/schemas/UserRole"
+          default: AGENT
+
+    UpdateUserRequest:
+      type: object
+      properties:
+        fullName:
+          type: string
+          maxLength: 255
+          minLength: 1
+        phone:
+          type: string
+          maxLength: 20
+          nullable: true
+        email:
+          type: string
+          format: email
+          maxLength: 255
+          nullable: true
+        isActive:
+          type: boolean
+      description: "Partial update — only provided fields are changed"
+
+    AssignRoleRequest:
+      type: object
+      required: [role]
+      properties:
+        role:
+          $ref: "#/components/schemas/UserRole"
+
+    UserListResponse:
+      type: object
+      required: [data, pagination]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/User"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+
+    # ── Listing ────────────────────────────────
+    Listing:
+      type: object
+      required:
+        - id
+        - code
+        - transactionType
+        - propertyType
+        - description
+        - price
+        - commissionType
+        - commissionValue
+        - areaWidth
+        - areaLength
+        - totalArea
+        - numRooms
+        - numBathrooms
+        - numFloors
+        - streetName
+        - houseNumber
+        - address
+        - ward
+        - district
+        - city
+        - ownerPhone
+        - status
+        - createdById
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        code:
+          type: string
+          maxLength: 20
+          description: "Auto-generated: YYMMDD + random digits (LST-C01)"
+        transactionType:
+          $ref: "#/components/schemas/TransactionType"
+        propertyType:
+          $ref: "#/components/schemas/PropertyType"
+        title:
+          type: string
+          maxLength: 500
+          nullable: true
+          description: "Optional title with optional prefix (NNC, MT, HXH, CHDV)"
+        description:
+          type: string
+          description: Property description
+        price:
+          type: number
+          description: Price in VND
+        commissionType:
+          $ref: "#/components/schemas/CommissionType"
+        commissionValue:
+          type: number
+          description: "Percentage (e.g., 1.5) or fixed VND amount"
+        areaWidth:
+          type: number
+          format: float
+          description: Frontage width in meters
+        areaLength:
+          type: number
+          format: float
+          description: Property length in meters
+        totalArea:
+          type: number
+          format: float
+          description: "Total floor area in m² (may be computed)"
+        numRooms:
+          type: integer
+          minimum: 0
+          description: Number of bedrooms
+        numBathrooms:
+          type: integer
+          minimum: 0
+          description: Number of bathrooms/toilets
+        numFloors:
+          type: integer
+          minimum: 0
+          description: Number of floors
+        streetName:
+          type: string
+          maxLength: 255
+        houseNumber:
+          type: string
+          maxLength: 50
+        address:
+          type: string
+          maxLength: 500
+          description: "Full composite address"
+        ward:
+          type: string
+          maxLength: 100
+        district:
+          type: string
+          maxLength: 100
+        city:
+          type: string
+          maxLength: 100
+          default: "Hồ Chí Minh"
+        latitude:
+          type: number
+          format: float
+          nullable: true
+        longitude:
+          type: number
+          format: float
+          nullable: true
+        label:
+          type: string
+          maxLength: 100
+          nullable: true
+          description: "e.g., Thang máy, Nhà mới, Vị trí đẹp"
+        furnishing:
+          type: string
+          maxLength: 500
+          nullable: true
+          description: Furniture description
+        frontageType:
+          type: string
+          maxLength: 100
+          nullable: true
+          description: "Mặt tiền / Hẻm"
+        legalStatus:
+          type: string
+          maxLength: 500
+          nullable: true
+          description: Legal documentation
+        direction:
+          type: string
+          maxLength: 50
+          nullable: true
+          description: "Hướng — e.g., Đông, Tây, Nam, Bắc"
+        roadWidth:
+          type: string
+          maxLength: 50
+          nullable: true
+          description: Alley/road width
+        ownerPhone:
+          type: string
+          maxLength: 20
+          description: Property owner's contact phone
+        videoUrl:
+          type: string
+          format: uri
+          maxLength: 500
+          nullable: true
+          description: "YouTube video link (max 1 per listing — BR-014)"
+        status:
+          $ref: "#/components/schemas/ListingStatus"
+        isHot:
+          type: boolean
+          default: false
+          description: Promoted to Hot by Admin
+        hotOrder:
+          type: integer
+          nullable: true
+          description: Display order in Hot section
+        viewCount:
+          type: integer
+          default: 0
+        createdById:
+          type: string
+          format: uuid
+          description: Agent who created the listing
+        approvedById:
+          type: string
+          format: uuid
+          nullable: true
+          description: Approver who approved
+        approvedAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateListingRequest:
+      type: object
+      required:
+        - transactionType
+        - propertyType
+        - description
+        - price
+        - commissionType
+        - commissionValue
+        - areaWidth
+        - areaLength
+        - numRooms
+        - numBathrooms
+        - numFloors
+        - streetName
+        - houseNumber
+        - ward
+        - district
+        - ownerPhone
+      properties:
+        transactionType:
+          $ref: "#/components/schemas/TransactionType"
+        propertyType:
+          $ref: "#/components/schemas/PropertyType"
+        title:
+          type: string
+          maxLength: 500
+        description:
+          type: string
+          minLength: 1
+        price:
+          type: number
+          minimum: 0
+          description: Price in VND
+        commissionType:
+          $ref: "#/components/schemas/CommissionType"
+        commissionValue:
+          type: number
+          minimum: 0
+          description: "Percentage or fixed VND (BR-008)"
+        areaWidth:
+          type: number
+          format: float
+          minimum: 0
+          description: Frontage width in meters
+        areaLength:
+          type: number
+          format: float
+          minimum: 0
+          description: Property length in meters
+        numRooms:
+          type: integer
+          minimum: 0
+          default: 0
+        numBathrooms:
+          type: integer
+          minimum: 0
+          default: 0
+        numFloors:
+          type: integer
+          minimum: 0
+          default: 0
+        streetName:
+          type: string
+          maxLength: 255
+          minLength: 1
+        houseNumber:
+          type: string
+          maxLength: 50
+          minLength: 1
+        ward:
+          type: string
+          maxLength: 100
+          minLength: 1
+          description: Must be valid for the selected district (BR-013)
+        district:
+          type: string
+          maxLength: 100
+          minLength: 1
+          description: Must be valid for the selected city (BR-013)
+        city:
+          type: string
+          maxLength: 100
+          default: "Hồ Chí Minh"
+        latitude:
+          type: number
+          format: float
+        longitude:
+          type: number
+          format: float
+        label:
+          type: string
+          maxLength: 100
+        furnishing:
+          type: string
+          maxLength: 500
+        frontageType:
+          type: string
+          maxLength: 100
+        legalStatus:
+          type: string
+          maxLength: 500
+        direction:
+          type: string
+          maxLength: 50
+        roadWidth:
+          type: string
+          maxLength: 50
+        ownerPhone:
+          type: string
+          maxLength: 20
+          minLength: 1
+          description: Property owner's phone
+        videoUrl:
+          type: string
+          format: uri
+          maxLength: 500
+        action:
+          type: string
+          enum: [save, submit]
+          default: save
+          description: "save → DRAFT; submit → PENDING_APPROVAL"
+
+    UpdateListingRequest:
+      type: object
+      description: "Partial update — only provided fields are changed. Changing price, areaWidth, areaLength, or totalArea on CON_HANG triggers re-approval (LST-I05)."
+      properties:
+        propertyType:
+          $ref: "#/components/schemas/PropertyType"
+        title:
+          type: string
+          maxLength: 500
+          nullable: true
+        description:
+          type: string
+        price:
+          type: number
+          minimum: 0
+        commissionType:
+          $ref: "#/components/schemas/CommissionType"
+        commissionValue:
+          type: number
+          minimum: 0
+        areaWidth:
+          type: number
+          format: float
+          minimum: 0
+        areaLength:
+          type: number
+          format: float
+          minimum: 0
+        numRooms:
+          type: integer
+          minimum: 0
+        numBathrooms:
+          type: integer
+          minimum: 0
+        numFloors:
+          type: integer
+          minimum: 0
+        streetName:
+          type: string
+          maxLength: 255
+        houseNumber:
+          type: string
+          maxLength: 50
+        ward:
+          type: string
+          maxLength: 100
+        district:
+          type: string
+          maxLength: 100
+        city:
+          type: string
+          maxLength: 100
+        label:
+          type: string
+          maxLength: 100
+          nullable: true
+        furnishing:
+          type: string
+          maxLength: 500
+          nullable: true
+        frontageType:
+          type: string
+          maxLength: 100
+          nullable: true
+        legalStatus:
+          type: string
+          maxLength: 500
+          nullable: true
+        direction:
+          type: string
+          maxLength: 50
+          nullable: true
+        roadWidth:
+          type: string
+          maxLength: 50
+          nullable: true
+        ownerPhone:
+          type: string
+          maxLength: 20
+        videoUrl:
+          type: string
+          format: uri
+          maxLength: 500
+          nullable: true
+
+    ListingDetailResponse:
+      type: object
+      required:
+        - listing
+        - images
+        - dealEvents
+        - isPinned
+      properties:
+        listing:
+          $ref: "#/components/schemas/Listing"
+        images:
+          type: array
+          items:
+            $ref: "#/components/schemas/ListingImage"
+        dealEvents:
+          type: array
+          items:
+            $ref: "#/components/schemas/DealEvent"
+        isPinned:
+          type: boolean
+          description: "Whether current user has pinned this listing"
+
+    ListingListResponse:
+      type: object
+      required: [data, pagination]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Listing"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+        totalCount:
+          type: integer
+          description: "Total count of CON_HANG listings across all transaction types (BR-015)"
+
+    # ── ListingImage ───────────────────────────
+    ListingImage:
+      type: object
+      required: [id, listingId, url, order]
+      properties:
+        id:
+          type: string
+          format: uuid
+        listingId:
+          type: string
+          format: uuid
+        url:
+          type: string
+          format: uri
+          maxLength: 1000
+        order:
+          type: integer
+          minimum: 1
+          description: Display order (unique per listing — IMG-C02)
+        isPrimary:
+          type: boolean
+          default: false
+          description: "Cover image (at most one per listing — IMG-I01)"
+
+    ReorderImagesRequest:
+      type: object
+      required: [order]
+      properties:
+        order:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: "Array of image UUIDs in desired display order (positional)"
+
+    # ── DealEvent ──────────────────────────────
+    DealEvent:
+      type: object
+      required: [id, listingId, eventType, reportedById, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        listingId:
+          type: string
+          format: uuid
+        eventType:
+          $ref: "#/components/schemas/EventType"
+        reportedById:
+          type: string
+          format: uuid
+        confirmedById:
+          type: string
+          format: uuid
+          nullable: true
+          description: "Approver who confirmed (DE-C04, DE-C05)"
+        confirmedAt:
+          type: string
+          format: date-time
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+          description: "Additional notes or cancellation reason (required for CANCELLATION — DE-C06)"
+        customerName:
+          type: string
+          maxLength: 255
+          nullable: true
+          description: "Required for deposit events (DE-C01). Min 2 chars (DE-C02)."
+        customerPhone:
+          type: string
+          maxLength: 20
+          nullable: true
+        depositAmount:
+          type: number
+          nullable: true
+          description: "Required for deposit events (DE-C01). Must be > 0 (DE-C03)."
+        createdAt:
+          type: string
+          format: date-time
+
+    ReportDepositRequest:
+      type: object
+      required: [customerName, depositAmount]
+      properties:
+        customerName:
+          type: string
+          maxLength: 255
+          minLength: 2
+          description: "Customer name (DE-C01, DE-C02)"
+        customerPhone:
+          type: string
+          maxLength: 20
+        depositAmount:
+          type: number
+          minimum: 1
+          description: "Deposit amount in VND > 0 (DE-C01, DE-C03)"
+        notes:
+          type: string
+
+    ReportClosureRequest:
+      type: object
+      properties:
+        notes:
+          type: string
+
+    ReportCancellationRequest:
+      type: object
+      required: [notes]
+      properties:
+        notes:
+          type: string
+          minLength: 1
+          description: "Cancellation reason is required (DE-C06)"
+
+    ReportSoldOutRequest:
+      type: object
+      properties:
+        notes:
+          type: string
+
+    # ── Approval ───────────────────────────────
+    Approval:
+      type: object
+      required: [id, listingId, approvalType, decision, decidedById, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        listingId:
+          type: string
+          format: uuid
+        approvalType:
+          $ref: "#/components/schemas/ApprovalType"
+        decision:
+          $ref: "#/components/schemas/Decision"
+        decidedById:
+          type: string
+          format: uuid
+          description: "Must reference APPROVER or ADMIN role (APP-C01)"
+        reason:
+          type: string
+          nullable: true
+          description: "Required when decision = REJECTED (APP-C02)"
+        createdAt:
+          type: string
+          format: date-time
+
+    ApprovalQueueItem:
+      type: object
+      required: [id, listing, approvalType, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Approval ID
+        listing:
+          $ref: "#/components/schemas/Listing"
+        approvalType:
+          $ref: "#/components/schemas/ApprovalType"
+        createdAt:
+          type: string
+          format: date-time
+
+    ApprovalQueuesResponse:
+      type: object
+      properties:
+        queues:
+          type: array
+          items:
+            type: object
+            properties:
+              queueType:
+                $ref: "#/components/schemas/QueueType"
+              label:
+                type: string
+              transactionTypes:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    transactionType:
+                      $ref: "#/components/schemas/TransactionType"
+                    pendingCount:
+                      type: integer
+                      description: Number of items pending approval
+
+    ApprovalQueueItemListResponse:
+      type: object
+      required: [data, pagination]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/ApprovalQueueItem"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+
+    RejectRequest:
+      type: object
+      required: [reason]
+      properties:
+        reason:
+          type: string
+          minLength: 1
+          description: "Rejection reason (required per APP-C02, US-002-reject-listing-post)"
+
+    BulkApproveRequest:
+      type: object
+      required: [ids]
+      properties:
+        ids:
+          type: array
+          minItems: 1
+          items:
+            type: string
+            format: uuid
+          description: "List of approval UUIDs to approve (at least 1 — US-003-bulk-approve)"
+
+    BulkApproveResponse:
+      type: object
+      required: [succeeded, failed]
+      properties:
+        succeeded:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: Approval UUIDs that were successfully approved
+        failed:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+              reason:
+                type: string
+
+    # ── Notification ──────────────────────────
+    Notification:
+      type: object
+      required: [id, userId, title, body, isRead, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        title:
+          type: string
+          maxLength: 500
+        body:
+          type: string
+        referenceType:
+          $ref: "#/components/schemas/ReferenceType"
+          nullable: true
+          description: "Polymorphic reference (NTF-C01)"
+        referenceId:
+          type: string
+          format: uuid
+          nullable: true
+          description: "References listing, approval, or deal event (NTF-C01)"
+        isRead:
+          type: boolean
+          default: false
+        createdAt:
+          type: string
+          format: date-time
+
+    NotificationListResponse:
+      type: object
+      required: [data, pagination]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Notification"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+
+    NotificationPreferences:
+      type: object
+      properties:
+        listingApproved:
+          type: boolean
+          default: true
+          description: "Notify when my listing is approved"
+        listingRejected:
+          type: boolean
+          default: true
+          description: "Notify when my listing is rejected"
+        depositReported:
+          type: boolean
+          default: true
+          description: "Notify when a deposit is reported on my listing"
+        depositConfirmed:
+          type: boolean
+          default: true
+          description: "Notify when my deposit report is confirmed"
+        closureConfirmed:
+          type: boolean
+          default: true
+          description: "Notify when my closure report is confirmed"
+        cancellationConfirmed:
+          type: boolean
+          default: true
+          description: "Notify when my cancellation request is confirmed"
+        soldOutConfirmed:
+          type: boolean
+          default: true
+          description: "Notify when my sold-out report is confirmed"
+
+    # ── UserPin ────────────────────────────────
+    UserPin:
+      type: object
+      required: [userId, listingId, pinnedAt]
+      properties:
+        userId:
+          type: string
+          format: uuid
+        listingId:
+          type: string
+          format: uuid
+        pinnedAt:
+          type: string
+          format: date-time
+
+    # ── Hot Products ──────────────────────────
+    PromoteToHotRequest:
+      type: object
+      required: [hotOrder]
+      properties:
+        hotOrder:
+          type: integer
+          minimum: 1
+          maximum: 14
+          description: "Display order (unique, max 14 — LST-C08)"
+
+    ReorderHotListingsRequest:
+      type: object
+      required: [order]
+      properties:
+        order:
+          type: array
+          items:
+            type: object
+            required: [listingId, hotOrder]
+            properties:
+              listingId:
+                type: string
+                format: uuid
+              hotOrder:
+                type: integer
+                minimum: 1
+                maximum: 14
+
+    # ── Common ─────────────────────────────────
+    Pagination:
+      type: object
+      required: [page, size, totalItems, totalPages]
+      properties:
+        page:
+          type: integer
+          description: Current page number
+        size:
+          type: integer
+          description: Items per page
+        totalItems:
+          type: integer
+          description: Total number of items matching the query
+        totalPages:
+          type: integer
+          description: Total number of pages
+
+    ApiError:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          description: "Error code — e.g., VALIDATION_ERROR, UNAUTHORIZED, FORBIDDEN, NOT_FOUND, CONFLICT, ALREADY_PROCESSED, INVALID_STATUS_TRANSITION"
+        message:
+          type: string
+          description: Human-readable error description
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+                description: "Field path for validation errors"
+              message:
+                type: string
+                description: "Field-level error message"
+              code:
+                type: string
+                description: "Field-level error code: required, minLength, maxLength, pattern, minimum, maximum, invalid, duplicate, conflict"
