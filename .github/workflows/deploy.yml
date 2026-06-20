@@ -1,0 +1,187 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  setup_vps:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          script: |
+            if ! command -v nginx &>/dev/null; then
+              sudo apt update && sudo apt install -y nginx
+            fi
+            if ! command -v certbot &>/dev/null; then
+              sudo apt install -y certbot python3-certbot-nginx
+            fi
+            if ! command -v docker &>/dev/null; then
+              curl -fsSL https://get.docker.com | sh
+              sudo usermod -aG docker ${{ secrets.VPS_USER }}
+            fi
+            sudo mkdir -p ${{ secrets.DEPLOY_PATH }}
+            sudo chown -R ${{ secrets.VPS_USER }}:www-data ${{ secrets.DEPLOY_PATH }}
+            echo "${{ secrets.ENV_FILE }}" | base64 -d > ${{ secrets.DEPLOY_PATH }}/.env
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install -r requirements.txt -r requirements-dev.txt
+      - run: ruff check .
+
+  type_check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install -r requirements.txt -r requirements-dev.txt
+      - run: mypy src/
+
+  unit_test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install -r requirements.txt -r requirements-dev.txt
+      - run: pytest tests/units || true
+
+  integration_test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install -r requirements.txt -r requirements-dev.txt
+      - name: Integration tests
+        run: pytest tests/integration
+        env:
+          TESTCONTAINERS_RYUK_DISABLED: "true"
+          ADMIN_NAME: "dev@gmail.com"
+          ADMIN_PASSWORD: "admin"
+
+  build:
+    if: github.event_name == 'push'
+    needs: [ lint, type_check, unit_test, integration_test ]
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_TOKEN }}
+
+      - name: Build and push
+        run: |
+          docker build -t ghcr.io/${{ github.repository }}:${{ github.sha }} .
+          docker tag ghcr.io/${{ github.repository }}:${{ github.sha }} ghcr.io/${{ github.repository }}:latest
+          docker push ghcr.io/${{ github.repository }}:${{ github.sha }}
+          docker push ghcr.io/${{ github.repository }}:latest
+
+  config-proxy:
+    needs: [ setup_vps ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Copy nginx config
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          source: "nginx/nginx.conf"
+          target: "/tmp"
+          overwrite: true
+
+      - name: Configure SSL and nginx
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            DOMAIN="${{ secrets.DOMAIN_NAME }}"
+            CERTBOT_EMAIL="${{ secrets.CERTBOT_EMAIL }}"
+            DEPLOY_PATH="${{ secrets.DEPLOY_PATH }}"
+            TARGET_CONF="/etc/nginx/conf.d/$DOMAIN.conf"
+
+            # SSL
+            if [ ! -d "/etc/letsencrypt/live/$DOMAIN" ]; then
+              sudo systemctl stop nginx 2>/dev/null || true
+              sudo certbot certonly --standalone \
+                -d "$DOMAIN" --non-interactive --agree-tos \
+                --email "$CERTBOT_EMAIL" --keep-until-expiring
+              sudo systemctl start nginx
+            fi
+
+            # Auto-renew cron
+            if ! sudo crontab -l 2>/dev/null | grep -q "certbot renew"; then
+              (sudo crontab -l 2>/dev/null; echo "0 6 * * * certbot renew --quiet --deploy-hook "systemctl reload nginx"") | sudo crontab -
+            fi
+
+            # Nginx config
+            cd "$DEPLOY_PATH"
+            set -a; source .env 2>/dev/null; set +a
+            cp /tmp/nginx/nginx.conf /tmp/nginx.conf
+            sed -i "s/__DOMAIN__/$DOMAIN/g; s/__APP_PORT__/${APP_PORT:-8000}/g" /tmp/nginx.conf
+            sudo cp /tmp/nginx.conf "$TARGET_CONF"
+            sudo nginx -t && sudo systemctl reload nginx
+
+  deploy-app:
+    needs: [ setup_vps, build ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Copy docker-compose files
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          source: "docker-compose.yml,docker-compose.prod.yml"
+          target: "${{ secrets.DEPLOY_PATH }}"
+          overwrite: true
+
+      - name: Deploy app
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            DEPLOY_PATH="${{ secrets.DEPLOY_PATH }}"
+
+            cd "$DEPLOY_PATH"
+
+            # Stop docker
+            docker compose down || true
+
+            # Docker login + deploy
+            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            docker compose -f docker-compose.yml -f docker-compose.prod.yml pull app
+            docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+            docker image prune -f
