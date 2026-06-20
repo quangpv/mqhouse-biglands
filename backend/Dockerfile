@@ -12,6 +12,7 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 COPY --from=builder /app/alembic /app/alembic
 COPY --from=builder /app/alembic.ini /app/alembic.ini
 COPY --from=builder /app/scripts/start.sh /app/start.sh
+COPY --from=builder /app/scripts/seed.py /app/scripts/seed.py
 
 EXPOSE 8000
 
