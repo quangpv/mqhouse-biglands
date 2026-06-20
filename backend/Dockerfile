@@ -1,12 +1,8 @@
 FROM python:3.13-slim AS builder
 
 WORKDIR /app
-COPY pyproject.toml .
-RUN mkdir -p src && touch src/__init__.py
-RUN pip install --no-cache-dir .
-
 COPY . .
-RUN pip install --no-cache-dir --no-deps --force-reinstall .
+RUN pip install --no-cache-dir .
 
 FROM python:3.13-slim
 
