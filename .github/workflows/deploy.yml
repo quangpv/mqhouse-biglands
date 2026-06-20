@@ -2,20 +2,95 @@ name: Deploy to VPS
 
 on:
   push:
-    branches: [ main ]
+    branches: [main, staging]
   pull_request:
-    branches: [ main ]
+    branches: [main, staging]
 
 jobs:
+  set-flavor:
+    runs-on: ubuntu-latest
+    outputs:
+      flavor: ${{ steps.set.outputs.flavor }}
+      deploy_path: ${{ steps.set.outputs.deploy_path }}
+    steps:
+      - name: Set flavor
+        id: set
+        run: |
+          REPO_NAME=$(echo "${{ github.repository }}" | cut -d'/' -f2)
+          case "${{ github.ref_name }}" in
+            main)
+              echo "flavor=prod" >> "$GITHUB_OUTPUT"
+              echo "deploy_path=/opt/${REPO_NAME}-prod" >> "$GITHUB_OUTPUT"
+              ;;
+            staging)
+              echo "flavor=stag" >> "$GITHUB_OUTPUT"
+              echo "deploy_path=/opt/${REPO_NAME}-stag" >> "$GITHUB_OUTPUT"
+              ;;
+          esac
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install ./backend
+      - run: ruff check .
+
+  type_check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install ./backend
+      - run: mypy src/
+
+  unit_test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install ./backend
+      - run: pytest tests/units || true
+        working-directory: ./backend
+
+  integration_test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install ./backend
+      - name: Integration tests
+        run: pytest tests/integration
+        working-directory: ./backend
+        env:
+          TESTCONTAINERS_RYUK_DISABLED: "true"
+          ADMIN_NAME: "dev@gmail.com"
+          ADMIN_PASSWORD: "admin"
+
   setup_vps:
+    if: github.event_name == 'push' && needs.set-flavor.outputs.flavor != ''
+    needs: [set-flavor]
+    environment:
+      name: ${{ needs.set-flavor.outputs.flavor }}
     runs-on: ubuntu-latest
     steps:
       - uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.VPS_HOST }}
+          host: ${{ secrets.DOMAIN_NAME }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
           script: |
+            DEPLOY_PATH=${{ needs.set-flavor.outputs.deploy_path }}
+
+            # Install dependencies
             if ! command -v nginx &>/dev/null; then
               sudo apt update && sudo apt install -y nginx
             fi
@@ -26,58 +101,22 @@ jobs:
               curl -fsSL https://get.docker.com | sh
               sudo usermod -aG docker ${{ secrets.VPS_USER }}
             fi
-            sudo mkdir -p ${{ secrets.DEPLOY_PATH }}
-            sudo chown -R ${{ secrets.VPS_USER }}:www-data ${{ secrets.DEPLOY_PATH }}
-            echo "${{ secrets.ENV_FILE }}" | base64 -d > ${{ secrets.DEPLOY_PATH }}/.env
 
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
-      - run: pip install -r requirements.txt -r requirements-dev.txt
-      - run: ruff check .
+            # Create project root
+            sudo mkdir -p "$DEPLOY_PATH"
+            sudo chown -R ${{ secrets.VPS_USER }}:www-data "$DEPLOY_PATH"
 
-  type_check:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
-      - run: pip install -r requirements.txt -r requirements-dev.txt
-      - run: mypy src/
+            # Write env file
+            echo "${{ secrets.ENV_FILE }}" | base64 -d > "$DEPLOY_PATH/.env"
 
-  unit_test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
-      - run: pip install -r requirements.txt -r requirements-dev.txt
-      - run: pytest tests/units || true
-
-  integration_test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
-      - run: pip install -r requirements.txt -r requirements-dev.txt
-      - name: Integration tests
-        run: pytest tests/integration
-        env:
-          TESTCONTAINERS_RYUK_DISABLED: "true"
-          ADMIN_NAME: "dev@gmail.com"
-          ADMIN_PASSWORD: "admin"
+            # Source env and create flavor data dirs
+            set -a; source "$DEPLOY_PATH/.env"; set +a
+            sudo mkdir -p "$DEPLOY_PATH/$DATA_DIR"/{uploads,logs,db}
+            sudo chown -R ${{ secrets.VPS_USER }}:www-data "$DEPLOY_PATH/$DATA_DIR"
 
   build:
     if: github.event_name == 'push'
-    needs: [ lint, type_check, unit_test, integration_test ]
+    needs: [lint, type_check, unit_test, integration_test]
     runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v4
@@ -91,13 +130,16 @@ jobs:
 
       - name: Build and push
         run: |
-          docker build -t ghcr.io/${{ github.repository }}:${{ github.sha }} .
+          docker build -t ghcr.io/${{ github.repository }}:${{ github.sha }} -f backend/Dockerfile backend/
           docker tag ghcr.io/${{ github.repository }}:${{ github.sha }} ghcr.io/${{ github.repository }}:latest
           docker push ghcr.io/${{ github.repository }}:${{ github.sha }}
           docker push ghcr.io/${{ github.repository }}:latest
 
   config-proxy:
-    needs: [ setup_vps ]
+    if: github.event_name == 'push' && needs.set-flavor.outputs.flavor != ''
+    needs: [setup_vps, lint, type_check, unit_test, integration_test]
+    environment:
+      name: ${{ needs.set-flavor.outputs.flavor }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -105,24 +147,26 @@ jobs:
       - name: Copy nginx config
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.VPS_HOST }}
+          host: ${{ secrets.DOMAIN_NAME }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
-          source: "nginx/nginx.conf"
+          source: "deploy/nginx/backend-nginx.conf"
           target: "/tmp"
           overwrite: true
 
       - name: Configure SSL and nginx
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.VPS_HOST }}
+          host: ${{ secrets.DOMAIN_NAME }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
           script: |
             set -e
+            DEPLOY_PATH=${{ needs.set-flavor.outputs.deploy_path }}
             DOMAIN="${{ secrets.DOMAIN_NAME }}"
-            CERTBOT_EMAIL="${{ secrets.CERTBOT_EMAIL }}"
-            DEPLOY_PATH="${{ secrets.DEPLOY_PATH }}"
+
+            set -a; source "$DEPLOY_PATH/.env"; set +a
+
             TARGET_CONF="/etc/nginx/conf.d/$DOMAIN.conf"
 
             # SSL
@@ -130,58 +174,55 @@ jobs:
               sudo systemctl stop nginx 2>/dev/null || true
               sudo certbot certonly --standalone \
                 -d "$DOMAIN" --non-interactive --agree-tos \
-                --email "$CERTBOT_EMAIL" --keep-until-expiring
+                --email "${{ secrets.CERTBOT_EMAIL }}" --keep-until-expiring
               sudo systemctl start nginx
             fi
 
             # Auto-renew cron
             if ! sudo crontab -l 2>/dev/null | grep -q "certbot renew"; then
-              (sudo crontab -l 2>/dev/null; echo "0 6 * * * certbot renew --quiet --deploy-hook "systemctl reload nginx"") | sudo crontab -
+              (sudo crontab -l 2>/dev/null; echo '0 6 * * * certbot renew --quiet --deploy-hook "systemctl reload nginx"') | sudo crontab -
             fi
 
             # Nginx config
-            cd "$DEPLOY_PATH"
-            set -a; source .env 2>/dev/null; set +a
-            cp /tmp/nginx/nginx.conf /tmp/nginx.conf
-            sed -i "s/__DOMAIN__/$DOMAIN/g; s/__APP_PORT__/${APP_PORT:-8000}/g" /tmp/nginx.conf
+            cp /tmp/deploy/nginx/backend-nginx.conf /tmp/nginx.conf
+            sed -i "s/__DOMAIN__/$DOMAIN/g; s/__APP_PORT__/${APP_PORT}/g" /tmp/nginx.conf
             sudo cp /tmp/nginx.conf "$TARGET_CONF"
             sudo nginx -t && sudo systemctl reload nginx
 
   deploy-app:
-    needs: [ setup_vps, build ]
+    if: github.event_name == 'push' && needs.set-flavor.outputs.flavor != ''
+    needs: [setup_vps, build]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Copy docker-compose files
+      - name: Copy docker-compose file
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.VPS_HOST }}
+          host: ${{ secrets.DOMAIN_NAME }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
-          source: "docker-compose.yml,docker-compose.prod.yml"
-          target: "${{ secrets.DEPLOY_PATH }}"
+          source: "backend/docker-compose.yml"
+          target: "${{ needs.set-flavor.outputs.deploy_path }}"
           overwrite: true
 
       - name: Deploy app
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.VPS_HOST }}
+          host: ${{ secrets.DOMAIN_NAME }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
           script: |
             set -e
-            DEPLOY_PATH="${{ secrets.DEPLOY_PATH }}"
+            DEPLOY_PATH=${{ needs.set-flavor.outputs.deploy_path }}
 
-            cd "$DEPLOY_PATH"
+            set -a; source "$DEPLOY_PATH/.env"; set +a
+            PROJECT_NAME=$(basename "$DEPLOY_PATH")
 
-            # Stop docker
-            docker compose down || true
+            cd "$DEPLOY_PATH/backend"
 
-            # Docker login + deploy
+            docker compose -p "$PROJECT_NAME" --profile production down || true
             echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-            docker compose -f docker-compose.yml -f docker-compose.prod.yml pull app
-            docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+            docker compose -p "$PROJECT_NAME" --profile production pull app
+            docker compose -p "$PROJECT_NAME" --profile production up -d
             docker image prune -f

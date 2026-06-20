@@ -1,4 +1,18 @@
 services:
+  app:
+    profiles: ["production"]
+    image: ghcr.io/mqhouse/biglands:latest
+    ports:
+      - "127.0.0.1:${APP_PORT:-8000}:8000"
+    env_file: ../.env
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    volumes:
+      - ../${DATA_DIR}/uploads:/app/uploads
+      - ../${DATA_DIR}/logs:/app/logs
+
   db:
     image: postgres:16-alpine
     environment:
@@ -6,9 +20,11 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: biglands
     ports:
-      - "5444:5432"
+      - "127.0.0.1:${DB_PORT:-5444}:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
-
-volumes:
-  pgdata:
+      - ../${DATA_DIR:-.data}/db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5

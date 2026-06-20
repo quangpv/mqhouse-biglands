@@ -1,5 +1,7 @@
 import logging
+import os
 import sys
+from logging.handlers import RotatingFileHandler
 
 from src.platform.config import settings
 
@@ -10,11 +12,24 @@ class AppLogger:
         self._logger.setLevel(settings.log_level.upper())
 
         if not self._logger.handlers:
+            formatter = logging.Formatter(settings.log_format)
+
             handler = logging.StreamHandler(sys.stdout)
             handler.setLevel(settings.log_level.upper())
-            formatter = logging.Formatter(settings.log_format)
             handler.setFormatter(formatter)
             self._logger.addHandler(handler)
+
+            log_dir = settings.log_dir
+            if log_dir:
+                os.makedirs(log_dir, exist_ok=True)
+                file_handler = RotatingFileHandler(
+                    os.path.join(log_dir, "app.log"),
+                    maxBytes=10 * 1024 * 1024,
+                    backupCount=5,
+                )
+                file_handler.setLevel(settings.log_level.upper())
+                file_handler.setFormatter(formatter)
+                self._logger.addHandler(file_handler)
 
     def info(self, msg: str, *args: object) -> None:
         self._logger.info(msg, *args)
