@@ -8,13 +8,14 @@ services:
     environment:
       DB_HOST: db
       DB_PORT: "5432"
+      DATA_DIR: ${DATA_DIR:-.data}
     depends_on:
       db:
         condition: service_healthy
     restart: unless-stopped
     volumes:
-      - ./${DATA_DIR}/uploads:/app/uploads
-      - ./${DATA_DIR}/logs:/app/logs
+      - ./${DATA_DIR}/uploads:/app/${DATA_DIR}/uploads
+      - ./${DATA_DIR}/logs:/app/${DATA_DIR}/logs
 
   db:
     image: postgres:16-alpine

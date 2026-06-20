@@ -1,3 +1,5 @@
+import os
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -24,7 +26,6 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 1440
 
-    upload_dir: str = "uploads"
     max_upload_size_mb: int = 10
 
     expiration_days: int = 30
@@ -32,7 +33,16 @@ class Settings(BaseSettings):
 
     log_level: str = "INFO"
     log_format: str = "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
-    log_dir: str = "/app/logs"
+
+    @property
+    def upload_dir(self) -> str:
+        data_dir = os.getenv("DATA_DIR", ".data")
+        return f"{data_dir}/uploads"
+
+    @property
+    def log_dir(self) -> str:
+        data_dir = os.getenv("DATA_DIR", ".data")
+        return f"{data_dir}/logs"
 
 
 settings = Settings()

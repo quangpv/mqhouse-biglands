@@ -10,21 +10,20 @@ class Container:
     def register(self, cls: type, factory: Callable[[], Any] | None = None) -> None:
         self._registry[cls] = factory or (lambda: cls())
 
-    def resolve(self, cls: type) -> Any:
-        factory = self._registry.get(cls)
-        if factory is None:
-            msg = f"No factory registered for {cls.__name__}"
-            raise KeyError(msg)
-        return factory()
+    def __setitem__(self, cls: type, instance: Any) -> None:
+        self._registry[cls] = lambda: instance
 
-    def register_module(self, module_fn: Callable) -> None:
-        sig = inspect.signature(module_fn)
-        for param in sig.parameters.values():
-            default = param.default
-            if type(default).__name__ == "Depends":
-                dep_cls = default.dependency
-                if dep_cls and dep_cls not in self._registry:
-                    self.register(dep_cls)
+    def resolve(self, target: type | Callable) -> Any:
+        if isinstance(target, type) and target in self._registry:
+            return self._registry[target]()
+
+        sig = inspect.signature(target)
+        kwargs = {
+            p.name: self._registry[p.annotation]()
+            for p in sig.parameters.values()
+            if p.annotation in self._registry
+        }
+        return target(**kwargs)
 
 
 container = Container()

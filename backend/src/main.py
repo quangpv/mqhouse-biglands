@@ -1,13 +1,12 @@
-from collections.abc import AsyncGenerator, Callable
-from contextlib import asynccontextmanager
+from collections.abc import Callable
 from typing import Any
 
-from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
+from fastapi import APIRouter, FastAPI
 
-from src.data.expire_listings import expire_listings
+from src.platform.bootstrap import module as bootstrap_module
 from src.platform.config import settings
-from src.platform.scheduler import AppScheduler
+from src.platform.container import container
+from src.platform.scheduler import module as scheduler_module
 from src.modules.auth import module as auth_module
 from src.modules.users import module as users_module
 from src.modules.listings import module as listings_module
@@ -19,7 +18,9 @@ from src.modules.hot_products import module as hot_products_module
 from src.modules.notifications import module as notifications_module
 from src.modules.user_settings import module as user_settings_module
 
-MODULES: list[Callable[[], Any]] = [
+MODULES: list[Callable[..., Any]] = [
+    scheduler_module,
+    bootstrap_module,
     auth_module,
     users_module,
     listings_module,
@@ -32,29 +33,19 @@ MODULES: list[Callable[[], Any]] = [
     user_settings_module,
 ]
 
-scheduler = AppScheduler()
-
-
-@asynccontextmanager
-async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
-    scheduler.add_job(expire_listings, trigger="interval", minutes=5, id="expire_listings")
-    scheduler.start()
-    yield
-    scheduler.stop()
-
 
 def create_app() -> FastAPI:
     app = FastAPI(
         title=settings.app_name,
         debug=settings.debug,
-        lifespan=lifespan,
     )
 
-    for module_fn in MODULES:
-        router = module_fn()
-        app.include_router(router)
+    container[FastAPI] = app
 
-    app.mount("/uploads", StaticFiles(directory=settings.upload_dir), name="uploads")
+    for module_fn in MODULES:
+        result = container.resolve(module_fn)
+        if isinstance(result, APIRouter):
+            app.include_router(result)
 
     return app
 

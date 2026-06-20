@@ -1,8 +1,6 @@
 import pytest
 from httpx import AsyncClient
 
-from src.platform.config import settings
-
 pytestmark = pytest.mark.asyncio
 
 

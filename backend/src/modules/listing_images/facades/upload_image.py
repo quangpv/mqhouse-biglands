@@ -1,3 +1,4 @@
+import os
 import uuid
 
 from fastapi import Depends, UploadFile
@@ -36,9 +37,6 @@ async def upload_image(
     count = await image_repo.count_by_listing(listing_id)
     if count >= 20:
         raise ConflictError("Maximum 20 images per listing")
-
-    import os
-    os.makedirs(settings.upload_dir, exist_ok=True)
 
     filename = file.filename or "image.jpg"
     ext = filename.split(".")[-1] if "." in filename else "jpg"

@@ -6,7 +6,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.platform.background import BackgroundExecutor
 from src.platform.database import get_session
 from src.platform.logger import AppLogger
-from src.platform.scheduler import AppScheduler
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
@@ -22,5 +21,6 @@ def get_executor() -> BackgroundExecutor:
     return Depends(lambda: BackgroundExecutor())
 
 
-def get_scheduler() -> AppScheduler:
+def get_scheduler():
+    from src.platform.scheduler import AppScheduler
     return Depends(lambda: AppScheduler())

@@ -21,7 +21,6 @@ class AppLogger:
 
             log_dir = settings.log_dir
             if log_dir:
-                os.makedirs(log_dir, exist_ok=True)
                 file_handler = RotatingFileHandler(
                     os.path.join(log_dir, "app.log"),
                     maxBytes=10 * 1024 * 1024,
