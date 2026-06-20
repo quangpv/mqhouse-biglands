@@ -223,18 +223,6 @@ jobs:
       name: ${{ github.ref_name == 'main' && 'prod' || 'stag' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Copy docker-compose file
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.DOMAIN_NAME }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
-          source: "backend/docker-compose.yml"
-          target: "${{ needs.set-flavor.outputs.deploy_path }}"
-          overwrite: true
-
       - name: Deploy app
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -246,7 +234,11 @@ jobs:
             DEPLOY_PATH=${{ needs.set-flavor.outputs.deploy_path }}
             PROJECT_NAME=$(basename "$DEPLOY_PATH")
 
-            cd "$DEPLOY_PATH/backend"
+            curl -sL -H "Authorization: token ${{ secrets.GHCR_TOKEN }}" \
+              "https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/backend/docker-compose.yml" \
+              -o "$DEPLOY_PATH/docker-compose.yml"
+
+            cd "$DEPLOY_PATH"
 
             docker compose -p "$PROJECT_NAME" --profile production --env-file "$DEPLOY_PATH/.env" down || true
             echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
