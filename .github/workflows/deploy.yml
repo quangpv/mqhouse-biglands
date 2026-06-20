@@ -35,6 +35,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
+          cache: "pip"
+          cache-dependency-path: "backend/pyproject.toml"
       - run: pip install "./backend[dev]"
       - run: ruff check src/
         working-directory: ./backend
@@ -46,6 +48,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
+          cache: "pip"
+          cache-dependency-path: "backend/pyproject.toml"
       - run: pip install "./backend[dev]"
       - run: mypy src/
         working-directory: ./backend
@@ -71,6 +75,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
+          cache: "pip"
+          cache-dependency-path: "backend/pyproject.toml"
       - run: pip install "./backend[dev]"
       - run: pytest tests/
         working-directory: ./backend
@@ -81,7 +87,7 @@ jobs:
     if: github.event_name == 'push' && needs.set-flavor.outputs.flavor != ''
     needs: [set-flavor]
     environment:
-      name: ${{ needs.set-flavor.outputs.flavor }}
+      name: ${{ github.ref_name == 'main' && 'prod' || 'stag' }}
     runs-on: ubuntu-latest
     steps:
       - uses: appleboy/ssh-action@v1.0.3
@@ -111,37 +117,37 @@ jobs:
             # Write env file
             echo "${{ secrets.ENV_FILE }}" | base64 -d > "$DEPLOY_PATH/.env"
 
-            # Source env and create flavor data dirs
-            set -a; source "$DEPLOY_PATH/.env"; set +a
-            sudo mkdir -p "$DEPLOY_PATH/$DATA_DIR"/{uploads,logs,db}
-            sudo chown -R ${{ secrets.VPS_USER }}:www-data "$DEPLOY_PATH/$DATA_DIR"
-
   build:
     if: github.event_name == 'push'
     needs: [lint, type_check, test]
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
+      - uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GHCR_TOKEN }}
 
-      - name: Build and push
-        run: |
-          docker build -t ghcr.io/${{ github.repository }}:${{ github.sha }} -f backend/Dockerfile backend/
-          docker tag ghcr.io/${{ github.repository }}:${{ github.sha }} ghcr.io/${{ github.repository }}:latest
-          docker push ghcr.io/${{ github.repository }}:${{ github.sha }}
-          docker push ghcr.io/${{ github.repository }}:latest
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: backend
+          file: backend/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}:${{ github.sha }}
+            ghcr.io/${{ github.repository }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   config-proxy:
     if: github.event_name == 'push' && needs.set-flavor.outputs.flavor != ''
-    needs: [setup_vps, lint, type_check, test]
+    needs: [setup_vps, set-flavor]
     environment:
-      name: ${{ needs.set-flavor.outputs.flavor }}
+      name: ${{ github.ref_name == 'main' && 'prod' || 'stag' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -167,7 +173,7 @@ jobs:
             DEPLOY_PATH=${{ needs.set-flavor.outputs.deploy_path }}
             DOMAIN="${{ secrets.DOMAIN_NAME }}"
 
-            set -a; source "$DEPLOY_PATH/.env"; set +a
+            APP_PORT=$(grep '^APP_PORT=' "$DEPLOY_PATH/.env" | cut -d= -f2-)
 
             TARGET_CONF="/etc/nginx/conf.d/$DOMAIN.conf"
 
@@ -177,7 +183,7 @@ jobs:
               sudo certbot certonly --standalone \
                 -d "$DOMAIN" --non-interactive --agree-tos \
                 --email "${{ secrets.CERTBOT_EMAIL }}" --keep-until-expiring
-              sudo systemctl start nginx
+              sudo systemctl start nginx || true
             fi
 
             # Auto-renew cron
@@ -185,15 +191,36 @@ jobs:
               (sudo crontab -l 2>/dev/null; echo '0 6 * * * certbot renew --quiet --deploy-hook "systemctl reload nginx"') | sudo crontab -
             fi
 
-            # Nginx config
+            # Backup existing config
+            if [ -f "$TARGET_CONF" ]; then
+              sudo cp "$TARGET_CONF" "$TARGET_CONF.bak"
+            fi
+
+            # Write new config
             cp /tmp/deploy/nginx/backend-nginx.conf /tmp/nginx.conf
             sed -i "s/__DOMAIN__/$DOMAIN/g; s/__APP_PORT__/${APP_PORT}/g" /tmp/nginx.conf
             sudo cp /tmp/nginx.conf "$TARGET_CONF"
-            sudo nginx -t && sudo systemctl reload nginx
+
+            # Test, reload, or rollback
+            if sudo nginx -t; then
+              sudo systemctl reload nginx
+            else
+              echo "nginx config test failed — restoring backup"
+              if [ -f "$TARGET_CONF.bak" ]; then
+                sudo cp "$TARGET_CONF.bak" "$TARGET_CONF"
+                echo "backup restored"
+              else
+                sudo rm -f "$TARGET_CONF"
+                echo "no backup to restore — removed broken config"
+              fi
+              exit 1
+            fi
 
   deploy-app:
     if: github.event_name == 'push' && needs.set-flavor.outputs.flavor != ''
-    needs: [setup_vps, build]
+    needs: [setup_vps, set-flavor, build]
+    environment:
+      name: ${{ github.ref_name == 'main' && 'prod' || 'stag' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -217,14 +244,12 @@ jobs:
           script: |
             set -e
             DEPLOY_PATH=${{ needs.set-flavor.outputs.deploy_path }}
-
-            set -a; source "$DEPLOY_PATH/.env"; set +a
             PROJECT_NAME=$(basename "$DEPLOY_PATH")
 
             cd "$DEPLOY_PATH/backend"
 
-            docker compose -p "$PROJECT_NAME" --profile production down || true
+            docker compose -p "$PROJECT_NAME" --profile production --env-file "$DEPLOY_PATH/.env" down || true
             echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-            docker compose -p "$PROJECT_NAME" --profile production pull app
-            docker compose -p "$PROJECT_NAME" --profile production up -d
+            docker compose -p "$PROJECT_NAME" --profile production --env-file "$DEPLOY_PATH/.env" pull app
+            docker compose -p "$PROJECT_NAME" --profile production --env-file "$DEPLOY_PATH/.env" up -d
             docker image prune -f

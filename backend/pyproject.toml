@@ -32,6 +32,9 @@ dev = [
     "requests>=2.31.0",
 ]
 
+[tool.setuptools.packages.find]
+where = ["src"]
+
 [tool.mypy]
 
 [[tool.mypy.overrides]]
