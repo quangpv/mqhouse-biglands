@@ -1,6 +1,8 @@
 import asyncio
 from logging.config import fileConfig
 
+from src.platform.config import settings
+
 from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
@@ -10,6 +12,7 @@ from src.data.entities._base import Base
 from src.data.entities import *  # noqa: F401, F403 — ensure all entities are loaded
 
 config = context.config
+config.set_main_option("sqlalchemy.url", settings.database_url)
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
