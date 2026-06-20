@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from typing import Any
 
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 
 from src.data.expire_listings import expire_listings
 from src.platform.config import settings
@@ -52,6 +53,8 @@ def create_app() -> FastAPI:
     for module_fn in MODULES:
         router = module_fn()
         app.include_router(router)
+
+    app.mount("/uploads", StaticFiles(directory=settings.upload_dir), name="uploads")
 
     return app
 
