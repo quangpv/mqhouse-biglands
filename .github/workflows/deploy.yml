@@ -240,6 +240,10 @@ jobs:
 
             cd "$DEPLOY_PATH"
 
+            DATA_DIR=$(grep '^DATA_DIR=' ".env" | cut -d= -f2-)
+            DATA_DIR="${DATA_DIR:-.data}"
+            sudo chown -R 999:999 "$DATA_DIR" 2>/dev/null || true
+
             docker compose -p "$PROJECT_NAME" --profile production --env-file "$DEPLOY_PATH/.env" down || true
             echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             docker compose -p "$PROJECT_NAME" --profile production --env-file "$DEPLOY_PATH/.env" pull app
