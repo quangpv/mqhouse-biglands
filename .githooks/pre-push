@@ -1,0 +1,22 @@
+#!/bin/sh
+set -e
+
+ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$ROOT_DIR/backend"
+
+echo "=== pre-push: running checks ==="
+
+command -v ruff >/dev/null 2>&1 || { echo "ERROR: ruff not installed — run 'pip install ./backend[dev]'"; exit 1; }
+command -v mypy >/dev/null 2>&1 || { echo "ERROR: mypy not installed — run 'pip install ./backend[dev]'"; exit 1; }
+command -v pytest >/dev/null 2>&1 || { echo "ERROR: pytest not installed — run 'pip install ./backend[dev]'"; exit 1; }
+
+ruff check src/
+echo "✓ ruff passed"
+
+mypy src/
+echo "✓ mypy passed"
+
+pytest tests/
+echo "✓ tests passed"
+
+echo "=== all checks passed ==="

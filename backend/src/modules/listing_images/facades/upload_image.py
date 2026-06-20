@@ -2,7 +2,6 @@ import uuid
 
 from fastapi import Depends, UploadFile
 
-from src.data.entities.listing import ListingStatus
 from src.data.entities.listing_image import ListingImageEntity
 from src.data.entities.user import UserEntity
 from src.data.repositories.listing_repo import ListingRepo
@@ -41,7 +40,8 @@ async def upload_image(
     import os
     os.makedirs(settings.upload_dir, exist_ok=True)
 
-    ext = file.filename.split(".")[-1] if "." in file.filename else "jpg"
+    filename = file.filename or "image.jpg"
+    ext = filename.split(".")[-1] if "." in filename else "jpg"
     filename = f"{uuid.uuid4()}.{ext}"
     filepath = os.path.join(settings.upload_dir, filename)
     with open(filepath, "wb") as f:

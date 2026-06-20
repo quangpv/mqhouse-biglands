@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.data.entities.approval import ApprovalEntity, ApprovalType
 from src.data.entities.deal_event import DealEventEntity, DealEventType
-from src.data.entities.listing import ListingEntity, ListingStatus
+from src.data.entities.listing import ListingEntity, ListingStatus, TransactionType
 from src.platform.dependencies import get_db
 
 
@@ -17,8 +17,8 @@ class ApprovalRepo(Repo):
     def __init__(self, db: AsyncSession = Depends(get_db)):
         self.db = db
 
-    async def get_queue_counts(self) -> list[tuple[ApprovalType, object, int]]:
-        counts: list[tuple[ApprovalType, object, int]] = []
+    async def get_queue_counts(self) -> list[tuple[ApprovalType, TransactionType, int]]:
+        counts: list[tuple[ApprovalType, TransactionType, int]] = []
 
         result = await self.db.execute(
             select(ListingEntity.transaction_type, func.count(ListingEntity.id))

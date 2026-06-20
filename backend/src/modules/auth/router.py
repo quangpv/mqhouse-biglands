@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, status
 from src.modules.auth.facades.get_current_user import get_current_user_facade
 from src.modules.auth.facades.login import login
 from src.modules.auth.facades.logout import logout
-from src.modules.auth.schemas import LoginRequest, LoginResponse, UserResponse
+from src.modules.auth.schemas import LoginResponse, UserResponse
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 

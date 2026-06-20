@@ -2,8 +2,6 @@ import inspect
 from collections.abc import Callable
 from typing import Any
 
-from fastapi import Depends
-
 
 class Container:
     def __init__(self) -> None:
@@ -23,7 +21,7 @@ class Container:
         sig = inspect.signature(module_fn)
         for param in sig.parameters.values():
             default = param.default
-            if isinstance(default, Depends):
+            if type(default).__name__ == "Depends":
                 dep_cls = default.dependency
                 if dep_cls and dep_cls not in self._registry:
                     self.register(dep_cls)

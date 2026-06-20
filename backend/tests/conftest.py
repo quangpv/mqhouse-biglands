@@ -1,3 +1,4 @@
+import socket
 import subprocess
 import time
 import uuid
@@ -43,6 +44,18 @@ def get_engine():
 
 @pytest.fixture(scope="session", autouse=True)
 def docker_postgres():
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        s.settimeout(2)
+        s.connect(("localhost", 5445))
+        s.close()
+        yield
+        return
+    except (ConnectionRefusedError, OSError):
+        pass
+    finally:
+        s.close()
+
     r = subprocess.run(
         ["docker", "inspect", "--format", "{{.State.Status}}", TEST_PG_CONTAINER],
         capture_output=True, text=True,

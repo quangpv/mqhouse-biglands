@@ -20,7 +20,7 @@ async def reorder_hot_listings(
         raise BadRequestError("Duplicate listing_ids are not allowed")
 
     listings = await listing_repo.get_by_ids(data.listing_ids)
-    listing_map = {l.id: l for l in listings}
+    listing_map = {listing.id: listing for listing in listings}
 
     updated = []
     for idx, lid in enumerate(data.listing_ids):
@@ -33,4 +33,4 @@ async def reorder_hot_listings(
     for listing in updated:
         listing = await listing_repo.save(listing)
 
-    return [listing_to_hot_response(l) for l in updated]
+    return [listing_to_hot_response(listing) for listing in updated]

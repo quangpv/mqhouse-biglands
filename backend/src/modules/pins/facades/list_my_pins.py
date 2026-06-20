@@ -19,7 +19,7 @@ async def list_my_pins(
     listings = await pin_repo.get_pinned_listings_paginated(current_user.id, page, per_page)
 
     return PinnedListingListResponse(
-        data=[pinned_listing_to_response(l) for l in listings],
+        data=[pinned_listing_to_response(listing) for listing in listings],
         total=total,
         page=page,
         size=per_page,

@@ -1,12 +1,11 @@
-import uuid
 
-from fastapi import APIRouter, Depends, UploadFile, status
+from fastapi import APIRouter, Depends, status
 
 from src.modules.listing_images.facades.delete_image import delete_image
 from src.modules.listing_images.facades.reorder_images import reorder_images
 from src.modules.listing_images.facades.set_primary_image import set_primary_image
 from src.modules.listing_images.facades.upload_image import upload_image
-from src.modules.listing_images.schemas import ImageResponse, ReorderImagesRequest
+from src.modules.listing_images.schemas import ImageResponse
 from src.platform.auth import require_role
 
 router = APIRouter(prefix="/listings/{listing_id}/images", tags=["listing_images"])

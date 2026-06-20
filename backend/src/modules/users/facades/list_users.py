@@ -2,7 +2,7 @@ from fastapi import Depends, Query
 
 from src.data.repositories.user_repo import UserRepo
 from src.modules.users.mapper import user_to_response
-from src.modules.users.schemas import UserListResponse, UserResponse
+from src.modules.users.schemas import UserListResponse
 from src.shared.pagination import build_paginated_response
 
 

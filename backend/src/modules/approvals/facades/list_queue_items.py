@@ -7,7 +7,6 @@ from src.data.repositories.approval_repo import ApprovalRepo
 from src.modules.approvals.mapper import deal_event_to_queue_item, listing_to_queue_item
 from src.modules.approvals.schemas import QueueItemListResponse
 from src.shared.errors.exceptions import BadRequestError
-from src.shared.pagination import PaginationParams
 
 
 async def list_queue_items(

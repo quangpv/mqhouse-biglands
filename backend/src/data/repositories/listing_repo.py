@@ -154,7 +154,7 @@ class ListingRepo(Repo):
             "created_at": ListingEntity.created_at,
             "price": ListingEntity.price,
             "view_count": ListingEntity.view_count,
-        }.get(sort_by, ListingEntity.created_at)
+        }.get(sort_by or "created_at", ListingEntity.created_at)
 
         if sort_order == "asc":
             query = query.order_by(sort_column.asc())

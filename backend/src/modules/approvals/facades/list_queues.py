@@ -1,6 +1,5 @@
 from fastapi import Depends
 
-from src.data.entities.approval import ApprovalType
 from src.data.repositories.approval_repo import ApprovalRepo
 from src.modules.approvals.schemas import QueueCountResponse, QueueListResponse
 

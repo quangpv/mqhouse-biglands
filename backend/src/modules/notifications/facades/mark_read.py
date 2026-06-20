@@ -22,4 +22,6 @@ async def mark_read(
         raise ForbiddenError("You can only mark your own notifications as read")
 
     notification = await repo.mark_read(notification_id)
+    if notification is None:
+        raise NotFoundError("Notification not found")
     return notification_to_response(notification)

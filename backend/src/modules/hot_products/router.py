@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends
 
 from src.modules.hot_products.facades.get_hot_listings import get_hot_listings
 from src.modules.hot_products.facades.promote_to_hot import promote_to_hot

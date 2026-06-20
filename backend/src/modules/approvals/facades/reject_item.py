@@ -1,5 +1,4 @@
 import uuid
-from datetime import datetime, timezone
 
 from fastapi import Depends
 
@@ -69,7 +68,6 @@ async def reject_item(
         raise ConflictError(detail=f"Approval already processed: {existing.decision.value}")
 
     new_status = REJECTED_STATUS_MAP[approval_type]
-    now = datetime.now(timezone.utc)
 
     listing.status = new_status
     await listing_repo.save(listing)

@@ -9,4 +9,4 @@ async def get_hot_listings(
     listing_repo: ListingRepo = Depends(ListingRepo),
 ) -> list[HotListingResponse]:
     listings = await listing_repo.get_hot_listings()
-    return [listing_to_hot_response(l) for l in listings]
+    return [listing_to_hot_response(listing) for listing in listings]

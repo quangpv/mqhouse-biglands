@@ -1,4 +1,3 @@
-import uuid
 
 from fastapi import APIRouter, Depends, status
 
@@ -9,7 +8,7 @@ from src.modules.users.facades.get_user import get_user
 from src.modules.users.facades.list_users import list_users
 from src.modules.users.facades.reactivate_user import reactivate_user
 from src.modules.users.facades.update_user import update_user
-from src.modules.users.schemas import AssignRoleRequest, CreateUserRequest, UpdateUserRequest, UserListResponse, UserResponse
+from src.modules.users.schemas import UserListResponse, UserResponse
 from src.platform.auth import require_role
 
 router = APIRouter(prefix="/users", tags=["users"], dependencies=[Depends(require_role("ADMIN"))])

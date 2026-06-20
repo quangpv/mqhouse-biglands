@@ -1,4 +1,3 @@
-import uuid
 
 from fastapi import APIRouter, Depends, status
 
@@ -9,7 +8,7 @@ from src.modules.listings.facades.update_listing import update_listing
 from src.modules.listings.facades.delete_listing import delete_listing
 from src.modules.listings.facades.submit_listing import submit_listing
 from src.modules.listings.facades.withdraw_listing import withdraw_listing
-from src.modules.listings.schemas import CreateListingRequest, ListingDetailResponse, ListingListResponse, ListingResponse, UpdateListingRequest
+from src.modules.listings.schemas import ListingDetailResponse, ListingListResponse, ListingResponse
 from src.platform.auth import require_role
 
 router = APIRouter(prefix="/listings", tags=["listings"])

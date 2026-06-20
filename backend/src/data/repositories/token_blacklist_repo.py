@@ -1,4 +1,3 @@
-import uuid
 
 from fastapi import Depends
 from sqlalchemy import select

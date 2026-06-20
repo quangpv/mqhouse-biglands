@@ -8,7 +8,7 @@ from src.data.repositories.deal_event_repo import DealEventRepo
 from src.data.repositories.user_pin_repo import UserPinRepo
 from src.data.entities.user import UserEntity
 from src.modules.listings.mapper import listing_to_response
-from src.modules.listings.schemas import ListingDetailResponse, ListingResponse
+from src.modules.listings.schemas import ListingDetailResponse
 from src.platform.auth import get_current_user
 from src.shared.errors.exceptions import NotFoundError
 
