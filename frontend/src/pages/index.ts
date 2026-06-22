@@ -1,4 +1,4 @@
-export { default as LoginPage } from "./auth/login-page"
+export { default as LoginPage } from "./auth/LoginPage"
 export { default as HomePage } from "./home/home-page"
 export { default as ListingDetailPage } from "./listings/detail-page"
 export { default as CreateListingPage, EditListingPage } from "./listings/form-page"
