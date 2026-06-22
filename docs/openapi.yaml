@@ -1642,6 +1642,80 @@ paths:
         "409":
           $ref: "#/components/responses/Conflict"
 
+  # ──────────────────────────────────────────────
+  #  GEOGRAPHY
+  # ──────────────────────────────────────────────
+  /geography/cities:
+    get:
+      tags: [Geography]
+      summary: List all cities (JSON-backed, HCMC-only)
+      operationId: listCities
+      responses:
+        "200":
+          description: List of cities with nested districts and wards
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CityResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+
+  /geography/cities/{cityId}/districts:
+    get:
+      tags: [Geography]
+      summary: List districts for a city
+      operationId: listDistricts
+      parameters:
+        - name: cityId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: City ID (e.g., "hcm")
+      responses:
+        "200":
+          description: List of districts with nested wards
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DistrictListResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /geography/cities/{cityId}/districts/{districtId}/wards:
+    get:
+      tags: [Geography]
+      summary: List wards for a district
+      operationId: listWards
+      parameters:
+        - name: cityId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: City ID (e.g., "hcm")
+        - name: districtId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: District ID (e.g., "q1")
+      responses:
+        "200":
+          description: List of wards
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WardListResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
 components:
   securitySchemes:
     BearerAuth:
@@ -2789,6 +2863,66 @@ components:
           type: boolean
           default: true
           description: "Notify when my sold-out report is confirmed"
+
+    # ── Geography ─────────────────────────────
+    CityResponse:
+      type: object
+      required: [id, name, districts]
+      properties:
+        id:
+          type: string
+          description: "City ID (e.g., 'hcm')"
+        name:
+          type: string
+          description: "City name (e.g., 'Hồ Chí Minh')"
+        districts:
+          type: array
+          items:
+            $ref: "#/components/schemas/DistrictResponse"
+
+    DistrictResponse:
+      type: object
+      required: [id, name, wards]
+      properties:
+        id:
+          type: string
+          description: "District ID (e.g., 'q1')"
+        name:
+          type: string
+          description: "District name (e.g., 'Quận 1')"
+        wards:
+          type: array
+          items:
+            $ref: "#/components/schemas/WardResponse"
+
+    WardResponse:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: string
+          description: "Ward ID (e.g., 'q1-ben-nghe')"
+        name:
+          type: string
+          description: "Ward name (e.g., 'Bến Nghé')"
+
+    DistrictListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/DistrictResponse"
+
+    WardListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/WardResponse"
 
     # ── UserPin ────────────────────────────────
     UserPin:

@@ -418,7 +418,7 @@
 
 ### FR-06: Product Detail (Must Have)
 
-**FR-06.1** The system shall display a full product detail page at `/san-pham/:id`.  
+**FR-06.1** The system shall display a full product detail page at `/tin/:id`.  
 **FR-06.2** The page shall include: image gallery with navigation, price, commission, area, rooms, bathrooms, floors, address, description, agent info.  
 **FR-06.3** The page shall show deal action buttons (report deposit, sold-out, closure, cancellation) with context-dependent enable/disable states.  
 **FR-06.4** The page shall show an "Edit" button only for the listing owner.  
@@ -426,7 +426,7 @@
 
 ### FR-07: Create Listing (Must Have)
 
-**FR-07.1** The system shall provide a listing creation form at `/gio-hang/tao`.  
+**FR-07.1** The system shall provide a listing creation form at `/tin/tao-moi`.  
 **FR-07.2** The form shall include: title, transaction type, property type, commission, location cascade (city/district/ward), street address, price, owner phone, property dimensions, optional attributes, description, images, and YouTube video link.  
 **FR-07.3** The system shall auto-generate a product code (YYMMDD + random digits) upon creation.  
 **FR-07.4** The system shall save the listing as DRAFT on "Save" or PENDING_APPROVAL on "Submit for Approval".  
@@ -435,7 +435,7 @@
 
 ### FR-08: Edit Listing (Must Have)
 
-**FR-08.1** The system shall allow listing owners to edit their own listings at `/gio-hang/:id/chinh-sua`.  
+**FR-08.1** The system shall allow listing owners to edit their own listings at `/tin/:id/chinh-sua`.  
 **FR-08.2** The form shall be pre-filled with existing listing data.  
 **FR-08.3** Editing a DRAFT listing shall save changes without re-approval.  
 **FR-08.4** Editing key fields (price, area, images) on an ACTIVE listing shall return it to PENDING_APPROVAL.  
@@ -504,7 +504,7 @@
 
 ### FR-18: Hot Products Management (Should Have)
 
-**FR-18.1** Admin can view a list of all hot listings at `/admin/san-pham-hot`.  
+**FR-18.1** Admin can view a list of all hot listings at `/tin-noi-bat`.  
 **FR-18.2** Admin can add listings to hot by searching and selecting.  
 **FR-18.3** Admin can remove listings from hot.  
 **FR-18.4** Admin can reorder hot listings via drag-and-drop.  

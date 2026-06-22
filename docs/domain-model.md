@@ -179,7 +179,7 @@ A property listing posted on the platform. Represents an entire CHDV building li
 | LST-C03 | At least one `ListingImage` must exist before `status` can transition from `DRAFT` to `PENDING_APPROVAL` | BR-007 |
 | LST-C04 | Max 20 images per listing (enforced via ListingImage count) | BR-014 |
 | LST-C05 | Max 1 YouTube video per listing | BR-014 |
-| LST-C06 | Location cascade: `district` must be valid for `city`; `ward` must be valid for `district` | BR-013 |
+| LST-C06 | Location cascade: `district` must be valid for `city`; `ward` must be valid for `district`. Validated via JSON-backed geography API (no DB dependency). | BR-013 |
 | LST-C07 | `isHot` can only be set to `true` when `status = CON_HANG` | HP-002 |
 | LST-C08 | `hotOrder` must be unique among hot listings; max 14 hot items | HP-004 |
 | LST-C09 | `propertyType` is required and must be one of the PropertyType enum values | SC-004 |
@@ -379,13 +379,13 @@ Records every approval or rejection decision made by an approver/admin. Provides
 
 | Approval Type | Queue Name | Route Pattern |
 |--------------|-----------|---------------|
-| `LISTING_POST` | Duyệt bài đăng | `/admin/{tx-type}/duyet` |
-| `DEPOSIT` | Duyệt báo cọc | `/admin/{tx-type}/duyet-bao-coc` |
-| `CANCELLATION` | Duyệt huỷ cọc | `/admin/{tx-type}/duyet-huy-coc` |
-| `CLOSURE` | Duyệt chốt hàng | `/admin/{tx-type}/duyet-chot-hang` |
-| `SOLD_OUT` | Duyệt hết hàng | `/admin/{tx-type}/duyet-het-hang` |
+| `LISTING_POST` | Duyệt bài đăng | `/duyet/listing-post` |
+| `DEPOSIT` | Duyệt báo cọc | `/duyet/deposit` |
+| `CANCELLATION` | Duyệt huỷ cọc | `/duyet/cancellation` |
+| `CLOSURE` | Duyệt chốt hàng | `/duyet/closure` |
+| `SOLD_OUT` | Duyệt hết hàng | `/duyet/sold-out` |
 
-Where `{tx-type}` = `ban`, `cho-thue`, or `sang-nhuong` (15 total queues).
+Filtered by `transactionType` query parameter (`BAN`, `CHO_THUE`, `SANG_NHUONG`) on the queue page.
 
 ### Relationships
 
@@ -489,7 +489,7 @@ System notification for users, created automatically when key events occur. Noti
 | NTF-I01 | Role-scoped retrieval | Agents only see notifications for listings they created or events they reported. Admins see all notifications (BR-010). Approvers see notifications for transaction types/queues they oversee (AR-07 — ambiguous, needs resolution). |
 | NTF-I02 | Display order | Notifications are displayed in reverse-chronological order (newest first) (UI-006). |
 | NTF-I03 | Relative timestamps | Display uses Vietnamese relative time: "vài giây trước", "N giờ trước", "N ngày trước" (UI-006). |
-| NTF-I04 | Click navigation | Clicking a notification navigates to the related listing at `/san-pham/:id` using `referenceId`. |
+| NTF-I04 | Click navigation | Clicking a notification navigates to the related listing at `/tin/:id` using `referenceId`. |
 | NTF-I05 | Unread badge | The notification bell displays a count of notifications where `isRead = false`. |
 | NTF-I06 | Mark as read | Reading a notification sets `isRead = true` and decrements the badge. "Mark All as Read" bulk-sets `isRead = true` for all notifications belonging to the current user. |
 

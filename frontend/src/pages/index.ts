@@ -1,7 +1,7 @@
 export { default as LoginPage } from "./auth/LoginPage"
 export { default as HomePage } from "./home/home-page"
 export { default as ProductDetailPage } from "./product-detail/ProductDetailPage"
-export { default as CreateListingPage, EditListingPage } from "./listings/form-page"
+export { CreateListingPage, EditListingPage } from "./listings/form-page"
 export { default as MyCartPage } from "./my-cart/my-cart-page"
 export { default as NotificationsPage } from "./notifications/notifications-page"
 export { default as QueueListPage, QueueDetailPage } from "./approval-queue/queue-pages"

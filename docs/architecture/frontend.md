@@ -40,13 +40,14 @@ src/
 │   │   └── apiError.ts                   # Normalized ApiError type + error code enum
 │   ├── repositories/
 │   │   ├── authRepository.ts             # login(), logout(), getMe()
-│   │   ├── listingRepository.ts          # CRUD + submit/withdraw + browse/search
+│   │   ├── listingRepository.ts          # CRUD + submit/withdraw + browse/search + uploadImage
 │   │   ├── dealEventRepository.ts        # deposit/closure/cancellation/sold-out
 │   │   ├── approvalRepository.ts         # queues, approve, reject, bulk
 │   │   ├── notificationRepository.ts     # list, unreadCount, markRead, markAllRead
 │   │   ├── userRepository.ts             # CRUD, deactivate, reactivate, assignRole
 │   │   ├── pinRepository.ts              # pin, unpin, listMyPins
-│   │   └── hotProductRepository.ts       # promote, unpromote, reorder
+│   │   ├── hotProductRepository.ts       # promote, unpromote, reorder
+│   │   └── geographyRepository.ts        # getCities, getDistricts, getWards
 │   ├── types/                            # One file per domain — DTOs only
 │   │   ├── auth.dto.ts
 │   │   ├── listing.dto.ts
@@ -55,12 +56,14 @@ src/
 │   │   ├── notification.dto.ts
 │   │   ├── user.dto.ts
 │   │   ├── pin.dto.ts
+│   │   ├── geography.dto.ts              # CityDTO, DistrictDTO, WardDTO
 │   │   └── common.dto.ts                 # Pagination, ApiError, enums
 │   ├── queries/                          # Query key factories
 │   │   ├── listingQueries.ts
 │   │   ├── approvalQueries.ts
 │   │   ├── notificationQueries.ts
-│   │   └── userQueries.ts
+│   │   ├── userQueries.ts
+│   │   └── geographyQueries.ts           # geographyKeys.all, cities, districts, wards
 │   └── utils/
 │       └── serializers.ts                # Transform snake_case ↔ camelCase
 │
@@ -111,24 +114,21 @@ src/
 │   │   ├── types.ts                      # IProductDetail, IDealAction
 │   │   └── ProductDetailPage.tsx
 │   │
-│   ├── listing-form/                     # Create + Edit (shared form component)
+│   ├── listing-form/                     # Create + Edit (shared form module)
 │   │   ├── facades/
 │   │   │   ├── useListingFormState.ts    # State hook: owns form (RHF + Zod), mode flag
-│   │   │   ├── useCreateListing.ts       # Action hook: create
+│   │   │   ├── useCreateListing.ts       # Action hook: create + upload images
 │   │   │   └── useUpdateListing.ts       # Action hook: update
-│   │   ├── hooks/
-│   │   │   └── useListingMapper.ts       # DTO ↔ IListingForm
 │   │   ├── components/
-│   │   │   ├── TransactionTypeSelect.tsx
-│   │   │   ├── PropertyTypeSelect.tsx
-│   │   │   ├── LocationCascade.tsx
-│   │   │   ├── CommissionInput.tsx
-│   │   │   ├── PropertyDimensions.tsx
-│   │   │   ├── ImageUploader.tsx
-│   │   │   ├── VideoLinkInput.tsx
-│   │   │   └── FormActions.tsx
-│   │   ├── types.ts                      # IListingForm, IListingFormMode
-│   │   └── ListingFormPage.tsx           # Routes: /gio-hang/tao, /gio-hang/:id/chinh-sua
+│   │   │   ├── BasicInfoSection.tsx      # Transaction type, property type, title, description
+│   │   │   ├── PropertyDetailsSection.tsx# Price, area dimensions, rooms, floors, bathrooms
+│   │   │   ├── LocationSection.tsx       # Wraps LocationCascade + street/house number
+│   │   │   ├── CommissionSection.tsx     # Commission type + value
+│   │   │   ├── ContactSection.tsx        # Owner phone
+│   │   │   └── ImageUploader.tsx         # Upload, preview, remove, max 20 images
+│   │   ├── types.ts                      # IListingForm, IListingFormMode, Zod schema
+│   │   ├── CreateListingPage.tsx         # Route: /tin/tao-moi
+│   │   └── EditListingPage.tsx           # Route: /tin/:id/chinh-sua
 │   │
 │   ├── my-cart/                          # User's own listings
 │   │   ├── facades/
@@ -266,28 +266,27 @@ src/
 |-------|--------|---------------|------|
 | `/dang-nhap` | Login | `LoginPage` | Public |
 | `/` | Shared Cart Home | `SharedCartPage` | AGENT+ |
-| `/san-pham/:id` | Product Detail | `ProductDetailPage` | AGENT+ |
-| `/gio-hang` | My Cart | `MyCartPage` | AGENT+ |
-| `/gio-hang/:id` | My Cart Detail | `MyCartDetailPage` | Owner |
-| `/gio-hang/tao` | Create Listing | `ListingFormPage` | AGENT+ |
-| `/gio-hang/:id/chinh-sua` | Edit Listing | `ListingFormPage` | Owner |
+| `/tin/:id` | Product Detail | `ProductDetailPage` | AGENT+ |
+| `/gio-hang-chung` | My Cart | `MyCartPage` | AGENT+ |
+| `/tin/tao-moi` | Create Listing | `CreateListingPage` | AGENT+ |
+| `/tin/:id/chinh-sua` | Edit Listing | `EditListingPage` | Owner |
 | `/thong-bao` | Notifications | `NotificationsPage` | AGENT+ |
-| `/admin/:txType/:queueType` | Approval Queue (15 routes) | `ApprovalQueuePage` | APPROVER+ |
-| `/admin/san-pham-hot` | Hot Products | `HotProductsPage` | ADMIN |
-| `/admin/quan-ly-nguoi-dung` | User List | `UserListPage` | ADMIN |
-| `/admin/quan-ly-nguoi-dung/tao` | Create User | `UserFormPage` | ADMIN |
-| `/admin/quan-ly-nguoi-dung/:id/chinh-sua` | Edit User | `UserFormPage` | ADMIN |
+| `/duyet/:queueType` | Approval Queue | `QueueListPage` | APPROVER+ |
+| `/duyet/:queueType/:id` | Approval Detail | `QueueDetailPage` | APPROVER+ |
+| `/tin-noi-bat` | Hot Products | `HotProductsPage` | ADMIN |
+| `/nguoi-dung` | User List | `UserListPage` | ADMIN |
+| `/nguoi-dung/tao-moi` | Create User | `CreateUserPage` | ADMIN |
+| `/nguoi-dung/:id/chinh-sua` | Edit User | `EditUserPage` | ADMIN |
 
 ### Route params for approval queues
 
-`/admin/:txType/:queueType`
+`/duyet/:queueType`
 
 | Param | Values |
 |-------|--------|
-| `txType` | `ban`, `cho-thue`, `sang-nhuong` |
-| `queueType` | `duyet`, `duyet-bao-coc`, `duyet-huy-coc`, `duyet-chot-hang`, `duyet-het-hang` |
+| `queueType` | `listing-post`, `deposit`, `closure`, `cancellation`, `sold-out` |
 
-A single `ApprovalQueuePage` handles all 15 combinations by reading route params and mapping to queue type + transaction type.
+Queue items are filtered by transaction type via query parameter. A single `QueueListPage` handles all queues.
 
 ## 4. App Shell & Layout
 
@@ -303,34 +302,21 @@ App
                  │   ├── Notification bell (unread badge)
                  │   └── User avatar + dropdown (Đăng xuất)
                  ├── Sidebar (role-aware)
-                 │   ├── Agent: 3 items
-                 │   │   ├── Trang giỏ hàng chung (/)
-                 │   │   ├── Giỏ hàng của tôi (/gio-hang)
-                 │   │   └── Thông báo (/thong-bao)
-                 │   ├── Approver: Agent items + accordion menus for 15 queues
-                 │   └── Admin: full sidebar
-                 │       ├── All agent items
-                 │       ├── Sản phẩm HOT (/admin/san-pham-hot)
-                 │       ├── Quản lý người dùng (/admin/quan-ly-nguoi-dung)
-                 │       └── 3 accordion menus (BÁN / CHO THUÊ / SANG NHƯỢNG)
-                 │           └── 5 queue links each (with pending count badges)
+                 │   ├── Nav items filtered by role:
+                 │   │   ├── AGENT: Trang chủ (/), Giỏ hàng chung (/gio-hang-chung)
+                 │   │   ├── APPROVER: Trang chủ (/), Duyệt tin (/duyet/listing-post)
+                 │   │   └── ADMIN: Trang chủ (/), Người dùng (/nguoi-dung), Tin nổi bật (/tin-noi-bat)
+                 │   └── User menu: full name + Đăng xuất button
                  └── <Outlet /> (page content)
 ```
 
-### Sidebar data model
+### Nav data model
 
 ```typescript
-interface SidebarItem {
+interface NavItem {
   label: string       // Vietnamese display text
   path: string
-  icon: string        // Lucide icon name
-  badge?: number      // Pending/unread count
-}
-
-interface SidebarMenu {
-  label: string       // Transaction type (BÁN, CHO THUÊ, SANG NHƯỢNG)
-  items: SidebarItem[]  // 5 queue links
-  badge?: number      // Sum of pending in all 5 queues
+  roles: string[]     // Which roles can see this item
 }
 ```
 
@@ -340,12 +326,12 @@ interface SidebarMenu {
 |--------------|-------|----------|
 | `/dang-nhap` | `redirectIfAuth` | Redirect to `/` if token exists |
 | `/` | `requireAuth` | Redirect to `/dang-nhap` if no token |
-| `/san-pham/*` | `requireAuth` | Same |
-| `/gio-hang/*` | `requireAuth` | Same |
+| `/tin/*` | `requireAuth` | Same |
+| `/gio-hang-chung` | `requireAuth` | Same |
 | `/thong-bao` | `requireAuth` | Same |
-| `/admin/*` | `requireAuth` + `requireRole(APPROVER, ADMIN)` | 403 page if AGENT |
-| `/admin/san-pham-hot` | `requireAuth` + `requireRole(ADMIN)` | 403 page if not ADMIN |
-| `/admin/quan-ly-nguoi-dung*` | `requireAuth` + `requireRole(ADMIN)` | 403 page if not ADMIN |
+| `/duyet/*` | `requireAuth` + `requireRole(APPROVER, ADMIN)` | 403 page if AGENT |
+| `/tin-noi-bat` | `requireAuth` + `requireRole(ADMIN)` | 403 page if not ADMIN |
+| `/nguoi-dung*` | `requireAuth` + `requireRole(ADMIN)` | 403 page if not ADMIN |
 
 403 page shows: "Bạn không có quyền truy cập trang này"
 
@@ -514,15 +500,15 @@ export const listingQueries = {
 const listingFormSchema = z.object({
   transactionType: z.enum(['BAN', 'CHO_THUE', 'SANG_NHUONG']),
   propertyType: z.string().min(1, 'Vui lòng chọn loại'),
-  price: z.number({ required_error: 'Vui lòng nhập giá' }).positive(),
+  price: z.coerce.number({ required_error: 'Vui lòng nhập giá' }).positive(),
   commissionType: z.enum(['PERCENTAGE', 'FLAT']),
-  commissionValue: z.number({ required_error: 'Vui lòng nhập hoa hồng' }).positive(),
-  areaWidth: z.number({ required_error: 'Vui lòng nhập chiều rộng' }).positive(),
-  areaLength: z.number({ required_error: 'Vui lòng nhập chiều dài' }).positive(),
-  totalArea: z.number({ required_error: 'Vui lòng nhập diện tích' }).positive(),
-  numRooms: z.number().min(0),
-  numBathrooms: z.number().min(0),
-  numFloors: z.number().min(0),
+  commissionValue: z.coerce.number({ required_error: 'Vui lòng nhập hoa hồng' }).positive(),
+  areaWidth: z.coerce.number({ required_error: 'Vui lòng nhập chiều rộng' }).positive(),
+  areaLength: z.coerce.number({ required_error: 'Vui lòng nhập chiều dài' }).positive(),
+  totalArea: z.coerce.number({ required_error: 'Vui lòng nhập diện tích' }).positive(),
+  numRooms: z.coerce.number().min(0),
+  numBathrooms: z.coerce.number().min(0),
+  numFloors: z.coerce.number().min(0),
   streetName: z.string().min(1, 'Vui lòng nhập tên đường'),
   houseNumber: z.string().min(1, 'Vui lòng nhập số nhà'),
   ward: z.string().min(1, 'Vui lòng chọn phường/xã'),
@@ -539,16 +525,18 @@ const listingFormSchema = z.object({
   direction: z.string().optional(),
   roadWidth: z.string().optional(),
   videoUrl: z.string().url('Link không hợp lệ').optional().or(z.literal('')),
+  action: z.enum(['save', 'submit']).optional(),
 })
 
 export type IListingForm = z.infer<typeof listingFormSchema>
 
-export function useListingFormState(existing?: IListingForm) {
-  const [mode] = useState<'create' | 'edit'>(existing ? 'edit' : 'create')
+export function useListingFormState(existingListing?: ListingDTO | null) {
+  const [mode] = useState<'create' | 'edit'>(existingListing ? 'edit' : 'create')
+  const defaultValues = existingListing ? listingToFormValues(existingListing) : undefined
 
   const form = useForm<IListingForm>({
-    resolver: zodResolver(listingFormSchema),
-    defaultValues: existing ?? {
+    resolver: zodResolver(listingFormSchema) as unknown as Resolver<IListingForm>,
+    defaultValues: defaultValues ?? {
       transactionType: 'BAN',
       city: 'Hồ Chí Minh',
       numRooms: 0,
@@ -560,15 +548,8 @@ export function useListingFormState(existing?: IListingForm) {
   })
 
   const watchedTransactionType = form.watch('transactionType')
-  const watchedCity = form.watch('city')
 
-  const districtOptions = useQuery({
-    queryKey: ['locations', watchedCity],
-    queryFn: () => locationRepository.getDistricts(watchedCity),
-    enabled: !!watchedCity,
-  })
-
-  return { form, mode, watchedTransactionType, districtOptions }
+  return { form, mode, watchedTransactionType }
 }
 ```
 
@@ -581,14 +562,20 @@ export function useCreateListing() {
   const navigate = useNavigate()
 
   return useMutation({
-    mutationFn: (data: IListingForm) => {
-      const dto = listingMapper.toCreateDTO(data)
-      return listingRepository.create(dto)
+    mutationFn: async (data: IListingForm & { images: File[] }) => {
+      const payload = formToCreatePayload(data)
+      const listing = await listingRepository.create(payload)
+      if (data.images.length > 0) {
+        for (const file of data.images) {
+          await listingRepository.uploadImage(listing.id, file)
+        }
+      }
+      return listing
     },
     onSuccess: (listing) => {
       queryClient.invalidateQueries({ queryKey: listingQueries.lists() })
       toast.success('Tạo tin đăng thành công')
-      navigate(`/gio-hang`)
+      navigate(`/tin/${listing.id}`)
     },
     onError: (error: ApiError) => {
       toast.error(error.message)
@@ -600,28 +587,29 @@ export function useCreateListing() {
 ### View calls mutate with validated data
 
 ```tsx
-// pages/listing-form/ListingFormPage.tsx
-function ListingFormPage() {
-  const { form, mode } = useListingFormState(existingListing)
+// pages/listing-form/CreateListingPage.tsx
+function CreateListingPage() {
+  const { form, mode } = useListingFormState()
   const { mutate: create, isPending: isCreating } = useCreateListing()
-  const { mutate: update, isPending: isUpdating } = useUpdateListing()
 
   const onSubmit = form.handleSubmit((data) => {
     // data is fully validated by Zod — View just calls mutate
-    mode === 'create' ? create(data) : update({ id: existingId, ...data })
+    create(data)
   })
 
   return (
     <FormProvider {...form}>
       <form onSubmit={onSubmit}>
-        <PageHeader title={mode === 'create' ? 'Nhập hàng mới' : 'Chỉnh sửa tin đăng'} />
-        <TransactionTypeSelect />
-        <PropertyTypeSelect />
-        <CommissionInput />
-        <LocationCascade />
-        <PropertyDimensions />
-        <ImageUploader maxImages={20} />
-        <FormActions isPending={isCreating || isUpdating} mode={mode} />
+        <PageHeader title="Nhập hàng mới" backPath="/" />
+        <BasicInfoSection />
+        <PropertyDetailsSection />
+        <CommissionSection />
+        <LocationSection />
+        <ContactSection />
+        <ImageUploader />
+        <Button type="submit" disabled={isCreating}>
+          {isCreating ? 'Đang tạo...' : 'Đăng tải'}
+        </Button>
       </form>
     </FormProvider>
   )
@@ -645,8 +633,8 @@ Zod schema (defined in state hook)
 | Feature | State Hook | Schema |
 |---------|-----------|--------|
 | Login | `useLoginState` | `{ username: z.string(), password: z.string().min(8) }` |
-| Create Listing | `useListingFormState` | `listingFormSchema` (full listing fields) |
-| Edit Listing | `useListingFormState` | `listingFormSchema` (same, pre-filled) |
+| Create Listing | `useListingFormState` | `listingFormSchema` (full listing fields + images) |
+| Edit Listing | `useListingFormState` | `listingFormSchema` (same, pre-filled via `listingToFormValues` mapper) |
 | Report Deposit | `useProductDetailState` | `{ customerName: z.string().min(2), customerPhone: z.string(), depositAmount: z.number().positive() }` |
 | Report Cancellation | `useProductDetailState` | `{ reason: z.string().min(1, 'Vui lòng nhập lý do') }` |
 | Create User | `useUserFormState` | `{ fullName: z.string().min(1), username: z.string().min(3), password: z.string().min(8), role: z.enum([...]) }` |
@@ -863,8 +851,7 @@ After running the CLI commands:
 | DTO Types | `<Name>DTO` (in `<name>.dto.ts`) | `ListingDTO`, `UserDTO` |
 | State Hook | `use<Feature>State` | `useSharedCartState`, `useLoginState` |
 | Action Hook | `use<Action><Feature>` | `useReportDeposit`, `useCreateListing` |
-| Mapper Hook | `use<Feature>Mapper` | `useListingMapper`, `useApprovalMapper` |
-| Page Component | `<Name>Page` | `SharedCartPage`, `ListingFormPage` |
+| Page Component | `<Name>Page` | `SharedCartPage`, `CreateListingPage`, `EditListingPage` |
 | Repository | `<name>Repository` | `listingRepository`, `userRepository` |
 | Query Keys | `<name>Queries` | `listingQueries`, `notificationQueries` |
 | Constants | `<name>UI` | `listingUI`, `queueUI` |
@@ -896,6 +883,7 @@ After running the CLI commands:
 | Approval Queues | `GET /approvals/queues`, `GET /approvals/queues/{queueType}`, `POST /approvals/{id}/approve`, `POST /approvals/{id}/reject`, `POST /approvals/bulk-approve` | `approvalRepository` |
 | User Management | `GET /users`, `GET /users/{id}`, `POST /users`, `PUT /users/{id}`, `PATCH /users/{id}/deactivate`, `PATCH /users/{id}/reactivate`, `PATCH /users/{id}/role` | `userRepository` |
 | Hot Products | `GET /hot-listings`, `POST /listings/{id}/promote`, `DELETE /listings/{id}/promote`, `PUT /hot-listings/reorder` | `hotProductRepository` |
+| Geography | `GET /geography/cities`, `GET /geography/cities/{cityId}/districts`, `GET /geography/cities/{cityId}/districts/{districtId}/wards` | `geographyRepository` |
 
 ---
 

@@ -1,0 +1,474 @@
+{
+  "cities": [
+    {
+      "id": "hcm",
+      "name": "Hồ Chí Minh",
+      "districts": [
+        {
+          "id": "q1",
+          "name": "Quận 1",
+          "wards": [
+            {"id": "q1-ben-nghe", "name": "Bến Nghé"},
+            {"id": "q1-ben-thanh", "name": "Bến Thành"},
+            {"id": "q1-co-giang", "name": "Cô Giang"},
+            {"id": "q1-cau-kho", "name": "Cầu Kho"},
+            {"id": "q1-cau-ong-lanh", "name": "Cầu Ông Lãnh"},
+            {"id": "q1-da-kao", "name": "Đa Kao"},
+            {"id": "q1-nguyen-cu-trinh", "name": "Nguyễn Cư Trinh"},
+            {"id": "q1-nguyen-thai-binh", "name": "Nguyễn Thái Bình"},
+            {"id": "q1-pham-ngu-lao", "name": "Phạm Ngũ Lão"},
+            {"id": "q1-tan-dinh", "name": "Tân Định"}
+          ]
+        },
+        {
+          "id": "q2",
+          "name": "Quận 2",
+          "wards": [
+            {"id": "q2-an-khanh", "name": "An Khánh"},
+            {"id": "q2-an-loi-dong", "name": "An Lợi Đông"},
+            {"id": "q2-an-phu", "name": "An Phú"},
+            {"id": "q2-binh-an", "name": "Bình An"},
+            {"id": "q2-binh-khanh", "name": "Bình Khánh"},
+            {"id": "q2-binh-trich", "name": "Bình Trưng Đông"},
+            {"id": "q2-binh-trung-tay", "name": "Bình Trưng Tây"},
+            {"id": "q2-cat-lai", "name": "Cát Lái"},
+            {"id": "q2-thanh-my-loi", "name": "Thạnh Mỹ Lợi"},
+            {"id": "q2-thu-thiem", "name": "Thủ Thiêm"}
+          ]
+        },
+        {
+          "id": "q3",
+          "name": "Quận 3",
+          "wards": [
+            {"id": "q3-1", "name": "Phường 1"},
+            {"id": "q3-2", "name": "Phường 2"},
+            {"id": "q3-3", "name": "Phường 3"},
+            {"id": "q3-4", "name": "Phường 4"},
+            {"id": "q3-5", "name": "Phường 5"},
+            {"id": "q3-6", "name": "Phường 6"},
+            {"id": "q3-7", "name": "Phường 7"},
+            {"id": "q3-8", "name": "Phường 8"},
+            {"id": "q3-9", "name": "Phường 9"},
+            {"id": "q3-10", "name": "Phường 10"},
+            {"id": "q3-11", "name": "Phường 11"},
+            {"id": "q3-12", "name": "Phường 12"},
+            {"id": "q3-13", "name": "Phường 13"},
+            {"id": "q3-14", "name": "Phường 14"}
+          ]
+        },
+        {
+          "id": "q4",
+          "name": "Quận 4",
+          "wards": [
+            {"id": "q4-1", "name": "Phường 1"},
+            {"id": "q4-2", "name": "Phường 2"},
+            {"id": "q4-3", "name": "Phường 3"},
+            {"id": "q4-4", "name": "Phường 4"},
+            {"id": "q4-5", "name": "Phường 5"},
+            {"id": "q4-6", "name": "Phường 6"},
+            {"id": "q4-7", "name": "Phường 7"},
+            {"id": "q4-8", "name": "Phường 8"},
+            {"id": "q4-9", "name": "Phường 9"},
+            {"id": "q4-10", "name": "Phường 10"},
+            {"id": "q4-12", "name": "Phường 12"},
+            {"id": "q4-13", "name": "Phường 13"},
+            {"id": "q4-14", "name": "Phường 14"},
+            {"id": "q4-15", "name": "Phường 15"},
+            {"id": "q4-16", "name": "Phường 16"},
+            {"id": "q4-18", "name": "Phường 18"}
+          ]
+        },
+        {
+          "id": "q5",
+          "name": "Quận 5",
+          "wards": [
+            {"id": "q5-1", "name": "Phường 1"},
+            {"id": "q5-2", "name": "Phường 2"},
+            {"id": "q5-3", "name": "Phường 3"},
+            {"id": "q5-4", "name": "Phường 4"},
+            {"id": "q5-5", "name": "Phường 5"},
+            {"id": "q5-6", "name": "Phường 6"},
+            {"id": "q5-7", "name": "Phường 7"},
+            {"id": "q5-8", "name": "Phường 8"},
+            {"id": "q5-9", "name": "Phường 9"},
+            {"id": "q5-10", "name": "Phường 10"},
+            {"id": "q5-11", "name": "Phường 11"},
+            {"id": "q5-12", "name": "Phường 12"},
+            {"id": "q5-13", "name": "Phường 13"},
+            {"id": "q5-14", "name": "Phường 14"},
+            {"id": "q5-15", "name": "Phường 15"}
+          ]
+        },
+        {
+          "id": "q6",
+          "name": "Quận 6",
+          "wards": [
+            {"id": "q6-1", "name": "Phường 1"},
+            {"id": "q6-2", "name": "Phường 2"},
+            {"id": "q6-3", "name": "Phường 3"},
+            {"id": "q6-4", "name": "Phường 4"},
+            {"id": "q6-5", "name": "Phường 5"},
+            {"id": "q6-6", "name": "Phường 6"},
+            {"id": "q6-7", "name": "Phường 7"},
+            {"id": "q6-8", "name": "Phường 8"},
+            {"id": "q6-9", "name": "Phường 9"},
+            {"id": "q6-10", "name": "Phường 10"},
+            {"id": "q6-11", "name": "Phường 11"},
+            {"id": "q6-12", "name": "Phường 12"},
+            {"id": "q6-13", "name": "Phường 13"},
+            {"id": "q6-14", "name": "Phường 14"}
+          ]
+        },
+        {
+          "id": "q7",
+          "name": "Quận 7",
+          "wards": [
+            {"id": "q7-binh-thuan", "name": "Bình Thuận"},
+            {"id": "q7-phu-my", "name": "Phú Mỹ"},
+            {"id": "q7-phu-thuan", "name": "Phú Thuận"},
+            {"id": "q7-tan-hung", "name": "Tân Hưng"},
+            {"id": "q7-tan-khai", "name": "Tân Khai"},
+            {"id": "q7-tan-kien", "name": "Tân Kiểng"},
+            {"id": "q7-tan-phong", "name": "Tân Phong"},
+            {"id": "q7-tan-phu", "name": "Tân Phú"},
+            {"id": "q7-tan-quy", "name": "Tân Quy"},
+            {"id": "q7-tan-thuan-dong", "name": "Tân Thuận Đông"},
+            {"id": "q7-tan-thuan-tay", "name": "Tân Thuận Tây"}
+          ]
+        },
+        {
+          "id": "q8",
+          "name": "Quận 8",
+          "wards": [
+            {"id": "q8-1", "name": "Phường 1"},
+            {"id": "q8-2", "name": "Phường 2"},
+            {"id": "q8-3", "name": "Phường 3"},
+            {"id": "q8-4", "name": "Phường 4"},
+            {"id": "q8-5", "name": "Phường 5"},
+            {"id": "q8-6", "name": "Phường 6"},
+            {"id": "q8-7", "name": "Phường 7"},
+            {"id": "q8-8", "name": "Phường 8"},
+            {"id": "q8-9", "name": "Phường 9"},
+            {"id": "q8-10", "name": "Phường 10"},
+            {"id": "q8-11", "name": "Phường 11"},
+            {"id": "q8-12", "name": "Phường 12"},
+            {"id": "q8-13", "name": "Phường 13"},
+            {"id": "q8-14", "name": "Phường 14"},
+            {"id": "q8-15", "name": "Phường 15"},
+            {"id": "q8-16", "name": "Phường 16"}
+          ]
+        },
+        {
+          "id": "q9",
+          "name": "Quận 9",
+          "wards": [
+            {"id": "q9-hiep-phu", "name": "Hiệp Phú"},
+            {"id": "q9-long-binh", "name": "Long Bình"},
+            {"id": "q9-long-thanh-my", "name": "Long Thạnh Mỹ"},
+            {"id": "q9-long-truong", "name": "Long Trường"},
+            {"id": "q9-phu-huu", "name": "Phú Hữu"},
+            {"id": "q9-phuoc-binh", "name": "Phước Bình"},
+            {"id": "q9-phuoc-long-a", "name": "Phước Long A"},
+            {"id": "q9-phuoc-long-b", "name": "Phước Long B"},
+            {"id": "q9-tan-phu", "name": "Tân Phú"},
+            {"id": "q9-tang-nhon-phu-a", "name": "Tăng Nhơn Phú A"},
+            {"id": "q9-tang-nhon-phu-b", "name": "Tăng Nhơn Phú B"},
+            {"id": "q9-truong-thanh", "name": "Trường Thạnh"}
+          ]
+        },
+        {
+          "id": "q10",
+          "name": "Quận 10",
+          "wards": [
+            {"id": "q10-1", "name": "Phường 1"},
+            {"id": "q10-2", "name": "Phường 2"},
+            {"id": "q10-3", "name": "Phường 3"},
+            {"id": "q10-4", "name": "Phường 4"},
+            {"id": "q10-5", "name": "Phường 5"},
+            {"id": "q10-6", "name": "Phường 6"},
+            {"id": "q10-7", "name": "Phường 7"},
+            {"id": "q10-8", "name": "Phường 8"},
+            {"id": "q10-9", "name": "Phường 9"},
+            {"id": "q10-10", "name": "Phường 10"},
+            {"id": "q10-11", "name": "Phường 11"},
+            {"id": "q10-12", "name": "Phường 12"},
+            {"id": "q10-13", "name": "Phường 13"},
+            {"id": "q10-14", "name": "Phường 14"},
+            {"id": "q10-15", "name": "Phường 15"}
+          ]
+        },
+        {
+          "id": "q11",
+          "name": "Quận 11",
+          "wards": [
+            {"id": "q11-1", "name": "Phường 1"},
+            {"id": "q11-2", "name": "Phường 2"},
+            {"id": "q11-3", "name": "Phường 3"},
+            {"id": "q11-4", "name": "Phường 4"},
+            {"id": "q11-5", "name": "Phường 5"},
+            {"id": "q11-6", "name": "Phường 6"},
+            {"id": "q11-7", "name": "Phường 7"},
+            {"id": "q11-8", "name": "Phường 8"},
+            {"id": "q11-9", "name": "Phường 9"},
+            {"id": "q11-10", "name": "Phường 10"},
+            {"id": "q11-11", "name": "Phường 11"},
+            {"id": "q11-12", "name": "Phường 12"},
+            {"id": "q11-13", "name": "Phường 13"},
+            {"id": "q11-14", "name": "Phường 14"},
+            {"id": "q11-15", "name": "Phường 15"},
+            {"id": "q11-16", "name": "Phường 16"}
+          ]
+        },
+        {
+          "id": "q12",
+          "name": "Quận 12",
+          "wards": [
+            {"id": "q12-an-phu-dong", "name": "An Phú Đông"},
+            {"id": "q12-dong-hung-thuan", "name": "Đông Hưng Thuận"},
+            {"id": "q12-hiep-thanh", "name": "Hiệp Thành"},
+            {"id": "q12-tan-chanh-hiep", "name": "Tân Chánh Hiệp"},
+            {"id": "q12-tan-hung-thuan", "name": "Tân Hưng Thuận"},
+            {"id": "q12-tan-thoi-hiep", "name": "Tân Thới Hiệp"},
+            {"id": "q12-tan-thoi-nhat", "name": "Tân Thới Nhất"},
+            {"id": "q12-thoi-an", "name": "Thới An"},
+            {"id": "q12-trung-my-tay", "name": "Trung Mỹ Tây"},
+            {"id": "q12-thanh-xuan", "name": "Thạnh Xuân"},
+            {"id": "q12-thanh-loc", "name": "Thạnh Lộc"}
+          ]
+        },
+        {
+          "id": "binh-thanh",
+          "name": "Bình Thạnh",
+          "wards": [
+            {"id": "bt-1", "name": "Phường 1"},
+            {"id": "bt-2", "name": "Phường 2"},
+            {"id": "bt-3", "name": "Phường 3"},
+            {"id": "bt-5", "name": "Phường 5"},
+            {"id": "bt-6", "name": "Phường 6"},
+            {"id": "bt-7", "name": "Phường 7"},
+            {"id": "bt-11", "name": "Phường 11"},
+            {"id": "bt-12", "name": "Phường 12"},
+            {"id": "bt-13", "name": "Phường 13"},
+            {"id": "bt-14", "name": "Phường 14"},
+            {"id": "bt-15", "name": "Phường 15"},
+            {"id": "bt-17", "name": "Phường 17"},
+            {"id": "bt-19", "name": "Phường 19"},
+            {"id": "bt-21", "name": "Phường 21"},
+            {"id": "bt-22", "name": "Phường 22"},
+            {"id": "bt-24", "name": "Phường 24"},
+            {"id": "bt-25", "name": "Phường 25"},
+            {"id": "bt-26", "name": "Phường 26"},
+            {"id": "bt-27", "name": "Phường 27"},
+            {"id": "bt-28", "name": "Phường 28"}
+          ]
+        },
+        {
+          "id": "go-vap",
+          "name": "Gò Vấp",
+          "wards": [
+            {"id": "gv-1", "name": "Phường 1"},
+            {"id": "gv-3", "name": "Phường 3"},
+            {"id": "gv-4", "name": "Phường 4"},
+            {"id": "gv-5", "name": "Phường 5"},
+            {"id": "gv-6", "name": "Phường 6"},
+            {"id": "gv-7", "name": "Phường 7"},
+            {"id": "gv-8", "name": "Phường 8"},
+            {"id": "gv-9", "name": "Phường 9"},
+            {"id": "gv-10", "name": "Phường 10"},
+            {"id": "gv-11", "name": "Phường 11"},
+            {"id": "gv-12", "name": "Phường 12"},
+            {"id": "gv-13", "name": "Phường 13"},
+            {"id": "gv-14", "name": "Phường 14"},
+            {"id": "gv-15", "name": "Phường 15"},
+            {"id": "gv-16", "name": "Phường 16"},
+            {"id": "gv-17", "name": "Phường 17"}
+          ]
+        },
+        {
+          "id": "phu-nhuan",
+          "name": "Phú Nhuận",
+          "wards": [
+            {"id": "pn-1", "name": "Phường 1"},
+            {"id": "pn-2", "name": "Phường 2"},
+            {"id": "pn-3", "name": "Phường 3"},
+            {"id": "pn-4", "name": "Phường 4"},
+            {"id": "pn-5", "name": "Phường 5"},
+            {"id": "pn-7", "name": "Phường 7"},
+            {"id": "pn-8", "name": "Phường 8"},
+            {"id": "pn-9", "name": "Phường 9"},
+            {"id": "pn-10", "name": "Phường 10"},
+            {"id": "pn-11", "name": "Phường 11"},
+            {"id": "pn-12", "name": "Phường 12"},
+            {"id": "pn-13", "name": "Phường 13"},
+            {"id": "pn-15", "name": "Phường 15"},
+            {"id": "pn-17", "name": "Phường 17"}
+          ]
+        },
+        {
+          "id": "tan-binh",
+          "name": "Tân Bình",
+          "wards": [
+            {"id": "tb-1", "name": "Phường 1"},
+            {"id": "tb-2", "name": "Phường 2"},
+            {"id": "tb-3", "name": "Phường 3"},
+            {"id": "tb-4", "name": "Phường 4"},
+            {"id": "tb-5", "name": "Phường 5"},
+            {"id": "tb-6", "name": "Phường 6"},
+            {"id": "tb-7", "name": "Phường 7"},
+            {"id": "tb-8", "name": "Phường 8"},
+            {"id": "tb-9", "name": "Phường 9"},
+            {"id": "tb-10", "name": "Phường 10"},
+            {"id": "tb-11", "name": "Phường 11"},
+            {"id": "tb-12", "name": "Phường 12"},
+            {"id": "tb-13", "name": "Phường 13"},
+            {"id": "tb-14", "name": "Phường 14"},
+            {"id": "tb-15", "name": "Phường 15"}
+          ]
+        },
+        {
+          "id": "tan-phu",
+          "name": "Tân Phú",
+          "wards": [
+            {"id": "tp-hiep-tan", "name": "Hiệp Tân"},
+            {"id": "tp-hoa-thanh", "name": "Hòa Thạnh"},
+            {"id": "tp-phu-thanh", "name": "Phú Thạnh"},
+            {"id": "tp-phu-trung", "name": "Phú Trung"},
+            {"id": "tp-son-ky", "name": "Sơn Kỳ"},
+            {"id": "tp-tan-quy", "name": "Tân Quý"},
+            {"id": "tp-tan-son-nhi", "name": "Tân Sơn Nhì"},
+            {"id": "tp-tan-thanh", "name": "Tân Thành"},
+            {"id": "tp-tan-thoi-hoa", "name": "Tân Thới Hòa"},
+            {"id": "tp-tay-thanh", "name": "Tây Thạnh"},
+            {"id": "tp-phu-thanh-a", "name": "Phú Thạnh A"}
+          ]
+        },
+        {
+          "id": "binh-tan",
+          "name": "Bình Tân",
+          "wards": [
+            {"id": "bt-binh-hung-hoa", "name": "Bình Hưng Hòa"},
+            {"id": "bt-binh-hung-hoa-a", "name": "Bình Hưng Hòa A"},
+            {"id": "bt-binh-hung-hoa-b", "name": "Bình Hưng Hòa B"},
+            {"id": "bt-binh-tri-dong", "name": "Bình Trị Đông"},
+            {"id": "bt-binh-tri-dong-a", "name": "Bình Trị Đông A"},
+            {"id": "bt-binh-tri-dong-b", "name": "Bình Trị Đông B"},
+            {"id": "bt-an-lac", "name": "An Lạc"},
+            {"id": "bt-an-lac-a", "name": "An Lạc A"},
+            {"id": "bt-tan-tao", "name": "Tân Tạo"},
+            {"id": "bt-tan-tao-a", "name": "Tân Tạo A"}
+          ]
+        },
+        {
+          "id": "thu-duc",
+          "name": "Thủ Đức",
+          "wards": [
+            {"id": "td-hiep-binh-chanh", "name": "Hiệp Bình Chánh"},
+            {"id": "td-hiep-binh-phuoc", "name": "Hiệp Bình Phước"},
+            {"id": "td-linh-chieu", "name": "Linh Chiểu"},
+            {"id": "td-linh-dong", "name": "Linh Đông"},
+            {"id": "td-linh-trung", "name": "Linh Trung"},
+            {"id": "td-linh-xuan", "name": "Linh Xuân"},
+            {"id": "td-tam-binh", "name": "Tam Binh"},
+            {"id": "td-tam-phu", "name": "Tam Phú"},
+            {"id": "td-binh-tho", "name": "Bình Thọ"},
+            {"id": "td-binh-chien", "name": "Bình Chiểu"},
+            {"id": "td-binh-loi", "name": "Bình Lợi"},
+            {"id": "td-truong-tho", "name": "Trường Thọ"}
+          ]
+        },
+        {
+          "id": "hoc-mon",
+          "name": "Hóc Môn",
+          "wards": [
+            {"id": "hm-hoc-mon", "name": "Thị trấn Hóc Môn"},
+            {"id": "hm-ba-diem", "name": "Bà Điểm"},
+            {"id": "hm-dong-thanh", "name": "Đông Thạnh"},
+            {"id": "hm-nhi-binh", "name": "Nhị Bình"},
+            {"id": "hm-tan-hiep", "name": "Tân Hiệp"},
+            {"id": "hm-tan-thoi-nhi", "name": "Tân Thới Nhì"},
+            {"id": "hm-tan-xuan", "name": "Tân Xuân"},
+            {"id": "hm-thoi-tam-thon", "name": "Thới Tam Thôn"},
+            {"id": "hm-trung-chanh", "name": "Trung Chánh"},
+            {"id": "hm-xuan-thoi-dong", "name": "Xuân Thới Đông"},
+            {"id": "hm-xuan-thoi-son", "name": "Xuân Thới Sơn"},
+            {"id": "hm-xuan-thoi-thuong", "name": "Xuân Thới Thượng"}
+          ]
+        },
+        {
+          "id": "cu-chi",
+          "name": "Củ Chi",
+          "wards": [
+            {"id": "cc-cu-chi", "name": "Thị trấn Củ Chi"},
+            {"id": "cc-an-nhon-tay", "name": "An Nhơn Tây"},
+            {"id": "cc-an-phu", "name": "An Phú"},
+            {"id": "cc-binh-my", "name": "Bình Mỹ"},
+            {"id": "cc-hiep-thanh", "name": "Hiệp Thành"},
+            {"id": "cc-hoa-phu", "name": "Hòa Phú"},
+            {"id": "cc-nhuon-duc", "name": "Nhuận Đức"},
+            {"id": "cc-phu-hoa-dong", "name": "Phú Hòa Đông"},
+            {"id": "cc-phu-my-hung", "name": "Phú Mỹ Hưng"},
+            {"id": "cc-phuoc-hiep", "name": "Phước Hiệp"},
+            {"id": "cc-phuoc-thanh", "name": "Phước Thạnh"},
+            {"id": "cc-phuoc-vinh-an", "name": "Phước Vĩnh An"},
+            {"id": "cc-tan-an-hoi", "name": "Tân An Hội"},
+            {"id": "cc-tan-phu-trung", "name": "Tân Phú Trung"},
+            {"id": "cc-tan-thanh", "name": "Tân Thạnh"},
+            {"id": "cc-tan-thong-hoi", "name": "Tân Thông Hội"},
+            {"id": "cc-thai-my", "name": "Thái Mỹ"},
+            {"id": "cc-trung-an", "name": "Trung An"},
+            {"id": "cc-trung-lap-ha", "name": "Trung Lập Hạ"},
+            {"id": "cc-trung-lap-thuong", "name": "Trung Lập Thượng"}
+          ]
+        },
+        {
+          "id": "nha-be",
+          "name": "Nhà Bè",
+          "wards": [
+            {"id": "nb-nha-be", "name": "Thị trấn Nhà Bè"},
+            {"id": "nb-hiep-phuoc", "name": "Hiệp Phước"},
+            {"id": "nb-long-thoi", "name": "Long Thới"},
+            {"id": "nb-nhon-duc", "name": "Nhơn Đức"},
+            {"id": "nb-phu-xuan", "name": "Phú Xuân"},
+            {"id": "nb-phuoc-kien", "name": "Phước Kiển"},
+            {"id": "nb-phuoc-loc", "name": "Phước Lộc"}
+          ]
+        },
+        {
+          "id": "binh-chanh",
+          "name": "Bình Chánh",
+          "wards": [
+            {"id": "bc-tan-tuc", "name": "Thị trấn Tân Túc"},
+            {"id": "bc-an-phu-tay", "name": "An Phú Tây"},
+            {"id": "bc-binh-chanh", "name": "Bình Chánh"},
+            {"id": "bc-binh-hung", "name": "Bình Hưng"},
+            {"id": "bc-binh-loi", "name": "Bình Lợi"},
+            {"id": "bc-da-phuoc", "name": "Đa Phước"},
+            {"id": "bc-hung-long", "name": "Hưng Long"},
+            {"id": "bc-le-minh-xuan", "name": "Lê Minh Xuân"},
+            {"id": "bc-pham-van-hai", "name": "Phạm Văn Hai"},
+            {"id": "bc-phong-phu", "name": "Phong Phú"},
+            {"id": "bc-qui-duc", "name": "Qui Đức"},
+            {"id": "bc-tan-kien", "name": "Tân Kiên"},
+            {"id": "bc-tan-nhat", "name": "Tân Nhựt"},
+            {"id": "bc-tan-quy-tay", "name": "Tân Quý Tây"},
+            {"id": "bc-vinh-loc-a", "name": "Vĩnh Lộc A"},
+            {"id": "bc-vinh-loc-b", "name": "Vĩnh Lộc B"}
+          ]
+        },
+        {
+          "id": "can-gio",
+          "name": "Cần Giờ",
+          "wards": [
+            {"id": "cg-can-thanh", "name": "Thị trấn Cần Thạnh"},
+            {"id": "cg-an-thoi-dong", "name": "An Thới Đông"},
+            {"id": "cg-binh-khanh", "name": "Bình Khánh"},
+            {"id": "cg-long-hoa", "name": "Long Hòa"},
+            {"id": "cg-ly-nhon", "name": "Lý Nhơn"},
+            {"id": "cg-tam-thon-hiep", "name": "Tam Thôn Hiệp"},
+            {"id": "cg-thanh-an", "name": "Thạnh An"}
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -18,6 +18,7 @@ from src.modules.hot_products import module as hot_products_module
 from src.modules.notifications import module as notifications_module
 from src.modules.user_settings import module as user_settings_module
 from src.modules.organizations import module as organizations_module
+from src.modules.geography import module as geography_module
 from src.modules.reviews import module as reviews_module
 
 MODULES: list[Callable[..., Any]] = [
@@ -35,6 +36,7 @@ MODULES: list[Callable[..., Any]] = [
     user_settings_module,
     organizations_module,
     reviews_module,
+    geography_module,
 ]
 
 

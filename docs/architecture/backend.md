@@ -225,6 +225,7 @@ src/
 | `hot_products` | `/hot-listings` + `/listings/{id}/promote` | Yes | ADMIN (mutate) | 4 |
 | `pins` | `/listings/{id}/pin` + `/users/me/pins` | Yes | AGENT | 3 |
 | `user_settings` | `/users/me/notification-preferences` | Yes | AGENT | 2 |
+| `geography` | `/geography` | No | Public | 3 |
 
 ### 3.2 Router → Facade → Repository Mapping
 
@@ -276,6 +277,9 @@ src/
 | `GET` | `/users/me/pins` | `list_my_pins` | `UserPinRepo`, `ListingRepo` | UserPin, Listing |
 | `GET` | `/users/me/notification-preferences` | `get_notification_preferences` | `UserRepo` | User (prefs) |
 | `PUT` | `/users/me/notification-preferences` | `update_notification_preferences` | `UserRepo` | User (prefs) |
+| `GET` | `/geography/cities` | `get_cities` | — (JSON data) | — |
+| `GET` | `/geography/cities/{cityId}/districts` | `get_districts` | — (JSON data) | — |
+| `GET` | `/geography/cities/{cityId}/districts/{districtId}/wards` | `get_wards` | — (JSON data) | — |
 
 ---
 
@@ -324,6 +328,7 @@ ListingEntity
 ├── id (PK, UUID)
 ├── code (String 20, required, unique)
 ├── transaction_type (Enum: SANG_NHUONG|CHO_THUE|BAN)
+├── property_type (Enum: NHA_PHO|CAN_HO|CHDV|DAT|BIET_THU|VAN_PHONG|MAT_BANG|KHO_XUONG|NHA_TRO|KHAC)
 ├── title (String 500, nullable)
 ├── description (Text, required)
 ├── price (Numeric 18,0, required)
@@ -867,7 +872,7 @@ def guard_owner(resource: HasOwner, current_user: UserEntity):
 
 ```python
 from src.modules import auth, users, listings, listing_images, deal_events
-from src.modules import approvals, notifications, hot_products, pins, user_settings
+from src.modules import approvals, notifications, hot_products, pins, user_settings, geography
 
 MODULES = [
     auth.module,
@@ -880,6 +885,7 @@ MODULES = [
     hot_products.module,
     pins.module,
     user_settings.module,
+    geography.module,
 ]
 
 def create_app() -> FastAPI:

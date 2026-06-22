@@ -48,6 +48,11 @@ export const listingRepository = {
   unpin: (id: string) =>
     httpClient.delete(`/listings/${id}/pin`).then(() => undefined),
 
+  uploadImage: (id: string, formData: FormData) =>
+    httpClient.post(`/listings/${id}/images`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    }).then((r) => r.data),
+
   promoteToHot: (id: string, hotOrder: number) =>
     httpClient.post(`/listings/${id}/promote`, { hotOrder }).then((r) => r.data),
 
