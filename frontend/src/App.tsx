@@ -9,7 +9,7 @@ import { Toaster } from "@/shared/components/ui/sonner"
 import {
   LoginPage,
   HomePage,
-  ListingDetailPage,
+  ProductDetailPage,
   CreateListingPage,
   EditListingPage,
   MyCartPage,
@@ -46,7 +46,7 @@ function AppRoutes() {
         }
       >
         <Route index element={<HomePage />} />
-        <Route path="tin/:id" element={<ListingDetailPage />} />
+        <Route path="tin/:id" element={<ProductDetailPage />} />
         <Route path="tin/tao-moi" element={<AuthGuard roles={["ADMIN", "AGENT"]}><CreateListingPage /></AuthGuard>} />
         <Route path="tin/:id/chinh-sua" element={<AuthGuard roles={["ADMIN", "AGENT"]}><EditListingPage /></AuthGuard>} />
         <Route path="gio-hang-chung" element={<AuthGuard roles={["AGENT"]}><MyCartPage /></AuthGuard>} />

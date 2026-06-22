@@ -86,8 +86,7 @@ export interface DealEventDTO {
   createdAt: string
 }
 
-export interface ListingDetailResponseDTO {
-  listing: ListingDTO
+export interface ListingDetailResponseDTO extends ListingDTO {
   images: ListingImageDTO[]
   dealEvents: DealEventDTO[]
   isPinned: boolean
