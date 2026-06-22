@@ -2,7 +2,6 @@ import uuid
 
 from pydantic import BaseModel
 
-
 class ReorderImagesRequest(BaseModel):
     image_ids: list[uuid.UUID]
 

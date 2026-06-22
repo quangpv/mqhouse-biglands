@@ -47,7 +47,7 @@ export default function ProductDetailPage() {
       />
 
       <div className="flex items-center gap-2">
-        {listing.isHot && <Badge className="bg-red-500 text-white">Hot</Badge>}
+        {listing.is_hot && <Badge className="bg-red-500 text-white">Hot</Badge>}
         <Badge variant="outline">{getStatusLabel(listing.status)}</Badge>
         <span className={`ml-auto h-2.5 w-2.5 rounded-full ${getStatusColor(listing.status)}`} />
       </div>

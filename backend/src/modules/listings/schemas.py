@@ -6,8 +6,6 @@ from pydantic import BaseModel, Field
 
 from src.data.entities.listing import CommissionType, ListingStatus, PropertyType, TransactionType
 from src.shared.pagination import PaginatedResponse
-
-
 class CreateListingRequest(BaseModel):
     transaction_type: TransactionType = TransactionType.BAN
     property_type: PropertyType
@@ -76,7 +74,7 @@ class UpdateListingRequest(BaseModel):
 
 class CreatorInfo(BaseModel):
     id: uuid.UUID
-    fullName: str
+    full_name: str
     phone: str | None = None
 
 

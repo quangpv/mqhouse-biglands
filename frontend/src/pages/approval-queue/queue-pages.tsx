@@ -44,10 +44,18 @@ export default function QueueListPage() {
   const rejectItem = useRejectItem()
   const bulkApprove = useBulkApprove()
 
-  const currentQueue = queuesQuery.data?.queues.find((q) => q.queueType === typedQueueType)
-  const pendingCount = currentQueue?.transactionTypes.reduce((s, t) => s + t.pendingCount, 0) ?? 0
+  const QUEUE_TYPE_MAP: Record<string, string> = {
+    "listing-post": "LISTING_POST",
+    deposit: "DEPOSIT",
+    closure: "CLOSURE",
+    cancellation: "CANCELLATION",
+    "sold-out": "SOLD_OUT",
+  }
+  const backendType = QUEUE_TYPE_MAP[typedQueueType] ?? typedQueueType.toUpperCase()
+  const currentQueue = queuesQuery.data?.queues.filter((q) => q.approval_type === backendType) ?? []
+  const pendingCount = currentQueue.reduce((s, q) => s + q.count, 0)
   const items = itemsQuery.data?.data ?? []
-  const totalPages = itemsQuery.data?.pagination?.totalPages ?? 1
+  const totalPages = itemsQuery.data?.total_pages ?? 1
   const isListingPost = typedQueueType === "listing-post"
 
   const toggleSelect = (id: string) => {
@@ -70,24 +78,24 @@ export default function QueueListPage() {
 
   const mappedItems = items.map((item) => ({
     id: item.id,
-    listingId: item.listing.id,
-    listingTitle: item.listing.title ?? "",
-    listingCode: item.listing.productCode ?? "",
-    listingImageUrl: item.listing.primaryImageUrl ?? null,
-    listingStatus: item.listing.status ?? "",
+    listingId: item.listing_id,
+    listingTitle: item.title ?? "",
+    listingCode: item.listing_code ?? "",
+    listingImageUrl: null,
+    listingStatus: item.status ?? "",
     approvalType: typedQueueType,
-    agentName: item.listing.creator?.fullName ?? "",
-    submittedAt: item.createdAt,
-    dealEvent: item.dealEvent
+    agentName: item.reported_by?.full_name ?? "",
+    submittedAt: item.created_at,
+    dealEvent: item.deal_event
       ? {
-          customerName: (item.dealEvent as any).customerName,
-          customerPhone: (item.dealEvent as any).customerPhone,
-          depositAmount: (item.dealEvent as any).depositAmount,
-          notes: (item.dealEvent as any).notes,
+          customerName: item.deal_event.customer_name,
+          customerPhone: item.deal_event.customer_phone,
+          depositAmount: item.deal_event.deposit_amount,
+          notes: item.deal_event.notes,
         }
       : null,
-    reporter: item.reportedBy
-      ? { id: item.reportedBy.id, fullName: item.reportedBy.fullName }
+    reporter: item.reported_by
+      ? { id: item.reported_by.id, fullName: item.reported_by.full_name }
       : null,
   }))
 

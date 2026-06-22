@@ -1,11 +1,11 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
+import { useToast } from "@/shared/context/toast-provider"
 import { listingRepository } from "@/data/repositories/listing.repository"
 import { listingQueries } from "@/data/queries/listing.queries"
-import type { ApiError } from "@/data/infra/api-error"
 
 export function useReorderHot() {
   const queryClient = useQueryClient()
+  const { success, showError } = useToast()
 
   return useMutation({
     mutationFn: (order: Array<{ listingId: string; hotOrder: number }>) =>
@@ -13,10 +13,8 @@ export function useReorderHot() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: listingQueries.hot() })
       queryClient.invalidateQueries({ queryKey: listingQueries.lists() })
-      toast.success("Đã cập nhật thứ tự")
+      success("Đã cập nhật thứ tự")
     },
-    onError: (error: ApiError) => {
-      toast.error(error.message || "Có lỗi xảy ra")
-    },
+    onError: (err) => showError(err),
   })
 }

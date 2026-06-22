@@ -73,7 +73,7 @@ export default function UserListPage() {
           onEdit={(id) => navigate(`/nguoi-dung/${id}/chinh-sua`)}
           onToggleActive={(id, currentActive) => {
             const user = users.find((u) => u.id === id)
-            if (user) setDeactivateTarget({ id, name: user.fullName, isActive: currentActive })
+            if (user) setDeactivateTarget({ id, name: user.full_name, isActive: currentActive })
           }}
           onChangeRole={(id) => {}}
         />

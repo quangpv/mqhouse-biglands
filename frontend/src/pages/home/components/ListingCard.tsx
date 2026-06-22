@@ -14,7 +14,7 @@ export function ListingCard({ listing }: ListingCardProps) {
     <Link to={`/tin/${listing.id}`} className="block">
       <Card className="flex-row gap-4 overflow-hidden p-4">
         <div className="relative h-32 w-40 shrink-0 overflow-hidden rounded-lg bg-muted">
-          {listing.primaryImageUrl ? (
+          {listing.primary_image_url ? (
             <img
               src={listing.primaryImageUrl}
               alt=""
@@ -25,7 +25,7 @@ export function ListingCard({ listing }: ListingCardProps) {
               No Image
             </div>
           )}
-          {listing.isHot && (
+          {listing.is_hot && (
             <Badge className="absolute top-1 left-1 bg-red-500 text-white text-[10px] px-1.5 py-0">
               Hot
             </Badge>
@@ -41,13 +41,13 @@ export function ListingCard({ listing }: ListingCardProps) {
             </p>
             <div className="flex flex-wrap gap-1">
               <Badge variant="outline" className="text-[10px]">
-                {getTransactionTypeLabel(listing.transactionType)}
+                {getTransactionTypeLabel(listing.transaction_type)}
               </Badge>
               <Badge variant="outline" className="text-[10px]">
-                {getPropertyTypeLabel(listing.propertyType)}
+                {getPropertyTypeLabel(listing.property_type)}
               </Badge>
               <Badge variant="outline" className="text-[10px]">
-                {formatArea(listing.totalArea)}
+                {formatArea(listing.total_area)}
               </Badge>
             </div>
           </div>

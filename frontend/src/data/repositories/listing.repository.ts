@@ -5,13 +5,13 @@ export interface ListingListParams {
   page?: number
   size?: number
   q?: string
-  transactionType?: string
+  transaction_type?: string
   status?: string[]
-  createdBy?: string
-  isHot?: boolean
+  created_by?: string
+  is_hot?: boolean
   filter?: string
-  sortBy?: string
-  sortOrder?: string
+  sort_by?: string
+  sort_order?: string
 }
 
 export const listingRepository = {
@@ -19,7 +19,7 @@ export const listingRepository = {
     httpClient.get<ListingListResponseDTO>("/listings", { params }).then((r) => r.data),
 
   getHotListings: (params?: ListingListParams) =>
-    httpClient.get<ListingListResponseDTO>("/listings", { params: { ...params, isHot: true } }).then((r) => r.data),
+    httpClient.get<ListingListResponseDTO>("/listings", { params: { ...params, is_hot: true } }).then((r) => r.data),
 
   getMyPins: (params?: ListingListParams) =>
     httpClient.get<ListingListResponseDTO>("/listings", { params: { ...params, filter: "pinned" } }).then((r) => r.data),

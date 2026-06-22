@@ -4,8 +4,6 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 
 from src.data.entities.user import UserRole
-
-
 class LoginRequest(BaseModel):
     username: str = Field(..., min_length=1, max_length=100)
     password: str = Field(..., min_length=1)

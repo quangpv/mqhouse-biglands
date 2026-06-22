@@ -2,9 +2,9 @@ import httpClient from "../infra/http-client"
 import type { DealEventDTO } from "../types/listing.dto"
 
 export interface ReportDepositPayload {
-  customerName: string
-  customerPhone?: string
-  depositAmount: number
+  customer_name: string
+  customer_phone?: string
+  deposit_amount: number
   notes?: string
 }
 

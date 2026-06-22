@@ -9,12 +9,12 @@ function toHotProduct(listing: ListingDTO): IHotProduct {
   return {
     id: listing.id,
     listingId: listing.id,
-    title: listing.title ?? listing.productCode ?? "",
-    productCode: listing.productCode ?? "",
-    primaryImageUrl: listing.primaryImageUrl ?? null,
+    title: listing.title ?? listing.code ?? "",
+    productCode: listing.code ?? "",
+    primaryImageUrl: listing.primary_image_url ?? null,
     price: listing.price ?? 0,
     status: listing.status ?? "",
-    hotOrder: listing.hotOrder ?? 0,
+    hotOrder: listing.hot_order ?? 0,
   }
 }
 
@@ -79,7 +79,7 @@ export function useHotProductsState() {
 
   return {
     hotProducts,
-    totalCount: query.data?.pagination?.totalItems ?? 0,
+    totalCount: query.data?.total ?? 0,
     orderMap,
     moveUp,
     moveDown,

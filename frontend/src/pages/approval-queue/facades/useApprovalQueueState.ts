@@ -4,6 +4,14 @@ import { approvalRepository } from "@/data/repositories/approval.repository"
 import { approvalQueries } from "@/data/queries/approval.queries"
 import type { QueueType, QueueFilterState } from "../types"
 
+const QUEUE_TYPE_MAP: Record<QueueType, string> = {
+  "listing-post": "LISTING_POST",
+  deposit: "DEPOSIT",
+  closure: "CLOSURE",
+  cancellation: "CANCELLATION",
+  "sold-out": "SOLD_OUT",
+}
+
 export function useApprovalQueueState(queueType: QueueType) {
   const [page, setPage] = useState(1)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
@@ -24,16 +32,18 @@ export function useApprovalQueueState(queueType: QueueType) {
     queryFn: () => approvalRepository.listQueueItems(queueType, { page, size: 20, ...filters }),
   })
 
+  const backendType = QUEUE_TYPE_MAP[queueType]
+
   const queueMeta = useMemo(() => {
     const all = queuesQuery.data?.queues ?? []
     return {
       queues: all,
-      currentQueue: all.find((q) => q.queueType === queueType),
+      currentQueue: all.filter((q) => q.approval_type === backendType),
     }
-  }, [queuesQuery.data, queueType])
+  }, [queuesQuery.data, backendType])
 
   const items = itemsQuery.data?.data ?? []
-  const totalPages = itemsQuery.data?.pagination?.totalPages ?? 1
+  const totalPages = itemsQuery.data?.total_pages ?? 1
 
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) => {

@@ -5,8 +5,6 @@ from pydantic import BaseModel, Field
 
 from src.data.entities.user import UserRole
 from src.shared.pagination import PaginatedResponse
-
-
 class CreateUserRequest(BaseModel):
     full_name: str = Field(..., min_length=1, max_length=255)
     username: str = Field(..., min_length=3, max_length=100)

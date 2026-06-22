@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field
 from src.shared.pagination import PaginatedResponse
 
 
+
 class DealEventInfo(BaseModel):
     event_type: str
     notes: str | None = None

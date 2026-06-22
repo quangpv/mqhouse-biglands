@@ -1,8 +1,8 @@
 export interface PaginationDTO {
   page: number
   size: number
-  totalItems: number
-  totalPages: number
+  total: number
+  total_pages: number
 }
 
 export interface ApiErrorDTO {

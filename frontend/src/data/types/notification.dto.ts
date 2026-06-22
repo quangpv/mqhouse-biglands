@@ -1,25 +1,23 @@
 export interface NotificationDTO {
   id: string
-  userId: string
+  user_id: string
   title: string
   body: string
-  eventType: string | null
-  actorName: string | null
-  transactionType: string | null
-  referenceType: string | null
-  referenceId: string | null
-  isRead: boolean
-  createdAt: string
+  event_type: string | null
+  actor_name: string | null
+  transaction_type: string | null
+  reference_type: string | null
+  reference_id: string | null
+  is_read: boolean
+  created_at: string
 }
 
 export interface NotificationListResponseDTO {
   data: NotificationDTO[]
-  pagination: {
-    page: number
-    size: number
-    totalItems: number
-    totalPages: number
-  }
-  unreadCount: number
-  categoryCounts: Record<string, number>
+  page: number
+  size: number
+  total: number
+  total_pages: number
+  unread_count: number
+  category_counts: Record<string, number>
 }

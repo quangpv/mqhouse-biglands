@@ -1,20 +1,19 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
+import { useToast } from "@/shared/context/toast-provider"
 import { dealEventRepository } from "@/data/repositories/deal-event.repository"
 import { listingQueries } from "@/data/queries/listing.queries"
 
 export function useReportClosure(listingId: string) {
   const queryClient = useQueryClient()
+  const { success, showError } = useToast()
 
   return useMutation({
     mutationFn: (notes: string) =>
       dealEventRepository.reportClosure(listingId, { notes: notes || undefined }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: listingQueries.detail(listingId) })
-      toast.success("Báo chốt hàng thành công, chờ duyệt")
+      success("Báo chốt hàng thành công, chờ duyệt")
     },
-    onError: () => {
-      toast.error("Không thể báo chốt hàng")
-    },
+    onError: (err) => showError(err),
   })
 }

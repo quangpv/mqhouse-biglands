@@ -1,21 +1,24 @@
 export interface OrganizationDTO {
   id: string
   name: string
-  displayName: string
-  createdAt: string
-  updatedAt: string
+  display_name: string
+  created_at: string
+  updated_at: string
 }
 
 export interface CreateOrganizationRequestDTO {
   name: string
-  displayName: string
+  display_name: string
 }
 
 export interface UpdateOrganizationRequestDTO {
-  displayName: string
+  display_name: string
 }
 
 export interface OrganizationListResponseDTO {
   data: OrganizationDTO[]
-  pagination: import("./common.dto").PaginationDTO
+  page: number
+  size: number
+  total: number
+  total_pages: number
 }

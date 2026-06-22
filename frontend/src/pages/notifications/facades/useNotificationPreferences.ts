@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { notificationRepository } from "@/data/repositories/notification.repository"
 import { notificationQueries } from "@/data/queries/notification.queries"
-import { toast } from "sonner"
+import { useToast } from "@/shared/context/toast-provider"
 
 export interface INotificationPreferences {
   listingPostCreated: boolean
@@ -23,6 +23,7 @@ export interface INotificationPreferences {
 
 export function useNotificationPreferences() {
   const queryClient = useQueryClient()
+  const { success, showError } = useToast()
 
   const query = useQuery({
     queryKey: notificationQueries.preferences(),
@@ -33,9 +34,9 @@ export function useNotificationPreferences() {
     mutationFn: (data: Record<string, boolean>) => notificationRepository.updatePreferences(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: notificationQueries.preferences() })
-      toast.success("Đã lưu cài đặt thông báo")
+      success("Đã lưu cài đặt thông báo")
     },
-    onError: () => toast.error("Không thể lưu cài đặt"),
+    onError: (err) => showError(err),
   })
 
   return { query, updateMutation }

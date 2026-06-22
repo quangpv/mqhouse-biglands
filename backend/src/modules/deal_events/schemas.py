@@ -4,7 +4,6 @@ from decimal import Decimal
 
 from pydantic import BaseModel, Field
 
-
 class ReportDepositRequest(BaseModel):
     customer_name: str = Field(..., min_length=2, max_length=255)
     customer_phone: str | None = Field(None, max_length=20)

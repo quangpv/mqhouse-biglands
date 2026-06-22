@@ -4,8 +4,8 @@ import type { NotificationListResponseDTO, NotificationDTO } from "../types/noti
 export interface NotificationListParams {
   page?: number
   size?: number
-  isRead?: boolean
-  transactionType?: string
+  is_read?: boolean
+  transaction_type?: string
   q?: string
 }
 

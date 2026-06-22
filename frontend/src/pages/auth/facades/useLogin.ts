@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom"
 import { authRepository } from "@/data/repositories/auth.repository"
 import { authQueries } from "@/data/queries/auth.queries"
 import { useAuthStore } from "@/shared/context/auth-store"
+import { useToast } from "@/shared/context/toast-provider"
 import type { ILoginForm } from "../types"
 
 export function useLogin() {
@@ -10,6 +11,7 @@ export function useLogin() {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
   const location = useLocation()
+  const { showError } = useToast()
 
   return useMutation({
     mutationFn: (data: ILoginForm) => authRepository.login(data),
@@ -19,5 +21,6 @@ export function useLogin() {
       const from = (location.state as { from?: { pathname: string } })?.from?.pathname
       navigate(from || "/", { replace: true })
     },
+    onError: (err) => showError(err),
   })
 }

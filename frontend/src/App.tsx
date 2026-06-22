@@ -4,7 +4,7 @@ import { queryClient } from "@/data/infra/query-client"
 import { AuthProvider, useAuthContext } from "@/shared/context/auth-context"
 import { AppLayout } from "@/shared/components/app-layout"
 import { AuthGuard } from "@/shared/components/auth-guard"
-import { Toaster } from "@/shared/components/ui/sonner"
+import { ToastProvider } from "@/shared/context/toast-provider"
 
 import {
   LoginPage,
@@ -73,8 +73,9 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AuthProvider>
-          <AppRoutes />
-          <Toaster />
+          <ToastProvider>
+            <AppRoutes />
+          </ToastProvider>
         </AuthProvider>
       </BrowserRouter>
     </QueryClientProvider>

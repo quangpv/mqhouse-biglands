@@ -10,18 +10,18 @@ export interface LoginResponseDTO {
 
 export interface UserDTO {
   id: string
-  fullName: string
+  full_name: string
   username: string
   phone: string | null
   email: string | null
   role: "AGENT" | "APPROVER" | "ADMIN"
-  isActive: boolean
-  organizationId: string | null
-  organizationName: string | null
-  generatedPassword: string | null
-  createdBy: string | null
-  createdAt: string
-  updatedAt: string
+  is_active: boolean
+  organization_id: string | null
+  organization_name: string | null
+  generated_password: string | null
+  created_by: string | null
+  created_at: string
+  updated_at: string
 }
 
 export interface ForgotPasswordRequestDTO {
@@ -35,7 +35,7 @@ export interface ForgotPasswordResponseDTO {
 
 export interface ResetPasswordRequestDTO {
   token: string
-  newPassword: string
+  new_password: string
 }
 
 export interface ResetPasswordResponseDTO {

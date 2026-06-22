@@ -1,19 +1,19 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useNavigate } from "react-router-dom"
-import { toast } from "sonner"
+import { useToast } from "@/shared/context/toast-provider"
 import { userRepository } from "@/data/repositories/user.repository"
 import { userQueries } from "@/data/queries/user.queries"
-import type { ApiError } from "@/data/infra/api-error"
 import type { IUserFormData } from "../types"
 
 export function useCreateUser() {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
+  const { success, showError } = useToast()
 
   return useMutation({
     mutationFn: (data: IUserFormData) =>
       userRepository.create({
-        fullName: data.fullName,
+        full_name: data.fullName,
         username: data.username,
         phone: data.phone || undefined,
         email: data.email || undefined,
@@ -23,18 +23,12 @@ export function useCreateUser() {
     onSuccess: (user) => {
       queryClient.invalidateQueries({ queryKey: userQueries.lists() })
       if (user.generatedPassword) {
-        toast.success(`Tạo người dùng thành công. Mật khẩu: ${user.generatedPassword}`)
+        success(`Tạo người dùng thành công. Mật khẩu: ${user.generatedPassword}`)
       } else {
-        toast.success("Tạo người dùng thành công")
+        success("Tạo người dùng thành công")
       }
       navigate("/nguoi-dung")
     },
-    onError: (error: ApiError) => {
-      if (error.code === "USERNAME_TAKEN") {
-        toast.error("Tên đăng nhập đã tồn tại")
-      } else {
-        toast.error(error.message || "Có lỗi xảy ra")
-      }
-    },
+    onError: (err) => showError(err),
   })
 }

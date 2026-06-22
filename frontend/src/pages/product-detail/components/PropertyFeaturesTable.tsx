@@ -8,15 +8,15 @@ interface PropertyFeaturesTableProps {
 export function PropertyFeaturesTable({ listing }: PropertyFeaturesTableProps) {
   const rows: [string, string | number | null][] = [
     ["Mức giá", formatPrice(listing.price)],
-    ["Diện tích", formatArea(listing.totalArea)],
-    ["Số phòng ngủ", listing.numRooms],
-    ["Số phòng tắm, vệ sinh", listing.numBathrooms],
-    ["Số tầng", listing.numFloors],
+    ["Diện tích", formatArea(listing.total_area)],
+    ["Số phòng ngủ", listing.num_rooms],
+    ["Số phòng tắm, vệ sinh", listing.num_bathrooms],
+    ["Số tầng", listing.num_floors],
     ["Hướng nhà", listing.direction],
-    ["Mặt tiền/Hẻm", listing.frontageType],
-    ["Đường vào", listing.roadWidth],
-    ["Pháp lý", listing.legalStatus],
-    ["Nội thất", listing.furnishing],
+    ["Mặt tiền/Hẻm", listing.frontage_type],
+    ["Đường vào", listing.road_width],
+    ["Pháp lý", listing.legal_status],
+    ["Nội thất", listing.furnishing ?? "—"],
   ]
 
   return (

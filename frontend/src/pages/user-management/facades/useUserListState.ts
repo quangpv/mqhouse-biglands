@@ -15,7 +15,7 @@ export function useUserListState() {
   })
 
   const users = query.data?.data ?? []
-  const totalPages = query.data?.pagination?.totalPages ?? 1
+  const totalPages = query.data?.total_pages ?? 1
 
   return {
     users,

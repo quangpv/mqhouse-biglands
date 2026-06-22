@@ -23,13 +23,13 @@ export function useUserFormState(existingUser?: UserDTO | null) {
     resolver: zodResolver(userFormSchema) as any,
     defaultValues: existingUser
       ? {
-          fullName: existingUser.fullName,
+          fullName: existingUser.full_name,
           username: existingUser.username,
           phone: existingUser.phone ?? "",
           email: existingUser.email ?? "",
           role: existingUser.role,
           password: "",
-          isActive: existingUser.isActive,
+          isActive: existingUser.is_active,
         }
       : {
           fullName: "",

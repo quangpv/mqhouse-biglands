@@ -1,5 +1,5 @@
 export interface CreateUserRequestDTO {
-  fullName: string
+  full_name: string
   username: string
   phone?: string
   email?: string
@@ -8,10 +8,10 @@ export interface CreateUserRequestDTO {
 }
 
 export interface UpdateUserRequestDTO {
-  fullName?: string
+  full_name?: string
   phone?: string | null
   email?: string | null
-  isActive?: boolean
+  is_active?: boolean
 }
 
 export interface AssignRoleRequestDTO {
@@ -20,5 +20,8 @@ export interface AssignRoleRequestDTO {
 
 export interface UserListResponseDTO {
   data: import("./auth.dto").UserDTO[]
-  pagination: import("./common.dto").PaginationDTO
+  page: number
+  size: number
+  total: number
+  total_pages: number
 }

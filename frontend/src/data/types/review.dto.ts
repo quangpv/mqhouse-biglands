@@ -1,12 +1,12 @@
 export interface ReviewDTO {
   id: string
-  listingId: string
-  authorId: string
-  authorName: string
+  listing_id: string
+  author_id: string
+  author_name: string
   content: string
   images: ReviewImageDTO[]
-  createdAt: string
-  updatedAt: string
+  created_at: string
+  updated_at: string
 }
 
 export interface ReviewImageDTO {
@@ -17,12 +17,10 @@ export interface ReviewImageDTO {
 
 export interface ReviewListResponseDTO {
   data: ReviewDTO[]
-  pagination: {
-    page: number
-    size: number
-    totalItems: number
-    totalPages: number
-  }
+  page: number
+  size: number
+  total: number
+  total_pages: number
 }
 
 export interface CreateReviewRequestDTO {

@@ -17,8 +17,17 @@ export interface INotificationItem {
 export function useNotificationMapper() {
   function toUI(dto: NotificationDTO): INotificationItem {
     return {
-      ...dto,
-      timeAgo: getRelativeTime(dto.createdAt),
+      id: dto.id,
+      title: dto.title,
+      body: dto.body,
+      eventType: dto.event_type,
+      actorName: dto.actor_name,
+      transactionType: dto.transaction_type,
+      referenceType: dto.reference_type,
+      referenceId: dto.reference_id,
+      isRead: dto.is_read,
+      createdAt: dto.created_at,
+      timeAgo: getRelativeTime(dto.created_at),
     }
   }
 

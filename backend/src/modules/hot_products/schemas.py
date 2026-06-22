@@ -5,6 +5,8 @@ from decimal import Decimal
 from pydantic import BaseModel, Field
 
 
+
+
 class HotListingResponse(BaseModel):
     id: uuid.UUID
     code: str

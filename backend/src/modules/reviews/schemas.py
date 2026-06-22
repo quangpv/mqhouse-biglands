@@ -4,8 +4,6 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 
 from src.shared.pagination import PaginatedResponse
-
-
 class CreateReviewRequest(BaseModel):
     content: str = Field(..., min_length=1, max_length=2000)
 

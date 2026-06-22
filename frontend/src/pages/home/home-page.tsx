@@ -47,10 +47,9 @@ export default function SharedCartPage() {
 
   const activeQuery = tab === "all" ? allQuery : tab === "hot" ? hotQuery : pinnedQuery
   const listings = activeQuery.data?.data ?? []
-  const filterCounts = allQuery.data?.filterCounts
-  const totalCount = allQuery.data?.totalCount ?? 0
-  const pagination = allQuery.data?.pagination
-  const totalPages = pagination?.totalPages ?? 1
+  const filterCounts = allQuery.data?.filter_counts
+  const totalCount = allQuery.data?.total_count ?? 0
+  const totalPages = allQuery.data?.total_pages ?? 1
 
   return (
     <div>
@@ -80,7 +79,7 @@ export default function SharedCartPage() {
               >
                 <Card className="overflow-hidden">
                   <div className="relative h-28 bg-muted">
-                    {listing.primaryImageUrl ? (
+                    {listing.primary_image_url ? (
                       <img src={listing.primaryImageUrl} alt="" className="h-full w-full object-cover" />
                     ) : (
                       <div className="flex h-full items-center justify-center text-xs text-muted-foreground">

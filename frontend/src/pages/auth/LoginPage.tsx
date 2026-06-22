@@ -1,23 +1,7 @@
 import { useLoginState } from "./facades/useLoginState"
 import { useLogin } from "./facades/useLogin"
 import { LoginForm } from "./components/LoginForm"
-import type { AxiosError } from "axios"
-import type { ApiErrorDTO } from "@/data/types/common.dto"
-
-function getLoginErrorMessage(error: unknown): string | undefined {
-  if (!error) return undefined
-  const axiosError = error as AxiosError<ApiErrorDTO>
-  const status = axiosError.response?.status
-  const code = axiosError.response?.data?.code
-
-  if (status === 403 && code === "ACCOUNT_DEACTIVATED") {
-    return "Tài khoản đã bị vô hiệu hoá"
-  }
-  if (status === 401) {
-    return "Sai tên đăng nhập hoặc mật khẩu"
-  }
-  return "Có lỗi xảy ra, vui lòng thử lại"
-}
+import { getLoginErrorMessage } from "./mappers/login-error-mapper"
 
 export default function LoginPage() {
   const { form } = useLoginState()

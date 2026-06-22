@@ -10,13 +10,13 @@ const roleLabels: Record<string, string> = {
 export function toUserTableRow(user: UserDTO): IUserTableRow {
   return {
     id: user.id,
-    fullName: user.fullName,
+    fullName: user.full_name,
     username: user.username,
     phone: user.phone,
     role: user.role,
-    roleLabel: user.organizationName ?? roleLabels[user.role] ?? user.role,
-    isActive: user.isActive,
-    organizationName: user.organizationName,
-    createdAt: user.createdAt,
+    roleLabel: user.organization_name ?? roleLabels[user.role] ?? user.role,
+    isActive: user.is_active,
+    organizationName: user.organization_name,
+    createdAt: user.created_at,
   }
 }

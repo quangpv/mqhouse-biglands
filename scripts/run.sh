@@ -50,6 +50,8 @@ case "${1:-dev}" in
     cd "$COMPOSE_DIR"
     alembic upgrade head
     echo "Migrations applied."
+    echo "Running seed data..."
+    python -m scripts.seed
     uvicorn src.main:app --reload --host 0.0.0.0 --port "$APP_PORT" &
     BACKEND_PID=$!
     cd "$PROJECT_ROOT/frontend"
@@ -91,6 +93,8 @@ case "${1:-dev}" in
     echo "Applying migrations..."
     cd "$COMPOSE_DIR"
     alembic upgrade head
+    echo "Running seed data..."
+    python -m scripts.seed
     ;;
   stop)
     echo "Stopping all services (flavor=$FLAVOR)..."

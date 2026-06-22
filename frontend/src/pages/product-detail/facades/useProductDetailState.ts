@@ -29,7 +29,7 @@ export function useProductDetailState() {
   })
 
   const listing = query.data ?? null
-  const isOwner = user ? listing?.createdById === user.id : false
+  const isOwner = user ? listing?.created_by_id === user.id : false
 
   const openDialog = (type: DialogType) => {
     setActiveDialog(type)

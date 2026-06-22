@@ -6,7 +6,7 @@ export interface UserListParams {
   page?: number
   size?: number
   role?: string
-  isActive?: boolean
+  is_active?: boolean
   search?: string
 }
 

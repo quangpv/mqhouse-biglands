@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useNavigate } from "react-router-dom"
-import { toast } from "sonner"
+import { useToast } from "@/shared/context/toast-provider"
 import { listingRepository } from "@/data/repositories/listing.repository"
 import { listingQueries } from "@/data/queries/listing.queries"
 import { formToCreatePayload, type IListingForm } from "../types"
@@ -11,6 +11,7 @@ export function useCreateListing() {
   const queryClient = useQueryClient()
   const [images, setImages] = useState<File[]>([])
   const [listingId, setListingId] = useState<string | null>(null)
+  const { showError } = useToast()
 
   const mutation = useMutation({
     mutationFn: async (data: IListingForm) => {
@@ -33,9 +34,7 @@ export function useCreateListing() {
       const id = result.id as string
       navigate(`/tin/${id}`)
     },
-    onError: () => {
-      toast.error("Không thể tạo tin đăng. Vui lòng thử lại.")
-    },
+    onError: (err) => showError(err),
   })
 
   return { mutation, images, setImages, listingId }

@@ -41,14 +41,14 @@ export function MyCartListingCard({
         className="relative h-32 w-40 shrink-0 overflow-hidden rounded-lg bg-muted cursor-pointer"
         onClick={() => navigate(`/tin/${listing.id}`)}
       >
-        {listing.primaryImageUrl ? (
+        {listing.primary_image_url ? (
           <img src={listing.primaryImageUrl} alt="" className="h-full w-full object-cover" />
         ) : (
           <div className="flex h-full w-full items-center justify-center text-muted-foreground text-sm">
             No Image
           </div>
         )}
-        {listing.isHot && (
+        {listing.is_hot && (
           <Badge className="absolute top-1 left-1 bg-red-500 text-white text-[10px] px-1.5 py-0">
             Hot
           </Badge>
@@ -64,13 +64,13 @@ export function MyCartListingCard({
           </p>
           <div className="flex flex-wrap gap-1">
             <Badge variant="outline" className="text-[10px]">
-              {getTransactionTypeLabel(listing.transactionType)}
+              {getTransactionTypeLabel(listing.transaction_type)}
             </Badge>
             <Badge variant="outline" className="text-[10px]">
-              {getPropertyTypeLabel(listing.propertyType)}
+              {getPropertyTypeLabel(listing.property_type)}
             </Badge>
             <Badge variant="outline" className="text-[10px]">
-              {formatArea(listing.totalArea)}
+              {formatArea(listing.total_area)}
             </Badge>
           </div>
         </Link>

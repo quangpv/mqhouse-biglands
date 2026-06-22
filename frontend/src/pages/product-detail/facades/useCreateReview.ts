@@ -1,10 +1,11 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { reviewRepository } from "@/data/repositories/review.repository"
 import { reviewQueries } from "@/data/queries/review.queries"
-import { toast } from "sonner"
+import { useToast } from "@/shared/context/toast-provider"
 
 export function useCreateReview(listingId: string) {
   const queryClient = useQueryClient()
+  const { success, showError } = useToast()
 
   return useMutation({
     mutationFn: async (data: { content: string; images: File[] }) => {
@@ -16,10 +17,8 @@ export function useCreateReview(listingId: string) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: reviewQueries.list(listingId) })
-      toast.success("Đã gửi đánh giá")
+      success("Đã gửi đánh giá")
     },
-    onError: () => {
-      toast.error("Không thể gửi đánh giá")
-    },
+    onError: (err) => showError(err),
   })
 }
