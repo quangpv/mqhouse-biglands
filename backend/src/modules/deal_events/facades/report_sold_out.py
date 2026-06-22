@@ -6,14 +6,17 @@ from src.data.entities.deal_event import DealEventEntity, DealEventType
 from src.data.entities.listing import ListingStatus
 from src.data.entities.notification import ReferenceType
 from src.data.entities.user import UserEntity, UserRole
+from src.data.repositories.approval_repo import ApprovalRepo
 from src.data.repositories.deal_event_repo import DealEventRepo
 from src.data.repositories.listing_repo import ListingRepo
-from src.data.repositories.notification_repo import NotificationRepo
 from src.data.repositories.user_repo import UserRepo
+from src.modules.approvals.services.approval_service import auto_approve_deal_event
 from src.modules.deal_events.mapper import deal_event_to_response
+from src.modules.notifications.service import NotificationService
 from src.modules.deal_events.schemas import DealEventResponse, ReportSoldOutRequest
 from src.platform.auth import get_current_user
 from src.shared.errors.exceptions import ConflictError, NotFoundError
+from src.shared.utils.notification_formatter import format_notification_title
 
 
 async def report_sold_out(
@@ -23,7 +26,8 @@ async def report_sold_out(
     repo: ListingRepo = Depends(ListingRepo),
     deal_repo: DealEventRepo = Depends(DealEventRepo),
     user_repo: UserRepo = Depends(UserRepo),
-    notification_repo: NotificationRepo = Depends(NotificationRepo),
+    approval_repo: ApprovalRepo = Depends(ApprovalRepo),
+    notification_service: NotificationService = Depends(NotificationService),
 ) -> DealEventResponse:
     listing = await repo.get(listing_id)
     if listing is None:
@@ -39,13 +43,37 @@ async def report_sold_out(
     )
     event = await deal_repo.create(event)
 
-    approvers = await user_repo.list_by_role(UserRole.APPROVER)
-    for approver in approvers:
-        await notification_repo.send(
-            user_id=approver.id, event_type="sold_out_reported",
-            title=f"Sold out reported for listing {listing.code}",
-            body=f"Sold out has been reported by {current_user.full_name}.",
-            reference_type=ReferenceType.DEAL_EVENT, reference_id=event.id,
-        )
+    if current_user.role == UserRole.ADMIN:
+        await auto_approve_deal_event(listing, event, current_user, deal_repo, repo, approval_repo)
+        if listing.created_by_id != current_user.id:
+            await notification_service.send(
+                user_id=listing.created_by_id, event_type="sold_out_confirmed",
+                title=format_notification_title(
+                    event_type="sold_out_confirmed",
+                    transaction_type=listing.transaction_type.value,
+                    actor_name=current_user.full_name,
+                    item_code=listing.code,
+                ),
+                body=f"Sold out has been confirmed by admin {current_user.full_name}.",
+                reference_type=ReferenceType.LISTING, reference_id=listing_id,
+                actor_name=current_user.full_name,
+                transaction_type=listing.transaction_type.value,
+            )
+    else:
+        approvers = await user_repo.list_by_roles(UserRole.APPROVER, UserRole.ADMIN)
+        for approver in approvers:
+            await notification_service.send(
+                user_id=approver.id, event_type="sold_out_reported",
+                title=format_notification_title(
+                    event_type="sold_out_reported",
+                    transaction_type=listing.transaction_type.value,
+                    actor_name=current_user.full_name,
+                    item_code=listing.code,
+                ),
+                body=f"Sold out has been reported by {current_user.full_name}.",
+                reference_type=ReferenceType.DEAL_EVENT, reference_id=event.id,
+                actor_name=current_user.full_name,
+                transaction_type=listing.transaction_type.value,
+            )
 
     return deal_event_to_response(event)

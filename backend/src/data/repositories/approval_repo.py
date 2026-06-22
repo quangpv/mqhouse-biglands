@@ -59,7 +59,11 @@ class ApprovalRepo(Repo):
         date_to: str | None = None,
         agent_id: str | None = None,
     ) -> list[ListingEntity]:
-        query = select(ListingEntity).where(ListingEntity.status == ListingStatus.PENDING_APPROVAL)
+        query = (
+            select(ListingEntity)
+            .where(ListingEntity.status == ListingStatus.PENDING_APPROVAL)
+            .options(selectinload(ListingEntity.created_by), selectinload(ListingEntity.images))
+        )
         if transaction_type:
             from src.data.entities.listing import TransactionType
             query = query.where(ListingEntity.transaction_type == TransactionType(transaction_type))
@@ -96,7 +100,7 @@ class ApprovalRepo(Repo):
                 DealEventEntity.event_type == event_type,
                 DealEventEntity.confirmed_by_id.is_(None),
             )
-            .options(selectinload(DealEventEntity.reported_by))
+            .options(selectinload(DealEventEntity.reported_by), selectinload(ListingEntity.created_by), selectinload(ListingEntity.images))
         )
         if transaction_type:
             from src.data.entities.listing import TransactionType
@@ -160,6 +164,18 @@ class ApprovalRepo(Repo):
             select(ApprovalEntity).where(
                 ApprovalEntity.listing_id == listing_id,
                 ApprovalEntity.approval_type == approval_type,
+            )
+        )
+        return result.scalar_one_or_none()
+
+    async def get_by_listing_type_and_version(
+        self, listing_id: uuid.UUID, approval_type: ApprovalType, version: int
+    ) -> ApprovalEntity | None:
+        result = await self.db.execute(
+            select(ApprovalEntity).where(
+                ApprovalEntity.listing_id == listing_id,
+                ApprovalEntity.approval_type == approval_type,
+                ApprovalEntity.version == version,
             )
         )
         return result.scalar_one_or_none()

@@ -18,7 +18,9 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from src.data.entities._base import Base
 from src.data.entities.organization import OrganizationEntity
 from src.data.entities.user import UserEntity, UserRole
-from src.main import app
+from src.main import create_app
+
+app = create_app(api_prefix="")
 from src.platform.config import settings
 from src.platform.dependencies import get_db
 from src.platform.security import create_jwt
@@ -26,12 +28,14 @@ from src.platform.security import create_jwt
 ADMIN_UUID = uuid.UUID("00000000-0000-0000-0000-000000000001")
 AGENT_UUID = uuid.UUID("00000000-0000-0000-0000-000000000002")
 DEACTIVATED_UUID = uuid.UUID("00000000-0000-0000-0000-000000000003")
+APPROVER_UUID = uuid.UUID("00000000-0000-0000-0000-000000000004")
 ORG_MQ_LAND_ID = uuid.UUID("00000000-0000-0000-0000-000000000041")
 ORG_ID_LAND_ID = uuid.UUID("00000000-0000-0000-0000-000000000042")
 
 _ADMIN_PWH = _bcrypt.hashpw(b"admin123", _bcrypt.gensalt(rounds=4)).decode()
 _AGENT_PWH = _bcrypt.hashpw(b"agent123", _bcrypt.gensalt(rounds=4)).decode()
 _DEACTIVATED_PWH = _bcrypt.hashpw(b"deac123", _bcrypt.gensalt(rounds=4)).decode()
+_APPROVER_PWH = _bcrypt.hashpw(b"approver123", _bcrypt.gensalt(rounds=4)).decode()
 
 TEST_PG_CONTAINER = "biglands-test-pg"
 
@@ -130,6 +134,16 @@ async def seed_users(setup_schema):
         role=UserRole.AGENT,
         is_active=True,
     )
+    approver = UserEntity(
+        id=APPROVER_UUID,
+        full_name="Approver User",
+        username="approver",
+        password_hash=_APPROVER_PWH,
+        phone="0900000004",
+        email="approver@biglands.com",
+        role=UserRole.APPROVER,
+        is_active=True,
+    )
     deactivated = UserEntity(
         id=DEACTIVATED_UUID,
         full_name="Deactivated User",
@@ -141,7 +155,7 @@ async def seed_users(setup_schema):
         is_active=False,
     )
     async with AsyncSession(get_engine()) as session:
-        session.add_all([admin, agent, deactivated])
+        session.add_all([admin, agent, approver, deactivated])
         await session.commit()
 
 
@@ -207,3 +221,8 @@ async def admin_token() -> str:
 @pytest_asyncio.fixture
 async def agent_token() -> str:
     return create_jwt(AGENT_UUID, UserRole.AGENT.value)
+
+
+@pytest_asyncio.fixture
+async def approver_token() -> str:
+    return create_jwt(APPROVER_UUID, UserRole.APPROVER.value)

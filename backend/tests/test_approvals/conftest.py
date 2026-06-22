@@ -7,7 +7,23 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.data.entities.deal_event import DealEventEntity, DealEventType
 from src.data.entities.listing import ListingEntity, ListingStatus, PropertyType, TransactionType, CommissionType
 from src.shared.utils.code_generator import generate_product_code
-from tests.conftest import AGENT_UUID
+from tests.conftest import ADMIN_UUID, AGENT_UUID, APPROVER_UUID
+
+
+@pytest_asyncio.fixture
+async def pending_admin_listing(db_session: AsyncSession) -> str:
+    listing = _make_listing(ADMIN_UUID, ListingStatus.PENDING_APPROVAL)
+    db_session.add(listing)
+    await db_session.flush()
+    return str(listing.id)
+
+
+@pytest_asyncio.fixture
+async def pending_approver_listing(db_session: AsyncSession) -> str:
+    listing = _make_listing(APPROVER_UUID, ListingStatus.PENDING_APPROVAL)
+    db_session.add(listing)
+    await db_session.flush()
+    return str(listing.id)
 
 
 @pytest_asyncio.fixture

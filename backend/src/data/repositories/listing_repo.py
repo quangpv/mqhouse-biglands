@@ -111,7 +111,10 @@ class ListingRepo(Repo):
     async def count_hot_listings(self) -> int:
         from sqlalchemy import func
         result = await self.db.execute(
-            select(func.count(ListingEntity.id)).where(ListingEntity.is_hot.is_(True))
+            select(func.count(ListingEntity.id)).where(
+                ListingEntity.is_hot.is_(True),
+                ListingEntity.status != ListingStatus.PENDING_APPROVAL,
+            )
         )
         return result.scalar_one()
 

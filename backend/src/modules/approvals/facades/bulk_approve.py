@@ -33,7 +33,7 @@ async def bulk_approve(
             failed += 1
             continue
 
-        existing = await approval_repo.get_approval_by_listing_and_type(listing_id, ApprovalType.LISTING_POST)
+        existing = await approval_repo.get_by_listing_type_and_version(listing_id, ApprovalType.LISTING_POST, listing.approval_version)
         if existing is not None:
             results.append(BulkApproveItem(listing_id=listing_id, success=False, message=f"Already processed: {existing.decision.value}"))
             failed += 1
@@ -49,6 +49,7 @@ async def bulk_approve(
             approval_type=ApprovalType.LISTING_POST,
             decision=DecisionType.APPROVED,
             decided_by_id=current_user.id,
+            version=listing.approval_version,
         )
         await approval_repo.create(approval)
 

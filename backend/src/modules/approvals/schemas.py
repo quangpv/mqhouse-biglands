@@ -49,6 +49,25 @@ class QueueItemResponse(BaseModel):
     event_notes: str | None = None
     deal_event: DealEventInfo | None = None
     reported_by: ReporterInfo | None = None
+    total_area: Decimal | None = None
+    price_per_m2: Decimal | None = None
+    area_width: Decimal | None = None
+    area_length: Decimal | None = None
+    num_rooms: int = 0
+    num_bathrooms: int = 0
+    num_floors: int = 0
+    street_name: str = ""
+    ward: str = ""
+    district: str = ""
+    city: str = ""
+    address: str = ""
+    is_hot: bool = False
+    is_pinned: bool = False
+    hot_order: int | None = None
+    primary_image_url: str | None = None
+    created_by_id: uuid.UUID | None = None
+    creator_name: str | None = None
+    listing_created_at: datetime | None = None
 
 
 class QueueItemListResponse(PaginatedResponse):

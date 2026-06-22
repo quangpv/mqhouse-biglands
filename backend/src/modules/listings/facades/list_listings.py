@@ -7,7 +7,7 @@ from src.data.repositories.listing_image_repo import ListingImageRepo
 from src.data.repositories.listing_repo import ListingRepo
 from src.data.repositories.user_pin_repo import UserPinRepo
 from src.modules.listings.mapper import listing_to_response
-from src.modules.listings.schemas import FilterCounts, ListingListResponse
+from src.modules.listings.schemas import ListingListResponse
 from src.platform.auth import get_current_user
 from src.shared.pagination import build_paginated_response
 
@@ -60,11 +60,7 @@ async def list_listings(
     for item in items:
         item.is_pinned = item.id in pinned_ids
     total_count = await repo.count_active()
-    hot_count = await repo.count_hot_listings()
-    pinned_count = await pin_repo.count_by_user(current_user.id) if current_user else 0
-    filter_counts = FilterCounts(all=total_count, hot=hot_count, pinned=pinned_count)
     return ListingListResponse(
         **build_paginated_response(items, page, size, total).model_dump(),
         total_count=total_count,
-        filter_counts=filter_counts,
     )

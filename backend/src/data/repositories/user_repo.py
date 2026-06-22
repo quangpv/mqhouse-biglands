@@ -47,6 +47,14 @@ class UserRepo(Repo):
         )
         return list(result.scalars().all())
 
+    async def list_by_roles(self, *roles: UserRole) -> list[UserEntity]:
+        result = await self.db.execute(
+            select(UserEntity)
+            .options(selectinload(UserEntity.organization))
+            .where(UserEntity.role.in_(roles), UserEntity.is_active.is_(True))
+        )
+        return list(result.scalars().all())
+
     async def list_by_ids(self, ids: list[uuid.UUID]) -> list[UserEntity]:
         result = await self.db.execute(
             select(UserEntity)

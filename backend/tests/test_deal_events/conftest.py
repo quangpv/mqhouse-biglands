@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.data.entities.listing import ListingEntity, ListingStatus, PropertyType, TransactionType, CommissionType
 from src.shared.utils.code_generator import generate_product_code
-from tests.conftest import AGENT_UUID
+from tests.conftest import ADMIN_UUID, AGENT_UUID
 
 
 @pytest_asyncio.fixture
@@ -18,8 +18,24 @@ async def con_hang_agent_listing(db_session: AsyncSession) -> str:
 
 
 @pytest_asyncio.fixture
+async def con_hang_admin_listing(db_session: AsyncSession) -> str:
+    listing = _make_listing(ADMIN_UUID, ListingStatus.CON_HANG)
+    db_session.add(listing)
+    await db_session.flush()
+    return str(listing.id)
+
+
+@pytest_asyncio.fixture
 async def da_coc_agent_listing(db_session: AsyncSession) -> str:
     listing = _make_listing(AGENT_UUID, ListingStatus.DA_COC)
+    db_session.add(listing)
+    await db_session.flush()
+    return str(listing.id)
+
+
+@pytest_asyncio.fixture
+async def da_coc_admin_listing(db_session: AsyncSession) -> str:
+    listing = _make_listing(ADMIN_UUID, ListingStatus.DA_COC)
     db_session.add(listing)
     await db_session.flush()
     return str(listing.id)

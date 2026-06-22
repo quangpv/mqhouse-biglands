@@ -13,6 +13,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.data.entities._base import Base, TimestampMixin, UUIDMixin
 
 if TYPE_CHECKING:
+    from src.data.entities.listing_image import ListingImageEntity
     from src.data.entities.user import UserEntity
 
 _values_callable = lambda x: [e.value for e in x]  # noqa: E731
@@ -90,8 +91,10 @@ class ListingEntity(Base, UUIDMixin, TimestampMixin):
     is_hot: Mapped[bool | None] = mapped_column(Boolean, nullable=True, default=False)
     hot_order: Mapped[int | None] = mapped_column(Integer, nullable=True)
     view_count: Mapped[int | None] = mapped_column(Integer, nullable=True, default=0)
+    approval_version: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     created_by_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     created_by: Mapped[UserEntity] = relationship("UserEntity", foreign_keys=[created_by_id])
+    images: Mapped[list[ListingImageEntity]] = relationship("ListingImageEntity", lazy="selectin")
     approved_by_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
     approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

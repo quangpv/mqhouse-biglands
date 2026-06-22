@@ -21,6 +21,7 @@ from src.modules.user_settings import module as user_settings_module
 from src.modules.organizations import module as organizations_module
 from src.modules.geography import module as geography_module
 from src.modules.reviews import module as reviews_module
+from src.modules.ws import module as ws_module
 
 MODULES: list[Callable[..., Any]] = [
     error_handler_module,
@@ -39,10 +40,11 @@ MODULES: list[Callable[..., Any]] = [
     organizations_module,
     reviews_module,
     geography_module,
+    ws_module,
 ]
 
 
-def create_app() -> FastAPI:
+def create_app(api_prefix: str = "/api/v1") -> FastAPI:
     app = FastAPI(
         title=settings.app_name,
         debug=settings.debug,
@@ -53,7 +55,7 @@ def create_app() -> FastAPI:
     for module_fn in MODULES:
         result = container.resolve(module_fn)
         if isinstance(result, APIRouter):
-            app.include_router(result, prefix="/api/v1")
+            app.include_router(result, prefix=api_prefix)
 
     return app
 

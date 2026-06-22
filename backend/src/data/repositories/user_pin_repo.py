@@ -4,7 +4,7 @@ from fastapi import Depends
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.data.entities.listing import ListingEntity
+from src.data.entities.listing import ListingEntity, ListingStatus
 from src.data.entities.user_pin import UserPinEntity
 from src.platform.dependencies import get_db
 
@@ -47,6 +47,17 @@ class UserPinRepo(Repo):
     async def count_by_user(self, user_id: uuid.UUID) -> int:
         result = await self.db.execute(
             select(func.count(UserPinEntity.user_id)).where(UserPinEntity.user_id == user_id)
+        )
+        return result.scalar_one()
+
+    async def count_active_pins_by_user(self, user_id: uuid.UUID) -> int:
+        result = await self.db.execute(
+            select(func.count(UserPinEntity.user_id))
+            .join(ListingEntity, ListingEntity.id == UserPinEntity.listing_id)
+            .where(
+                UserPinEntity.user_id == user_id,
+                ListingEntity.status != ListingStatus.PENDING_APPROVAL,
+            )
         )
         return result.scalar_one()
 

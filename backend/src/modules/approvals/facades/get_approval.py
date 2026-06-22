@@ -14,7 +14,7 @@ async def get_approval(
 ) -> ApprovalDetailResponse:
     listing = await repo.get_pending_listing_post(listing_id)
     if listing is not None:
-        existing = await repo.get_approval_by_listing_and_type(listing_id, ApprovalType.LISTING_POST)
+        existing = await repo.get_by_listing_type_and_version(listing_id, ApprovalType.LISTING_POST, listing.approval_version)
         return ApprovalDetailResponse(
             id=listing.id,
             listing_id=listing.id,

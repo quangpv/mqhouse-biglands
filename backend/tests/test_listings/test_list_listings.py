@@ -87,7 +87,7 @@ class TestListListings:
             prices = [float(l["price"]) for l in data]
             assert prices == sorted(prices)
 
-    async def test_listing_response_includes_filter_counts(
+    async def test_listing_response_does_not_include_filter_counts(
         self, client: AsyncClient, admin_token: str,
     ) -> None:
         response = await client.get(
@@ -96,12 +96,7 @@ class TestListListings:
         )
         assert response.status_code == 200
         data = response.json()
-        assert "filter_counts" in data
-        assert "all" in data["filter_counts"]
-        assert "hot" in data["filter_counts"]
-        assert "pinned" in data["filter_counts"]
-        assert data["filter_counts"]["all"] >= 3
-        assert data["filter_counts"]["hot"] >= 0
+        assert "filter_counts" not in data
 
     async def test_listing_response_includes_creator(
         self, client: AsyncClient, admin_token: str,

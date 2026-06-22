@@ -1,5 +1,9 @@
 import pytest
 from httpx import AsyncClient
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.data.entities.listing import ListingEntity
 
 pytestmark = pytest.mark.asyncio
 
@@ -85,6 +89,53 @@ class TestCreateListing:
             headers={"Authorization": f"Bearer {agent_token}"},
         )
         assert response.status_code == 422
+
+    async def test_agent_create_draft_approval_version_zero(
+        self, client: AsyncClient, agent_token: str, db_session: AsyncSession,
+    ) -> None:
+        response = await client.post(
+            "/listings",
+            json={**MINIMAL, "description": "Draft version check"},
+            headers={"Authorization": f"Bearer {agent_token}"},
+        )
+        assert response.status_code == 201
+        listing_id = response.json()["id"]
+        result = await db_session.execute(
+            select(ListingEntity).where(ListingEntity.id == listing_id)
+        )
+        assert result.scalar_one().approval_version == 0
+
+    async def test_agent_create_submit_approval_version_one(
+        self, client: AsyncClient, agent_token: str, db_session: AsyncSession,
+    ) -> None:
+        payload = {**MINIMAL, "action": "submit", "description": "Submit version check"}
+        response = await client.post(
+            "/listings",
+            json=payload,
+            headers={"Authorization": f"Bearer {agent_token}"},
+        )
+        assert response.status_code == 201
+        listing_id = response.json()["id"]
+        result = await db_session.execute(
+            select(ListingEntity).where(ListingEntity.id == listing_id)
+        )
+        assert result.scalar_one().approval_version == 1
+
+    async def test_admin_create_approval_version_zero(
+        self, client: AsyncClient, admin_token: str, db_session: AsyncSession,
+    ) -> None:
+        payload = {**MINIMAL, "description": "Admin create version check"}
+        response = await client.post(
+            "/listings",
+            json=payload,
+            headers={"Authorization": f"Bearer {admin_token}"},
+        )
+        assert response.status_code == 201
+        listing_id = response.json()["id"]
+        result = await db_session.execute(
+            select(ListingEntity).where(ListingEntity.id == listing_id)
+        )
+        assert result.scalar_one().approval_version == 0
 
     async def test_unauthenticated_user_cannot_create_listing(
         self, client: AsyncClient,

@@ -7,12 +7,13 @@ from src.data.entities.notification import ReferenceType
 from src.data.entities.user import UserEntity, UserRole
 from src.data.repositories.listing_image_repo import ListingImageRepo
 from src.data.repositories.listing_repo import ListingRepo
-from src.data.repositories.notification_repo import NotificationRepo
 from src.data.repositories.user_repo import UserRepo
+from src.modules.notifications.service import NotificationService
 from src.modules.listings.mapper import listing_to_response
 from src.modules.listings.schemas import ListingResponse
 from src.platform.auth import get_current_user
 from src.shared.errors.exceptions import BadRequestError, ForbiddenError, NotFoundError
+from src.shared.utils.notification_formatter import format_notification_title
 from src.shared.utils.status_machine import validate_transition
 
 
@@ -22,7 +23,7 @@ async def submit_listing(
     repo: ListingRepo = Depends(ListingRepo),
     image_repo: ListingImageRepo = Depends(ListingImageRepo),
     user_repo: UserRepo = Depends(UserRepo),
-    notification_repo: NotificationRepo = Depends(NotificationRepo),
+    notification_service: NotificationService = Depends(NotificationService),
 ) -> ListingResponse:
     listing = await repo.get(listing_id)
     if listing is None:
@@ -38,15 +39,23 @@ async def submit_listing(
         raise BadRequestError("At least one image is required before submitting")
 
     listing.status = ListingStatus.PENDING_APPROVAL
+    listing.approval_version += 1
     listing = await repo.save(listing)
 
-    approvers = await user_repo.list_by_role(UserRole.APPROVER)
+    approvers = await user_repo.list_by_roles(UserRole.APPROVER, UserRole.ADMIN)
     for approver in approvers:
-        await notification_repo.send(
+        await notification_service.send(
             user_id=approver.id, event_type="listing_post_created",
-            title=f"New listing pending approval: {listing.code}",
+            title=format_notification_title(
+                event_type="listing_post_created",
+                transaction_type=listing.transaction_type.value,
+                actor_name=current_user.full_name,
+                item_code=listing.code,
+            ),
             body=f"Listing {listing.title} has been submitted by {current_user.full_name}.",
             reference_type=ReferenceType.LISTING, reference_id=listing_id,
+            actor_name=current_user.full_name,
+            transaction_type=listing.transaction_type.value,
         )
 
     return listing_to_response(listing)

@@ -5,6 +5,34 @@ from src.data.entities.user import UserEntity
 from src.modules.approvals.schemas import ApproveResponse, DealEventInfo, QueueItemResponse, ReporterInfo
 
 
+def _map_listing_fields(listing: ListingEntity) -> dict:
+    primary_image = next(
+        (img for img in (listing.images or []) if img.is_primary), None
+    )
+    price_per_m2 = listing.price / listing.total_area if listing.total_area > 0 else None
+    return {
+        "total_area": listing.total_area,
+        "price_per_m2": price_per_m2,
+        "area_width": listing.area_width,
+        "area_length": listing.area_length,
+        "num_rooms": listing.num_rooms,
+        "num_bathrooms": listing.num_bathrooms,
+        "num_floors": listing.num_floors,
+        "street_name": listing.street_name,
+        "ward": listing.ward,
+        "district": listing.district,
+        "city": listing.city,
+        "address": listing.address,
+        "is_hot": bool(listing.is_hot) if listing.is_hot else False,
+        "is_pinned": False,
+        "hot_order": listing.hot_order,
+        "primary_image_url": primary_image.url if primary_image else None,
+        "created_by_id": listing.created_by_id,
+        "creator_name": listing.created_by.full_name if listing.created_by else None,
+        "listing_created_at": listing.created_at,
+    }
+
+
 def listing_to_queue_item(listing: ListingEntity) -> QueueItemResponse:
     return QueueItemResponse(
         id=listing.id,
@@ -16,6 +44,7 @@ def listing_to_queue_item(listing: ListingEntity) -> QueueItemResponse:
         price=listing.price,
         status=listing.status.value,
         created_at=listing.created_at,
+        **_map_listing_fields(listing),
     )
 
 
@@ -45,6 +74,7 @@ def deal_event_to_queue_item(
             created_at=event.created_at,
         ),
         reported_by=_reporter_from_user(event.reported_by) if event.reported_by else None,
+        **_map_listing_fields(listing),
     )
 
 

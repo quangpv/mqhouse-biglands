@@ -142,4 +142,3 @@ class FilterCounts(BaseModel):
 class ListingListResponse(PaginatedResponse):
     data: list[ListingResponse]
     total_count: int = 0
-    filter_counts: FilterCounts | None = None

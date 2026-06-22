@@ -6,15 +6,16 @@ from src.data.entities.approval import ApprovalEntity, ApprovalType, DecisionTyp
 from src.data.entities.deal_event import DealEventType
 from src.data.entities.listing import ListingStatus
 from src.data.entities.notification import ReferenceType
-from src.data.entities.user import UserEntity
+from src.data.entities.user import UserEntity, UserRole
 from src.data.repositories.approval_repo import ApprovalRepo
 from src.data.repositories.deal_event_repo import DealEventRepo
 from src.data.repositories.listing_repo import ListingRepo
-from src.data.repositories.notification_repo import NotificationRepo
 from src.modules.approvals.mapper import approval_to_response
+from src.modules.notifications.service import NotificationService
 from src.modules.approvals.schemas import ApproveResponse, RejectRequest
 from src.platform.auth import get_current_user
 from src.shared.errors.exceptions import ConflictError, NotFoundError
+from src.shared.utils.notification_formatter import format_notification_title
 
 REJECTED_STATUS_MAP = {
     ApprovalType.LISTING_POST: ListingStatus.DRAFT,
@@ -32,11 +33,14 @@ async def reject_item(
     listing_repo: ListingRepo = Depends(ListingRepo),
     deal_repo: DealEventRepo = Depends(DealEventRepo),
     approval_repo: ApprovalRepo = Depends(ApprovalRepo),
-    notification_repo: NotificationRepo = Depends(NotificationRepo),
+    notification_service: NotificationService = Depends(NotificationService),
 ) -> ApproveResponse:
     listing = await listing_repo.get_with_lock(listing_id)
     if listing is None:
         raise NotFoundError("Listing not found")
+
+    if listing.created_by_id == current_user.id and current_user.role != UserRole.ADMIN:
+        raise ConflictError("Approver cannot reject their own listing")
 
     approval_type = None
     deal_event = None
@@ -63,7 +67,10 @@ async def reject_item(
     if approval_type is None:
         raise ConflictError(detail="No pending approval request found for this listing")
 
-    existing = await approval_repo.get_approval_by_listing_and_type(listing_id, approval_type)
+    if approval_type == ApprovalType.LISTING_POST:
+        existing = await approval_repo.get_by_listing_type_and_version(listing_id, approval_type, listing.approval_version)
+    else:
+        existing = await approval_repo.get_approval_by_listing_and_type(listing_id, approval_type)
     if existing is not None:
         raise ConflictError(detail=f"Approval already processed: {existing.decision.value}")
 
@@ -82,6 +89,7 @@ async def reject_item(
         decision=DecisionType.REJECTED,
         decided_by_id=current_user.id,
         reason=data.reason,
+        version=listing.approval_version if approval_type == ApprovalType.LISTING_POST else 1,
     )
     approval = await approval_repo.create(approval)
 
@@ -92,12 +100,20 @@ async def reject_item(
         ApprovalType.CANCELLATION: "cancellation_rejected",
         ApprovalType.SOLD_OUT: "sold_out_rejected",
     }[approval_type]
-    await notification_repo.send(
-        user_id=listing.created_by_id, event_type=event_type_key,
-        title=f"Listing {listing.code} {approval_type.value.lower().replace('_', ' ')} rejected",
-        body=f"Your listing {listing.title} was rejected. Reason: {data.reason}",
-        reference_type=ReferenceType.LISTING, reference_id=listing_id,
-    )
+    if listing.created_by_id != current_user.id:
+        await notification_service.send(
+            user_id=listing.created_by_id, event_type=event_type_key,
+            title=format_notification_title(
+                event_type=event_type_key,
+                transaction_type=listing.transaction_type.value,
+                actor_name=current_user.full_name,
+                item_code=listing.code,
+            ),
+            body=f"Your listing {listing.title} was rejected. Reason: {data.reason}",
+            reference_type=ReferenceType.LISTING, reference_id=listing_id,
+            actor_name=current_user.full_name,
+            transaction_type=listing.transaction_type.value,
+        )
 
     return approval_to_response({
         "id": approval.id,
