@@ -58,4 +58,7 @@ export const listingRepository = {
 
   unpromoteFromHot: (id: string) =>
     httpClient.delete(`/listings/${id}/promote`).then((r) => r.data),
+
+  reorderHotListings: (order: Array<{ listingId: string; hotOrder: number }>) =>
+    httpClient.put("/hot-listings/reorder", { order }).then((r) => r.data),
 }

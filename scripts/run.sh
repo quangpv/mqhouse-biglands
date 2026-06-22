@@ -40,9 +40,23 @@ compose_up() {
 
 case "${1:-dev}" in
   dev)
-    echo "Starting dev server (flavor=$FLAVOR)..."
+    echo "Starting dev servers (flavor=$FLAVOR)..."
+    compose_up up -d db
+    echo "Waiting for DB to be ready..."
+    until compose_up exec -T db pg_isready -U postgres 2>/dev/null; do
+      sleep 1
+    done
+    echo "DB is ready."
     cd "$COMPOSE_DIR"
-    uvicorn src.main:app --reload --host 0.0.0.0 --port "$APP_PORT"
+    alembic upgrade head
+    echo "Migrations applied."
+    uvicorn src.main:app --reload --host 0.0.0.0 --port "$APP_PORT" &
+    BACKEND_PID=$!
+    cd "$PROJECT_ROOT/frontend"
+    npm run dev &
+    FRONTEND_PID=$!
+    trap "echo 'Shutting down...'; kill $BACKEND_PID $FRONTEND_PID 2>/dev/null; compose_up down; echo 'Done.'; exit" SIGINT SIGTERM EXIT
+    wait
     ;;
   prod)
     echo "Starting production server (flavor=$FLAVOR)..."
@@ -78,13 +92,20 @@ case "${1:-dev}" in
     cd "$COMPOSE_DIR"
     alembic upgrade head
     ;;
+  stop)
+    echo "Stopping all services (flavor=$FLAVOR)..."
+    pkill -f "uvicorn src.main:app" 2>/dev/null || true
+    lsof -ti tcp:5173 | xargs kill 2>/dev/null || true
+    compose_up down
+    echo "All services stopped."
+    ;;
   shell)
     echo "Opening DB shell (flavor=$FLAVOR)..."
     cd "$COMPOSE_DIR"
     compose_up exec db psql -U postgres -d biglands
     ;;
   *)
-    echo "Usage: $0 {dev|prod|test|db|down|logs|migrate|upgrade|shell} [flavor]"
+    echo "Usage: $0 {dev|prod|test|db|down|logs|migrate|upgrade|shell|stop} [flavor]"
     echo ""
     echo "  flavor: dev (default), prod, stag"
     exit 1

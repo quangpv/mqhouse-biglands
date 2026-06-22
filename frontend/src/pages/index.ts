@@ -1,4 +1,6 @@
 export { default as LoginPage } from "./auth/LoginPage"
+export { default as ForgotPasswordPage } from "./auth/ForgotPasswordPage"
+export { default as ResetPasswordPage } from "./auth/ResetPasswordPage"
 export { default as HomePage } from "./home/home-page"
 export { default as ProductDetailPage } from "./product-detail/ProductDetailPage"
 export { CreateListingPage, EditListingPage } from "./listings/form-page"

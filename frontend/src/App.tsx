@@ -8,6 +8,8 @@ import { Toaster } from "@/shared/components/ui/sonner"
 
 import {
   LoginPage,
+  ForgotPasswordPage,
+  ResetPasswordPage,
   HomePage,
   ProductDetailPage,
   CreateListingPage,
@@ -35,6 +37,8 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/dang-nhap" element={<LoggedInRedirect />} />
+      <Route path="/quen-mat-khau" element={<ForgotPasswordPage />} />
+      <Route path="/dat-lai-mat-khau" element={<ResetPasswordPage />} />
       <Route path="/403" element={<ForbiddenPage />} />
       <Route path="/404" element={<NotFoundPage />} />
 

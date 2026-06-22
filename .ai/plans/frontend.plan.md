@@ -2,8 +2,9 @@
 
 > B2B real estate marketplace for CHDV (serviced apartments) in HCMC.
 > Roles: AGENT, APPROVER, ADMIN. Vietnamese UI.
+> ✅ = Done &nbsp; ⏳ = In Progress &nbsp; ⬜ = Not Started
 
-## Foundation (must be done first)
+## ✅ Foundation (must be done first)
 
 | Item | Details |
 |---|---|
@@ -18,7 +19,7 @@
 | Utils | `cn()`, `formatPrice()`, `formatDate()`, `formatArea()`, `formatPhone()`, `getStatusColor()`, `getTransactionTypeLabel()`, `getPropertyTypeLabel()` |
 | Route map | `src/routes/` — see routing section below |
 
-## Module 1: Auth UI
+## ✅ Module 1: Auth UI
 
 | Item | Details |
 |---|---|
@@ -31,7 +32,7 @@
 | States | loading (Spinner), error (toast + field error), success (redirect) |
 | Edge cases | expired token → clear + show login; "Quên mật khẩu?" link (no backend — defer) |
 
-## Module 2: Shared Cart Browse (Homepage)
+## ✅ Module 2: Shared Cart Browse (Homepage)
 
 | Item | Details |
 |---|---|
@@ -44,7 +45,7 @@
 | States | loading (card skeletons), empty ("Chưa có tin đăng"), error (retry), filtered-empty ("Không tìm thấy kết quả") |
 | Note | `totalCount` = CON_HANG only (BR-015) |
 
-## Module 3: Product Detail
+## ✅ Module 3: Product Detail
 
 | Item | Details |
 |---|---|
@@ -57,7 +58,7 @@
 | States | loading (skeleton), not found (404), error (retry) |
 | Edge cases | sold-out hides deal actions; own draft read-only; confirm dialogs before mutation; ownerPhone visible only to creator/admin/approver |
 
-## Module 4: Listing Form (Create / Edit)
+## ✅ Module 4: Listing Form (Create / Edit)
 
 | Item | Details |
 |---|---|
@@ -70,7 +71,7 @@
 | States | loading (skeleton for edit), submitting (progress), error (field errors), success toast, redirect |
 | Edge cases | edit CON_HANG → re-approval (LST-I05); DRAFT always editable; exit confirmation dirty; save vs submit; transactionType locked when status=DA_COC |
 
-## Module 5: My Cart
+## ✅ Module 5: My Cart
 
 | Item | Details |
 |---|---|
@@ -82,7 +83,7 @@
 | States | tab-empty per status message |
 | Risk | `createdBy` filter may need backend confirmation (OQ-01) |
 
-## Module 6: Notifications
+## ✅ Module 6: Notifications
 
 | Item | Details |
 |---|---|
@@ -94,7 +95,7 @@
 | States | empty ("Không có thông báo nào"), loading (skeleton list) |
 | Edge cases | click → mark read + navigate; periodic unread polling |
 
-## Module 7: Approval Queue
+## ✅ Module 7: Approval Queue
 
 | Item | Details |
 |---|---|
@@ -107,7 +108,7 @@
 | States | queue empty (per type), no queues empty |
 | Edge cases | bulk partial failure; re-approval for price change; CON_HANG→SOLD auto-approve |
 
-## Module 8: User Management
+## ✅ Module 8: User Management
 
 | Item | Details |
 |---|---|
@@ -120,7 +121,7 @@
 | States | empty ("Chưa có người dùng nào") |
 | Edge cases | self-deactivation prevention; self-role-change prevention |
 
-## Module 9: Hot Products
+## ✅ Module 9: Hot Products
 
 | Item | Details |
 |---|---|
@@ -173,14 +174,14 @@ Foundation ─┬─ Auth ── Shared Cart ── Product Detail ── Listin
 
 ## Implementation Order
 
-1. **Foundation** — project setup, shadcn, shared components, data layer, route shell
-2. **Auth UI** — login, every module needs auth
-3. **Shared Cart Browse** — homepage, visible to all roles immediately
-4. **Product Detail** — linked from cards, enables deal/deposit flows
-5. **Listing Form** — borrows detail patterns for prefilled edit
-6. **My Cart** — reuses browse + detail patterns
-7. **Notifications** — standalone, referenced from detail
-8. **Approval Queue** — parallel to Notifications
-9. **User Management** — relies on approval patterns for role
-10. **Hot Products** — depends on listing admin patterns (last)
+1. ✅ **Foundation** — project setup, shadcn, shared components, data layer, route shell
+2. ✅ **Auth UI** — login, every module needs auth
+3. ✅ **Shared Cart Browse** — homepage, visible to all roles immediately
+4. ✅ **Product Detail** — linked from cards, enables deal/deposit flows
+5. ✅ **Listing Form** — borrows detail patterns for prefilled edit
+6. ✅ **My Cart** — reuses browse + detail patterns
+7. ✅ **Notifications** — standalone, referenced from detail
+8. ✅ **Approval Queue** — parallel to Notifications
+9. ✅ **User Management** — relies on approval patterns for role
+10. ✅ **Hot Products** — depends on listing admin patterns (last)
 

@@ -87,7 +87,7 @@ export default function ProductDetailPage() {
 
       <Separator />
 
-      <ReviewsSection />
+      <ReviewsSection listingId={listing.id} />
 
       <DepositDialog
         open={st.activeDialog === "deposit"}

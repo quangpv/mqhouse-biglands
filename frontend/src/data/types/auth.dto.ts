@@ -25,10 +25,19 @@ export interface UserDTO {
 }
 
 export interface ForgotPasswordRequestDTO {
-  email: string
+  username: string
+}
+
+export interface ForgotPasswordResponseDTO {
+  token: string
+  message: string
 }
 
 export interface ResetPasswordRequestDTO {
   token: string
   newPassword: string
+}
+
+export interface ResetPasswordResponseDTO {
+  message: string
 }

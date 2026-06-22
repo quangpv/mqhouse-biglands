@@ -47,7 +47,8 @@ src/
 │   │   ├── userRepository.ts             # CRUD, deactivate, reactivate, assignRole
 │   │   ├── pinRepository.ts              # pin, unpin, listMyPins
 │   │   ├── hotProductRepository.ts       # promote, unpromote, reorder
-│   │   └── geographyRepository.ts        # getCities, getDistricts, getWards
+│   │   ├── geographyRepository.ts        # getCities, getDistricts, getWards
+│   │   └── reviewRepository.ts           # list, create, delete, uploadImage
 │   ├── types/                            # One file per domain — DTOs only
 │   │   ├── auth.dto.ts
 │   │   ├── listing.dto.ts
@@ -57,13 +58,15 @@ src/
 │   │   ├── user.dto.ts
 │   │   ├── pin.dto.ts
 │   │   ├── geography.dto.ts              # CityDTO, DistrictDTO, WardDTO
+│   │   ├── review.dto.ts                 # ReviewDTO, ReviewListResponseDTO, CreateReviewRequestDTO
 │   │   └── common.dto.ts                 # Pagination, ApiError, enums
 │   ├── queries/                          # Query key factories
 │   │   ├── listingQueries.ts
 │   │   ├── approvalQueries.ts
 │   │   ├── notificationQueries.ts
 │   │   ├── userQueries.ts
-│   │   └── geographyQueries.ts           # geographyKeys.all, cities, districts, wards
+│   │   ├── geographyQueries.ts           # geographyKeys.all, cities, districts, wards
+│   │   └── reviewQueries.ts              # reviewQueries.all, list(listingId)
 │   └── utils/
 │       └── serializers.ts                # Transform snake_case ↔ camelCase
 │
@@ -101,7 +104,10 @@ src/
 │   │   │   ├── useReportDeposit.ts       # Action hook: report deposit
 │   │   │   ├── useReportClosure.ts       # Action hook: report closure
 │   │   │   ├── useReportCancellation.ts  # Action hook: report cancellation
-│   │   │   └── useReportSoldOut.ts       # Action hook: report sold-out
+│   │   │   ├── useReportSoldOut.ts       # Action hook: report sold-out
+│   │   │   ├── useReviewState.ts         # State hook: reviews list
+│   │   │   ├── useCreateReview.ts        # Action hook: create review + upload images
+│   │   │   └── useDeleteReview.ts        # Action hook: delete review
 │   │   ├── hooks/
 │   │   │   └── useProductDetailMapper.ts
 │   │   ├── components/
@@ -154,7 +160,8 @@ src/
 │   │   ├── facades/
 │   │   │   ├── useNotificationState.ts   # State hook: list, filters, pagination
 │   │   │   ├── useMarkRead.ts            # Action hook: mark single as read
-│   │   │   └── useMarkAllRead.ts         # Action hook: mark all as read
+│   │   │   ├── useMarkAllRead.ts         # Action hook: mark all as read
+│   │   │   └── useNotificationPreferences.ts  # State + action: fetch/update preferences
 │   │   ├── hooks/
 │   │   │   └── useNotificationMapper.ts
 │   │   ├── components/
@@ -170,8 +177,6 @@ src/
 │   │   │   ├── useApproveItem.ts         # Action hook: approve single
 │   │   │   ├── useRejectItem.ts          # Action hook: reject with reason form
 │   │   │   └── useBulkApprove.ts         # Action hook: bulk approve
-│   │   ├── hooks/
-│   │   │   └── useApprovalMapper.ts
 │   │   ├── components/
 │   │   │   ├── QueueHeader.tsx
 │   │   │   ├── QueueListingCard.tsx
@@ -181,7 +186,7 @@ src/
 │   │   ├── constants/
 │   │   │   └── queueUI.ts                # queueType → Vietnamese labels
 │   │   ├── types.ts
-│   │   └── ApprovalQueuePage.tsx         # Route: /admin/:txType/:queueType
+│   │   └── queue-pages.tsx              # QueueListPage + QueueDetailPage
 │   │
 │   ├── user-management/                  # Admin only
 │   │   ├── facades/
@@ -191,26 +196,27 @@ src/
 │   │   │   ├── useUpdateUser.ts          # Action hook
 │   │   │   ├── useDeactivateUser.ts      # Action hook
 │   │   │   └── useAssignRole.ts          # Action hook
+│   │   ├── hooks/
+│   │   │   └── useUserMapper.ts          # DTO → UI table row
 │   │   ├── components/
 │   │   │   ├── UserTable.tsx
 │   │   │   ├── UserForm.tsx
 │   │   │   └── UserActionDialogs.tsx
 │   │   ├── types.ts
-│   │   ├── UserListPage.tsx
-│   │   └── UserFormPage.tsx
+│   │   └── user-pages.tsx               # UserListPage + CreateUserPage + EditUserPage
 │   │
 │   └── hot-products/                     # Admin only
 │       ├── facades/
 │       │   ├── useHotProductsState.ts    # State hook: hot list, drag state
-│       │   ├── usePromoteToHot.ts        # Action hook
-│       │   ├── useRemoveHot.ts           # Action hook
-│       │   └── useReorderHot.ts          # Action hook
+│       │   ├── usePromoteToHot.ts        # Action hook: promote listing
+│       │   ├── useRemoveHot.ts           # Action hook: remove from hot
+│       │   └── useReorderHot.ts          # Action hook: save reordered list
 │       ├── components/
 │       │   ├── HotProductList.tsx
 │       │   ├── HotProductItem.tsx
 │       │   └── AddHotProductDialog.tsx
 │       ├── types.ts
-│       └── HotProductsPage.tsx
+│       └── hot-products-page.tsx
 │
 ├── shared/                               # SHARED LAYER
 │   ├── components/
@@ -640,6 +646,7 @@ Zod schema (defined in state hook)
 | Create User | `useUserFormState` | `{ fullName: z.string().min(1), username: z.string().min(3), password: z.string().min(8), role: z.enum([...]) }` |
 | Edit User | `useUserFormState` | Same as create, password optional |
 | Reject Approval | `useApprovalQueueState` | `{ reason: z.string().min(1, 'Vui lòng nhập lý do từ chối') }` |
+| Create Review | `useReviewState` | `{ content: z.string().min(1, 'Vui lòng nhập nội dung'), images?: File[] }` |
 
 ## 11. Data Flow Examples
 
@@ -879,10 +886,11 @@ After running the CLI commands:
 | Product Detail | `GET /listings/{id}`, `POST /listings/{id}/deal-events/deposit`, `POST /listings/{id}/deal-events/closure`, `POST /listings/{id}/deal-events/cancellation`, `POST /listings/{id}/deal-events/sold-out` | `listingRepository`, `dealEventRepository` |
 | My Cart | `GET /listings?createdBy=me`, `DELETE /listings/{id}`, `POST /listings/{id}/withdraw` | `listingRepository` |
 | Create/Edit Listing | `POST /listings`, `PUT /listings/{id}`, `POST /listings/{id}/submit`, `POST /listings/{id}/images`, `PUT /listings/{id}/images/reorder`, `DELETE /listings/{id}/images/{imageId}`, `PUT /listings/{id}/images/{imageId}/primary` | `listingRepository`, `listingImageRepository` |
-| Notifications | `GET /notifications`, `GET /notifications/unread-count`, `PATCH /notifications/{id}/read`, `POST /notifications/read-all` | `notificationRepository` |
+| Notifications | `GET /notifications`, `GET /notifications/unread-count`, `PATCH /notifications/{id}/read`, `POST /notifications/read-all`, `GET /users/me/notification-preferences`, `PUT /users/me/notification-preferences` | `notificationRepository` |
 | Approval Queues | `GET /approvals/queues`, `GET /approvals/queues/{queueType}`, `POST /approvals/{id}/approve`, `POST /approvals/{id}/reject`, `POST /approvals/bulk-approve` | `approvalRepository` |
 | User Management | `GET /users`, `GET /users/{id}`, `POST /users`, `PUT /users/{id}`, `PATCH /users/{id}/deactivate`, `PATCH /users/{id}/reactivate`, `PATCH /users/{id}/role` | `userRepository` |
-| Hot Products | `GET /hot-listings`, `POST /listings/{id}/promote`, `DELETE /listings/{id}/promote`, `PUT /hot-listings/reorder` | `hotProductRepository` |
+| Hot Products | `GET /hot-listings`, `POST /listings/{id}/promote`, `DELETE /listings/{id}/promote`, `PUT /hot-listings/reorder` | `listingRepository` |
+| Reviews | `GET /listings/{listing_id}/reviews`, `POST /listings/{listing_id}/reviews`, `DELETE /listings/{listing_id}/reviews/{review_id}`, `POST /listings/{listing_id}/reviews/{review_id}/images` | `reviewRepository` |
 | Geography | `GET /geography/cities`, `GET /geography/cities/{cityId}/districts`, `GET /geography/cities/{cityId}/districts/{districtId}/wards` | `geographyRepository` |
 
 ---
