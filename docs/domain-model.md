@@ -462,7 +462,12 @@ System notification for users, created automatically when key events occur. Noti
 | `referenceType` | Enum | No | — | `LISTING` / `APPROVAL` / `DEAL_EVENT` |
 | `referenceId` | UUID | No | — | Related entity ID (polymorphic FK) |
 | `isRead` | Boolean | Yes | `false` | Whether user has read it |
+| `eventType` | String(100) | No | — | Structured event type (e.g., `listing_submitted`, `deposit_confirmed`) |
+| `actorName` | String(255) | No | — | Display name of the user who triggered the event |
+| `transactionType` | String(50) | No | — | Transaction type context (`BAN`, `CHO_THUE`, `SANG_NHUONG`) |
 | `createdAt` | DateTime | Yes (Auto) | `now()` | Creation timestamp |
+
+> **Note**: `eventType`, `actorName`, and `transactionType` are nullable for backward compatibility. New notifications always include these fields.
 
 ### Relationships
 
@@ -868,6 +873,10 @@ The following intentional deviations have been made from the original `entities-
 | D-05 | No `Listing.videoUrl` | Added `videoUrl` (optional) | Present in create form (SC-004) with YouTube link support |
 | D-06 | No `Listing.hotOrder` | Added `hotOrder` (optional) | Hot products require ordering (HP-003); `isHot` alone is insufficient |
 | D-07 | `Notification.referenceType` with 3 values | Extended to support: `LISTING`, `APPROVAL`, `DEAL_EVENT` | Aligned with notification event triggers in user-flows |
+| D-08 | `Notification` had only opaque `title`/`body` | Added `eventType`, `actorName`, `transactionType` structured fields | Screen SC-007 shows structured notification format; enables client-side grouping without text parsing |
+| D-09 | `Listing.pricePerM2` not in model | Computed in mapper as `price / totalArea` (not stored in DB) | Screen SC-002/SC-003 display price/m²; computed avoids data redundancy |
+| D-10 | `ListingResponse.creator` not in model | Embedded `CreatorInfo { id, fullName, phone }` via `selectinload` | Screen SC-002/SC-003 show agent name+phone on every listing card; avoids N+1 queries |
+| D-11 | `Tranaction type lock` not defined | Editing `transaction_type` blocked when `listing.status == DA_COC` | Prevents changing tx type on an already-deposited listing (AR-04) |
 
 ### 12.2 Remaining Model Gaps
 

@@ -70,7 +70,7 @@ src/
 ├── modules/
 │   ├── __init__.py
 │   │
-│   ├── auth/                            # POST /login, POST /logout, GET /me
+│   ├── auth/                            # POST /login, POST /logout, GET /me, forgot/reset password
 │   │   ├── __init__.py
 │   │   ├── router.py
 │   │   ├── schemas.py
@@ -79,7 +79,9 @@ src/
 │   │       ├── __init__.py
 │   │       ├── login.py
 │   │       ├── logout.py
-│   │       └── get_current_user.py
+│   │       ├── get_current_user.py
+│   │       ├── forgot_password.py
+│   │       └── reset_password.py
 │   │
 │   ├── users/                           # CRUD + deactivate + reactivate + role
 │   │   ├── __init__.py
@@ -213,7 +215,7 @@ src/
 
 | Module | Prefix | Auth Required | Min Role | # Endpoints |
 |--------|--------|---------------|----------|-------------|
-| `auth` | `/auth` | Mixed (login=public) | — | 3 |
+| `auth` | `/auth` | Mixed (login=public) | — | 5 |
 | `users` | `/users` | Yes | ADMIN | 8 |
 | `listings` | `/listings` | Yes | AGENT | 7 |
 | `listing_images` | `/listings/{id}/images` | Yes | AGENT | 4 |
@@ -231,6 +233,8 @@ src/
 | `POST` | `/auth/login` | `login` | `UserRepo` | User |
 | `POST` | `/auth/logout` | `logout` | — | — |
 | `GET` | `/auth/me` | `get_current_user` | `UserRepo` | User |
+| `POST` | `/auth/forgot-password` | `forgot_password` | `UserRepo` | User |
+| `POST` | `/auth/reset-password` | `reset_password` | `UserRepo` | User |
 | `POST` | `/users` | `create_user` | `UserRepo` | User |
 | `GET` | `/users` | `list_users` | `UserRepo` | User |
 | `GET` | `/users/{id}` | `get_user` | `UserRepo` | User |
@@ -421,6 +425,9 @@ NotificationEntity
 ├── reference_type (Enum: LISTING|APPROVAL|DEAL_EVENT, nullable)
 ├── reference_id (UUID, nullable)
 ├── is_read (Boolean, default false)
+├── event_type (String 100, nullable)         ← structured: "listing_submitted", "deposit_confirmed", etc.
+├── actor_name (String 255, nullable)         ← display name of the triggering user
+├── transaction_type (String 50, nullable)    ← "BAN", "CHO_THUE", "SANG_NHUONG"
 └── created_at (DateTime, server_default)
 
 Index: (user_id, is_read, created_at DESC)
@@ -476,7 +483,7 @@ class SomeRepo:
 | `ListingImageRepo` | ListingImage | `count_by_listing()`, `set_primary()` |
 | `DealEventRepo` | DealEvent | `get_pending_confirmation()`, `has_active_deposit()`, `get_by_listing()` |
 | `ApprovalRepo` | Approval | `get_queue_counts()`, `list_queue_items()`, `get_by_listing_and_type()`, `count_pending()` |
-| `NotificationRepo` | Notification | `get_unread_count()`, `mark_all_read()`, `list_by_user()` |
+| `NotificationRepo` | Notification | `get_unread_count()`, `mark_all_read()`, `list_by_user()`, `get_category_counts()` |
 | `UserPinRepo` | UserPin | `get_by_user_and_listing()`, `list_by_user()` |
 
 ---

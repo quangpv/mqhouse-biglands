@@ -1,8 +1,10 @@
 import uuid
+from datetime import datetime
 
 from fastapi import Depends
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from src.data.entities.approval import ApprovalEntity, ApprovalType
 from src.data.entities.deal_event import DealEventEntity, DealEventType
@@ -53,11 +55,20 @@ class ApprovalRepo(Repo):
     async def list_listing_post_queue_items(
         self,
         transaction_type: str | None = None,
+        date_from: str | None = None,
+        date_to: str | None = None,
+        agent_id: str | None = None,
     ) -> list[ListingEntity]:
         query = select(ListingEntity).where(ListingEntity.status == ListingStatus.PENDING_APPROVAL)
         if transaction_type:
             from src.data.entities.listing import TransactionType
             query = query.where(ListingEntity.transaction_type == TransactionType(transaction_type))
+        if agent_id:
+            query = query.where(ListingEntity.created_by_id == uuid.UUID(agent_id))
+        if date_from:
+            query = query.where(ListingEntity.created_at >= datetime.fromisoformat(date_from))
+        if date_to:
+            query = query.where(ListingEntity.created_at <= datetime.fromisoformat(date_to))
         query = query.order_by(ListingEntity.created_at.desc())
         result = await self.db.execute(query)
         return list(result.scalars().all())
@@ -66,6 +77,9 @@ class ApprovalRepo(Repo):
         self,
         approval_type: ApprovalType,
         transaction_type: str | None = None,
+        date_from: str | None = None,
+        date_to: str | None = None,
+        agent_id: str | None = None,
     ) -> list[tuple[ListingEntity, DealEventEntity]]:
         event_type_map = {
             ApprovalType.DEPOSIT: DealEventType.DEPOSIT_REPORTED,
@@ -82,10 +96,17 @@ class ApprovalRepo(Repo):
                 DealEventEntity.event_type == event_type,
                 DealEventEntity.confirmed_by_id.is_(None),
             )
+            .options(selectinload(DealEventEntity.reported_by))
         )
         if transaction_type:
             from src.data.entities.listing import TransactionType
             query = query.where(ListingEntity.transaction_type == TransactionType(transaction_type))
+        if agent_id:
+            query = query.where(DealEventEntity.reported_by_id == uuid.UUID(agent_id))
+        if date_from:
+            query = query.where(DealEventEntity.created_at >= datetime.fromisoformat(date_from))
+        if date_to:
+            query = query.where(DealEventEntity.created_at <= datetime.fromisoformat(date_to))
         query = query.order_by(DealEventEntity.created_at.desc())
         result = await self.db.execute(query)
         rows = result.all()

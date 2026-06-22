@@ -1,13 +1,19 @@
+from __future__ import annotations
+
 import uuid
 from datetime import datetime
 from decimal import Decimal
 from enum import Enum as PyEnum
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Integer, Numeric, String, Text
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.data.entities._base import Base, TimestampMixin, UUIDMixin
+
+if TYPE_CHECKING:
+    from src.data.entities.user import UserEntity
 
 _values_callable = lambda x: [e.value for e in x]  # noqa: E731
 
@@ -85,6 +91,7 @@ class ListingEntity(Base, UUIDMixin, TimestampMixin):
     hot_order: Mapped[int | None] = mapped_column(Integer, nullable=True)
     view_count: Mapped[int | None] = mapped_column(Integer, nullable=True, default=0)
     created_by_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    created_by: Mapped[UserEntity] = relationship("UserEntity", foreign_keys=[created_by_id])
     approved_by_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
     approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

@@ -33,5 +33,7 @@ async def create_review(
     except IntegrityError:
         raise ConflictError("You have already reviewed this listing")
 
-    review = await repo.get(review.id)
-    return review_to_response(review)
+    saved: ReviewEntity | None = await repo.get(review.id)
+    if saved is None:
+        return review_to_response(review)
+    return review_to_response(saved)

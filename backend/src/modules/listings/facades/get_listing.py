@@ -28,7 +28,7 @@ async def get_listing(
     listing.view_count = (listing.view_count or 0) + 1
     await repo.save(listing)
 
-    base = listing_to_response(listing)
+    base = listing_to_response(listing, current_user=current_user)
     images = await image_repo.list_by_listing(listing_id)
     deal_events = await deal_repo.get_by_listing(listing_id)
     is_pinned = await pin_repo.get_by_user_and_listing(current_user.id, listing_id) is not None if current_user else False

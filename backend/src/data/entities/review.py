@@ -1,10 +1,16 @@
+from __future__ import annotations
+
 import uuid
+from typing import TYPE_CHECKING
 
 from sqlalchemy import String, Text, ForeignKey, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.data.entities._base import Base, TimestampMixin, UUIDMixin
+
+if TYPE_CHECKING:
+    from src.data.entities.review_image import ReviewImageEntity
 
 
 class ReviewEntity(Base, UUIDMixin, TimestampMixin):
@@ -15,7 +21,7 @@ class ReviewEntity(Base, UUIDMixin, TimestampMixin):
     author_name: Mapped[str] = mapped_column(String(255), nullable=False)
     content: Mapped[str] = mapped_column(Text, nullable=False)
 
-    images: Mapped[list["ReviewImageEntity"]] = relationship("ReviewImageEntity", back_populates="review", cascade="all, delete-orphan")
+    images: Mapped[list[ReviewImageEntity]] = relationship("ReviewImageEntity", back_populates="review", cascade="all, delete-orphan")
 
     __table_args__ = (
         UniqueConstraint("author_id", "listing_id", name="uq_review_author_listing"),

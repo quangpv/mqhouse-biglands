@@ -49,13 +49,13 @@
 | Item | Details |
 |---|---|
 | Screens | Listing Detail (`/tin/{id}`), own-draft read-only view |
-| APIs | `GET /api/v1/listings/{id}`, `GET /api/v1/listings/{id}/images` |
+| APIs | `GET /api/v1/listings/{id}` (returns `creator`, `pricePerM2`, `requiresApproval`), `GET /api/v1/listings/{id}/images` |
 | State | `useListingDetailState` (listingId param) |
 | Actions | `usePinAction`, `useDepositAction`, `useClosureAction`, `useCancellationAction`, `useSoldOutAction` |
 | Components | `ListingGallery`, `ListingInfo`, `DealTimeline`, `DepositForm`, `ClosureForm`, `CancellationForm`, `SoldOutForm`, `ActionPanel` |
 | Validation | deposit (customerName ≥2, depositAmount >0); cancellation (notes required) |
 | States | loading (skeleton), not found (404), error (retry) |
-| Edge cases | sold-out hides deal actions; own draft read-only; confirm dialogs before mutation |
+| Edge cases | sold-out hides deal actions; own draft read-only; confirm dialogs before mutation; ownerPhone visible only to creator/admin/approver |
 
 ## Module 4: Listing Form (Create / Edit)
 
@@ -68,14 +68,14 @@
 | Components | `ListingFormWizard`, `BasicInfoStep`, `LocationStep`, `MediaStep`, `ImageDropzone`, `ImagePreview`, `FormNavigation` |
 | Validation | Full Zod schema matching CreateListingRequest (see OpenAPI) |
 | States | loading (skeleton for edit), submitting (progress), error (field errors), success toast, redirect |
-| Edge cases | edit CON_HANG → re-approval (LST-I05); DRAFT always editable; exit confirmation dirty; save vs submit |
+| Edge cases | edit CON_HANG → re-approval (LST-I05); DRAFT always editable; exit confirmation dirty; save vs submit; transactionType locked when status=DA_COC |
 
 ## Module 5: My Cart
 
 | Item | Details |
 |---|---|
 | Screens | My Cart (`/gio-hang-chung`), My Cart Detail (`/gio-hang-chung/{id}`) |
-| APIs | `GET /api/v1/listings?createdBy={me}`, `GET /api/v1/listings/{id}` |
+| APIs | `GET /api/v1/listings?createdBy={me}` (supports `status=CON_HANG,DA_COC` multi-value via `createdBy`), `GET /api/v1/listings/{id}` |
 | State | `useMyListingsState` (tabs: CON_HANG, PENDING_APPROVAL, DRAFT, SOLD, CANCELLED) |
 | Actions | `useDeleteListingAction`, `useRecallAction` |
 | Components | `MyListingCard`, `MyListingTabs`, `ListingActionMenu` |
@@ -87,7 +87,7 @@
 | Item | Details |
 |---|---|
 | Screens | Notifications (`/thong-bao`) |
-| APIs | `GET /api/v1/notifications`, `PATCH .../read`, `PATCH .../read-all`, `GET .../unread-count`, `GET|PUT .../notification-preferences` |
+| APIs | `GET /api/v1/notifications?transactionType=&q=` (returns `unreadCount`, `categoryCounts`; items include `eventType`, `actorName`, `transactionType`), `PATCH .../read`, `PATCH .../read-all`, `GET .../unread-count`, `GET|PUT .../notification-preferences` |
 | State | `useNotificationListState` (pagination) |
 | Actions | `useMarkReadAction`, `useMarkAllReadAction`, `useUpdatePreferencesAction` |
 | Components | `NotificationList`, `NotificationItem`, `NotificationBadge`, `NotificationPreferencesPanel` |
@@ -99,7 +99,7 @@
 | Item | Details |
 |---|---|
 | Screens | Queue list (`/duyet/{queueType}`), Queue Detail (`/duyet/{queueType}/{id}`) |
-| APIs | `GET /api/v1/approval/queues`, `GET .../queues/{type}`, `GET .../items/{id}`, `POST .../items/{id}/approve`, `POST .../items/{id}/reject`, `POST /api/v1/approval/bulk-approve` |
+| APIs | `GET /api/v1/approval/queues`, `GET .../queues/{type}?dateFrom=&dateTo=&agentId=` (items include `dealEvent` with customer info, `reportedBy`), `GET .../items/{id}`, `POST .../items/{id}/approve`, `POST .../items/{id}/reject`, `POST /api/v1/approval/bulk-approve` |
 | State | `useApprovalQueueState` (queueType, transactionType, pagination) |
 | Actions | `useApproveAction`, `useRejectAction`, `useBulkApproveAction`, `useConfirmDealEventAction` |
 | Components | `QueueList`, `QueueItemCard`, `ApproveRejectPanel`, `RejectDialog`, `BulkApproveBar` |
@@ -112,7 +112,7 @@
 | Item | Details |
 |---|---|
 | Screens | User List (`/nguoi-dung`), Create (`.../tao-moi`), Edit (`.../{id}`) |
-| APIs | `GET /api/v1/users`, `POST /api/v1/users`, `PUT /api/v1/users/{id}`, `PATCH .../deactivate`, `.../activate`, `.../role` |
+| APIs | `GET /api/v1/users`, `POST /api/v1/users` (password optional → auto-generated; response includes `generatedPassword`), `PUT /api/v1/users/{id}`, `PATCH .../deactivate`, `.../activate`, `.../role` |
 | State | `useUserListState` (pagination, role filter), `useUserFormState` |
 | Actions | `useCreateUserAction`, `useUpdateUserAction`, `useToggleActiveAction`, `useChangeRoleAction` |
 | Components | `UserTable`, `UserForm`, `UserStatusBadge`, `RoleSelect`, `DeactivateConfirmDialog` |
@@ -125,7 +125,7 @@
 | Item | Details |
 |---|---|
 | Screens | Hot Products Management (`/tin-noi-bat`) |
-| APIs | `GET /api/v1/listings?isHot=true`, `POST .../promote`, `DELETE .../hot`, `PUT /api/v1/hot/reorder` |
+| APIs | `GET /api/v1/listings?isHot=true` (also supports `isHot=false` to find non-hot listings to promote), `POST .../promote`, `DELETE .../hot`, `PUT /api/v1/hot/reorder` |
 | State | `useHotListingsState` |
 | Actions | `usePromoteAction`, `useRemoveHotAction`, `useReorderHotAction` |
 | Components | `HotList`, `HotListItem`, `ReorderPanel`, `PromoteDialog` |
@@ -188,11 +188,11 @@ Foundation ─┬─ Auth ── Shared Cart ── Product Detail ── Listin
 
 | # | Issue | Impact | Resolution |
 |---|---|---|---|
-| OQ-01 | `GET /api/v1/listings` missing `createdBy` filter | My Cart can't filter by current user | Confirm with backend team |
+| OQ-01 | `GET /api/v1/listings` missing `createdBy` filter | My Cart can't filter by current user | **Resolved** — `createdBy` param (alias `createdBy`, `"me"` shorthand) added |
 | OQ-02 | No Review endpoints in OpenAPI | Cannot implement Review epic | Ask PO/backend to add |
-| OQ-03 | Notification filter params unspecified | Cannot filter by type | Confirm query params |
-| OQ-04 | `creator` not embedded in Listing response | Detail can't show agent name | Confirm response shape |
-| OQ-05 | `pricePerM2` missing from Listing schema | Cannot show price/m² | Confirm computed vs stored |
-| OQ-06 | POST create user response unclear | UX for created user flow | Confirm response schema |
-| OQ-07 | "Quên mật khẩu?" has no endpoint | Link must be disabled | Defer implementation |
+| OQ-03 | Notification filter params unspecified | Cannot filter by type | **Resolved** — `transactionType`, `q` params + `unreadCount`, `categoryCounts`, structured fields added |
+| OQ-04 | `creator` not embedded in Listing response | Detail can't show agent name | **Resolved** — `creator: { id, fullName, phone }` embedded in ListingResponse |
+| OQ-05 | `pricePerM2` missing from Listing schema | Cannot show price/m² | **Resolved** — computed in mapper as `price / totalArea` |
+| OQ-06 | POST create user response unclear | UX for created user flow | **Resolved** — `generatedPassword` returned when auto-generated |
+| OQ-07 | "Quên mật khẩu?" has no endpoint | Link must be disabled | **Resolved** — `POST /auth/forgot-password` + `POST /auth/reset-password` implemented |
 | OQ-08 | 15 queue type enum values unknown | Route params untyped | Extract from backend enum |

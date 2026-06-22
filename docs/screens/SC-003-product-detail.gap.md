@@ -58,6 +58,15 @@
 - **Resolution**: BR-004 confirmed — any agent can report on any listing. Owner-only preconditions in user flows overridden.
 - **Impact**: None — screen matches final decision.
 
+## Resolved Gaps
+
+| Gap | Implementation | Item |
+|-----|---------------|------|
+| `pricePerM2` | Computed in mapper: `price / totalArea` when `totalArea > 0`; returned on `ListingResponse` | 2.2 |
+| `creator` (embedded agent object) | `CreatorInfo` schema with `id`, `fullName`, `phone`; embedded in `ListingResponse`; `selectinload` on detail repo query | 1.2 |
+| `ownerPhone` visibility | Backend-controlled via `current_user` check: visible when user is creator, ADMIN, or APPROVER; otherwise hidden. `ownerPhone` is `str \| None`. Original caller (create/update/submit/withdraw) always sees it | 3.2 |
+| View Count Increment | Pre-existing — server increments `viewCount` on `GET /listings/{id}` | 2.6 (pre-existing) |
+
 ## Validated (No Gap)
 
 | Screen Element | API Match | Status |

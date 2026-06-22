@@ -12,7 +12,7 @@ class CreateUserRequest(BaseModel):
     username: str = Field(..., min_length=3, max_length=100)
     phone: str | None = Field(None, max_length=20)
     email: str | None = Field(None, max_length=255)
-    password: str = Field(..., min_length=6)
+    password: str | None = Field(None, min_length=6)
     role: UserRole = UserRole.AGENT
     organization_id: str | None = Field(None, description="UUID of the organization")
 
@@ -40,6 +40,7 @@ class UserResponse(BaseModel):
     organization_name: str | None = None
     created_at: datetime
     updated_at: datetime
+    generated_password: str | None = None
 
     model_config = {"from_attributes": True}
 

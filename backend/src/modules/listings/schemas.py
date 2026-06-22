@@ -74,6 +74,12 @@ class UpdateListingRequest(BaseModel):
     action: str | None = None  # "submit" to immediately submit for approval after update
 
 
+class CreatorInfo(BaseModel):
+    id: uuid.UUID
+    fullName: str
+    phone: str | None = None
+
+
 class ListingResponse(BaseModel):
     id: uuid.UUID
     code: str
@@ -104,16 +110,19 @@ class ListingResponse(BaseModel):
     legal_status: str | None = None
     direction: str | None = None
     road_width: str | None = None
-    owner_phone: str
+    owner_phone: str | None = None
     video_url: str | None = None
     status: ListingStatus
     is_hot: bool | None = False
     hot_order: int | None = None
     view_count: int | None = 0
+    price_per_m2: Decimal | None = None
     created_by_id: uuid.UUID
+    creator: CreatorInfo | None = None
     approved_by_id: uuid.UUID | None = None
     approved_at: datetime | None = None
     created_at: datetime
+    requires_approval: bool = False
     updated_at: datetime
 
     model_config = {"from_attributes": True}
@@ -125,6 +134,13 @@ class ListingDetailResponse(ListingResponse):
     is_pinned: bool = False
 
 
+class FilterCounts(BaseModel):
+    all: int = 0
+    hot: int = 0
+    pinned: int = 0
+
+
 class ListingListResponse(PaginatedResponse):
     data: list[ListingResponse]
     total_count: int = 0
+    filter_counts: FilterCounts | None = None

@@ -1,9 +1,11 @@
 from fastapi import APIRouter, Depends, status
 
+from src.modules.auth.facades.forgot_password import forgot_password
 from src.modules.auth.facades.get_current_user import get_current_user_facade
 from src.modules.auth.facades.login import login
 from src.modules.auth.facades.logout import logout
-from src.modules.auth.schemas import LoginResponse, UserResponse
+from src.modules.auth.facades.reset_password import reset_password
+from src.modules.auth.schemas import ForgotPasswordResponse, LoginResponse, ResetPasswordResponse, UserResponse
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -20,4 +22,14 @@ async def logout_endpoint(result = Depends(logout)):
 
 @router.get("/me", response_model=UserResponse, status_code=status.HTTP_200_OK)
 async def me_endpoint(result: UserResponse = Depends(get_current_user_facade)):
+    return result
+
+
+@router.post("/forgot-password", response_model=ForgotPasswordResponse, status_code=status.HTTP_200_OK)
+async def forgot_password_endpoint(result: ForgotPasswordResponse = Depends(forgot_password)):
+    return result
+
+
+@router.post("/reset-password", response_model=ResetPasswordResponse, status_code=status.HTTP_200_OK)
+async def reset_password_endpoint(result: ResetPasswordResponse = Depends(reset_password)):
     return result

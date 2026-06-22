@@ -1,7 +1,8 @@
 from src.data.entities.approval import ApprovalType
 from src.data.entities.deal_event import DealEventEntity
 from src.data.entities.listing import ListingEntity
-from src.modules.approvals.schemas import ApproveResponse, QueueItemResponse
+from src.data.entities.user import UserEntity
+from src.modules.approvals.schemas import ApproveResponse, DealEventInfo, QueueItemResponse, ReporterInfo
 
 
 def listing_to_queue_item(listing: ListingEntity) -> QueueItemResponse:
@@ -35,6 +36,23 @@ def deal_event_to_queue_item(
         customer_phone=event.customer_phone,
         deposit_amount=event.deposit_amount,
         event_notes=event.notes,
+        deal_event=DealEventInfo(
+            event_type=event.event_type.value,
+            notes=event.notes,
+            customer_name=event.customer_name,
+            customer_phone=event.customer_phone,
+            deposit_amount=event.deposit_amount,
+            created_at=event.created_at,
+        ),
+        reported_by=_reporter_from_user(event.reported_by) if event.reported_by else None,
+    )
+
+
+def _reporter_from_user(user: UserEntity) -> ReporterInfo:
+    return ReporterInfo(
+        id=user.id,
+        full_name=user.full_name,
+        email=user.email or "",
     )
 
 

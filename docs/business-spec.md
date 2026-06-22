@@ -386,7 +386,7 @@
 **FR-01.3** The system shall display an error message for invalid credentials.  
 **FR-01.4** The system shall prevent deactivated users from logging in.  
 **FR-01.5** The system shall redirect already authenticated users away from the login page.  
-**FR-01.6** The system shall support a "Forgot password?" link (UI only; actual reset is handled by Admin).  
+**FR-01.6** The system shall support a "Forgot password?" link that triggers a JWT-based password reset flow (email → reset link → new password).  
 
 ### FR-02: Shared Cart Browsing (Must Have)
 
@@ -495,7 +495,7 @@
 
 **FR-17.1** Admin can create users with fields: full name, username, phone (optional), role.  
 **FR-17.2** Username must be unique.  
-**FR-17.3** An initial password is generated at account creation.  
+**FR-17.3** An initial password is auto-generated when the admin does not supply one (password field is optional on create). The generated password is returned in the response as `generatedPassword`.  
 **FR-17.4** Admin can edit user: full name, username, phone, role, active/inactive status.  
 **FR-17.5** Admin can deactivate/reactivate users with confirmation dialog.  
 **FR-17.6** Admin can change user roles among AGENT, APPROVER, ADMIN.  
@@ -624,6 +624,8 @@ The following requirements are implied by the documents or observed in screen sp
 
 **Recommendation**: Define access control rules for owner phone visibility.
 
+**Resolution (v1.1)**: Owner phone visibility is controlled server-side. The `ownerPhone` field is returned as `str | None`. It is visible when: (1) the caller is the listing creator, (2) the caller has role ADMIN or APPROVER. For all other roles, `ownerPhone` is `null`. This ensures the phone cannot be extracted by inspecting network traffic — it is never sent to unauthorized clients.
+
 ### MR-03: Listing Expiration (QUA_HAN)
 
 **Evidence**: The status state machine includes `QUA_HAN` (expired) as a terminal state reachable from `PENDING_APPROVAL` or `CON_HANG`.  
@@ -729,6 +731,8 @@ The following requirements are implied by the documents or observed in screen sp
 **Issue**: SC-005 Edit Listing says "Transaction type (locked after submission?)" — the question mark indicates uncertainty.  
 **Clarification Needed**: Can the transaction type of a listing be changed after creation?
 
+**Resolution**: Transaction type is locked only when `listing.status == DA_COC`. At all other statuses (DRAFT, PENDING_APPROVAL, CON_HANG, etc.), the transaction type can be freely changed. The update_listing facade rejects `transaction_type` changes with a `BadRequestError` when status is DA_COC.
+
 ### AR-05: "Save as Draft" vs "Submit for Approval"
 
 **Issue**: SC-004 Create Listing shows only "Hủy" (Cancel) and "Đăng tải" (Post/Submit) buttons. But user-flow FL-003 and US-001-create-listing reference two distinct actions: "Save as Draft" and "Submit for Approval."  
@@ -753,6 +757,8 @@ The following requirements are implied by the documents or observed in screen sp
 
 **Issue**: FL-001 says "Forgot password: not implemented in current scope — rely on admin reset." However, SC-001 Login includes a "Quên mật khẩu?" link.  
 **Clarification Needed**: Should the link be visible but non-functional (informational only), or should it trigger an admin notification?
+
+**Resolution**: Implemented as a full password reset flow using JWT tokens. Two endpoints: `POST /auth/forgot-password` (accepts email, returns success regardless of whether email exists — prevents enumeration) and `POST /auth/reset-password` (accepts token + new password). Token expiry is 15 minutes. No DB schema change needed.
 
 ### AR-10: Draft Auto-Save
 

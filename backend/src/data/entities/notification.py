@@ -26,4 +26,7 @@ class NotificationEntity(Base, UUIDMixin):
     reference_type: Mapped[ReferenceType | None] = mapped_column(Enum(ReferenceType, values_callable=_values_callable), nullable=True)
     reference_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
     is_read: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    event_type: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    actor_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    transaction_type: Mapped[str | None] = mapped_column(String(50), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)

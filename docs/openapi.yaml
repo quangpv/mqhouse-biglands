@@ -54,6 +54,56 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
 
+  /auth/forgot-password:
+    post:
+      tags: [Auth]
+      summary: Request password reset (JWT token sent in response)
+      operationId: forgotPassword
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ForgotPasswordRequest"
+      responses:
+        "200":
+          description: "Success (always returns 200 to prevent email enumeration)"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/ValidationError"
+
+  /auth/reset-password:
+    post:
+      tags: [Auth]
+      summary: Reset password using JWT token
+      operationId: resetPassword
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResetPasswordRequest"
+      responses:
+        "200":
+          description: Password reset successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          description: Invalid or expired reset token
+
   /auth/me:
     get:
       tags: [Auth]
@@ -341,9 +391,25 @@ paths:
         - name: status
           in: query
           schema:
-            $ref: "#/components/schemas/ListingStatus"
+            type: array
+            items:
+              $ref: "#/components/schemas/ListingStatus"
+            style: form
+            explode: false
           required: false
-          description: "Default: CON_HANG, DA_COC (visible listings only)"
+          description: "Filter by one or more statuses (comma-separated: CON_HANG,DA_COC). Default: CON_HANG, DA_COC (visible listings)"
+        - name: createdBy
+          in: query
+          schema:
+            type: string
+          description: "Filter by creator UUID, or 'me' for current user"
+          required: false
+        - name: isHot
+          in: query
+          schema:
+            type: boolean
+          description: "Filter by hot status (isHot=true/false)"
+          required: false
         - name: filter
           in: query
           schema:
@@ -963,6 +1029,27 @@ paths:
           required: false
         - $ref: "#/components/parameters/page"
         - $ref: "#/components/parameters/size"
+        - name: dateFrom
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: "Filter items created on or after this date"
+          required: false
+        - name: dateTo
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: "Filter items created on or before this date"
+          required: false
+        - name: agentId
+          in: query
+          schema:
+            type: string
+            format: uuid
+          description: "Filter by reporting agent UUID"
+          required: false
       responses:
         "200":
           description: Paginated list of pending items
@@ -1222,6 +1309,19 @@ paths:
           schema:
             type: boolean
           description: Filter by read status
+          required: false
+        - name: transactionType
+          in: query
+          schema:
+            $ref: "#/components/schemas/TransactionType"
+          description: "Filter by transaction type (category tab)"
+          required: false
+        - name: q
+          in: query
+          schema:
+            type: string
+            maxLength: 200
+          description: "Search by title"
           required: false
       responses:
         "200":
@@ -1798,6 +1898,10 @@ components:
         updatedAt:
           type: string
           format: date-time
+        generatedPassword:
+          type: string
+          nullable: true
+          description: "Auto-generated password returned when admin creates user without specifying password (FR-17.3)"
         createdBy:
           type: string
           format: uuid
@@ -1806,7 +1910,7 @@ components:
 
     CreateUserRequest:
       type: object
-      required: [fullName, username, password]
+      required: [fullName, username]
       properties:
         fullName:
           type: string
@@ -1833,7 +1937,8 @@ components:
           format: password
           minLength: 8
           maxLength: 128
-          description: "Password (min 8 chars — USR-C02)"
+          nullable: true
+          description: "Password (min 8 chars — USR-C02). Nullable: admin may omit to auto-generate (FR-17.3)"
         role:
           $ref: "#/components/schemas/UserRole"
           default: AGENT
@@ -1903,6 +2008,8 @@ components:
         - ownerPhone
         - status
         - createdById
+        - pricePerM2
+        - requiresApproval
         - createdAt
         - updatedAt
       properties:
@@ -2018,7 +2125,8 @@ components:
         ownerPhone:
           type: string
           maxLength: 20
-          description: Property owner's contact phone
+          nullable: true
+          description: "Property owner's contact phone (nullable — hidden from agents without deal in some statuses per MR-02)"
         videoUrl:
           type: string
           format: uri
@@ -2038,10 +2146,21 @@ components:
         viewCount:
           type: integer
           default: 0
+        pricePerM2:
+          type: number
+          nullable: true
+          description: "Price per m² (computed: price / totalArea)"
+        requiresApproval:
+          type: boolean
+          description: "Whether this listing requires approval — CON_HANG needs approve, others do not"
         createdById:
           type: string
           format: uuid
           description: Agent who created the listing
+        creatorInfo:
+          $ref: "#/components/schemas/CreatorInfo"
+          nullable: true
+          description: "Denormalized creator info (displayed as creator chip)"
         approvedById:
           type: string
           format: uuid
@@ -2057,6 +2176,24 @@ components:
         updatedAt:
           type: string
           format: date-time
+
+    CreatorInfo:
+      type: object
+      required: [id, fullName, username]
+      properties:
+        id:
+          type: string
+          format: uuid
+        fullName:
+          type: string
+          maxLength: 255
+        username:
+          type: string
+          maxLength: 100
+        phone:
+          type: string
+          maxLength: 20
+          nullable: true
 
     CreateListingRequest:
       type: object
@@ -2298,6 +2435,9 @@ components:
             $ref: "#/components/schemas/Listing"
         pagination:
           $ref: "#/components/schemas/Pagination"
+        filterCounts:
+          $ref: "#/components/schemas/FilterCounts"
+          description: "Counts per status for filter tabs"
         totalCount:
           type: integer
           description: "Total count of CON_HANG listings across all transaction types (BR-015)"
@@ -2462,6 +2602,14 @@ components:
           $ref: "#/components/schemas/Listing"
         approvalType:
           $ref: "#/components/schemas/ApprovalType"
+        dealEvent:
+          $ref: "#/components/schemas/DealEvent"
+          nullable: true
+          description: "Associated deal event (for deposit/closure/sold-out queues)"
+        reportedBy:
+          $ref: "#/components/schemas/ReporterInfo"
+          nullable: true
+          description: "Who reported/requested this approval (agent info)"
         createdAt:
           type: string
           format: date-time
@@ -2558,6 +2706,17 @@ components:
           maxLength: 500
         body:
           type: string
+        eventType:
+          type: string
+          description: "Category discriminator: e.g., listing_approved, listing_rejected, deposit_approved, new_deposit_request"
+        actorName:
+          type: string
+          nullable: true
+          description: "Name of the user who triggered this notification"
+        transactionType:
+          $ref: "#/components/schemas/TransactionType"
+          nullable: true
+          description: "Transaction type of the related listing (for category grouping)"
         referenceType:
           $ref: "#/components/schemas/ReferenceType"
           nullable: true
@@ -2584,6 +2743,14 @@ components:
             $ref: "#/components/schemas/Notification"
         pagination:
           $ref: "#/components/schemas/Pagination"
+        unreadCount:
+          type: integer
+          description: "Total unread notifications count for badge display"
+        categoryCounts:
+          type: object
+          description: "Per-category unread counts keyed by transaction type"
+          additionalProperties:
+            type: integer
 
     NotificationPreferences:
       type: object
@@ -2789,6 +2956,64 @@ components:
             $ref: "#/components/schemas/Organization"
         pagination:
           $ref: "#/components/schemas/Pagination"
+
+    # ── ReporterInfo ───────────────────────────
+    ReporterInfo:
+      type: object
+      required: [id, fullName, username]
+      properties:
+        id:
+          type: string
+          format: uuid
+        fullName:
+          type: string
+          maxLength: 255
+        username:
+          type: string
+          maxLength: 100
+        phone:
+          type: string
+          maxLength: 20
+          nullable: true
+
+    # ── FilterCounts ───────────────────────────
+    FilterCounts:
+      type: object
+      properties:
+        conHang:
+          type: integer
+          description: Count of CON_HANG listings
+        daCoc:
+          type: integer
+          description: Count of DA_COC listings
+        tatToan:
+          type: integer
+          description: Count of TAT_TOAN listings
+
+    # ── Forgot / Reset Password ────────────────
+    ForgotPasswordRequest:
+      type: object
+      required: [email]
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 255
+          description: "Email address for the account"
+
+    ResetPasswordRequest:
+      type: object
+      required: [token, newPassword]
+      properties:
+        token:
+          type: string
+          description: "JWT reset token received via email"
+        newPassword:
+          type: string
+          format: password
+          minLength: 8
+          maxLength: 128
+          description: "New password (min 8 chars)"
 
     # ── Common ─────────────────────────────────
     Pagination:

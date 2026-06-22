@@ -7,6 +7,21 @@ from pydantic import BaseModel, Field
 from src.shared.pagination import PaginatedResponse
 
 
+class DealEventInfo(BaseModel):
+    event_type: str
+    notes: str | None = None
+    customer_name: str | None = None
+    customer_phone: str | None = None
+    deposit_amount: Decimal | None = None
+    created_at: datetime
+
+
+class ReporterInfo(BaseModel):
+    id: uuid.UUID
+    full_name: str | None = None
+    email: str
+
+
 class QueueCountResponse(BaseModel):
     approval_type: str
     transaction_type: str
@@ -31,6 +46,8 @@ class QueueItemResponse(BaseModel):
     customer_phone: str | None = None
     deposit_amount: Decimal | None = None
     event_notes: str | None = None
+    deal_event: DealEventInfo | None = None
+    reported_by: ReporterInfo | None = None
 
 
 class QueueItemListResponse(PaginatedResponse):

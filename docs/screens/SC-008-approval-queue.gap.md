@@ -56,6 +56,16 @@
 | ... | ... | ... |
 - **Fix**: This is acceptable; the mapping should be documented in the API spec or FE config
 
+## Resolved Gaps
+
+| Gap | Implementation | Item |
+|-----|---------------|------|
+| Deposit-specific details (customer name, phone, amount) | `DealEventInfo` schema with `customerName`, `customerPhone`, `depositAmount`, `notes`; `deal_event` field on `QueueItemResponse`, populated only for deposit/closure/cancellation/sold-out queue types | 2.9 |
+| Reporter name | `ReporterInfo` schema with `id`, `fullName`; `reported_by` field on `QueueItemResponse`; added `reported_by` relationship to `DealEventEntity` | 2.9 |
+| Status-specific notes | Available via `DealEventInfo.notes` on `deal_event` field | 2.9 |
+| No date-range filter | `date_from` (alias `dateFrom`) and `date_to` (alias `dateTo`) params on `GET /approvals/queues/{queueType}` | 3.1 |
+| No agent filter | `agent_id` (alias `agentId`, UUID) param on `GET /approvals/queues/{queueType}` — filters by `DealEvent.reportedById` or `Listing.createdById` depending on queue type | 3.1 |
+
 ## Validated (No Gap)
 
 | Screen Element | API Match | Status |

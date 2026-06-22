@@ -54,13 +54,31 @@ class NotificationRepo(Repo):
         self.db = db
 
     async def list_by_user(
-        self, user_id: uuid.UUID, page: int, per_page: int, is_read: bool | None = None
+        self,
+        user_id: uuid.UUID,
+        page: int,
+        per_page: int,
+        is_read: bool | None = None,
+        transaction_type: str | None = None,
+        search: str | None = None,
     ) -> tuple[list[NotificationEntity], int]:
         query = select(NotificationEntity).where(NotificationEntity.user_id == user_id)
         count_query = select(func.count(NotificationEntity.id)).where(NotificationEntity.user_id == user_id)
         if is_read is not None:
             query = query.where(NotificationEntity.is_read == is_read)
             count_query = count_query.where(NotificationEntity.is_read == is_read)
+        if transaction_type:
+            ref_type = ReferenceType(transaction_type)
+            query = query.where(NotificationEntity.reference_type == ref_type)
+            count_query = count_query.where(NotificationEntity.reference_type == ref_type)
+        if search:
+            pattern = f"%{search}%"
+            query = query.where(
+                NotificationEntity.title.ilike(pattern)
+            )
+            count_query = count_query.where(
+                NotificationEntity.title.ilike(pattern)
+            )
         query = query.order_by(NotificationEntity.created_at.desc())
         query = query.offset((page - 1) * per_page).limit(per_page)
 
@@ -79,6 +97,17 @@ class NotificationRepo(Repo):
             )
         )
         return result.scalar_one()
+
+    async def get_category_counts(self, user_id: uuid.UUID) -> dict[str, int]:
+        result = await self.db.execute(
+            select(
+                NotificationEntity.reference_type,
+                func.count(NotificationEntity.id),
+            ).where(
+                NotificationEntity.user_id == user_id,
+            ).group_by(NotificationEntity.reference_type)
+        )
+        return {row[0].value if hasattr(row[0], 'value') else row[0]: row[1] for row in result.all()}
 
     async def get_by_id(self, notification_id: uuid.UUID) -> NotificationEntity | None:
         result = await self.db.execute(
@@ -120,6 +149,8 @@ class NotificationRepo(Repo):
         body: str,
         reference_type: ReferenceType | None = None,
         reference_id: uuid.UUID | None = None,
+        actor_name: str | None = None,
+        transaction_type: str | None = None,
     ) -> NotificationEntity | None:
         result = await self.db.execute(select(UserEntity).where(UserEntity.id == user_id))
         user = result.scalar_one_or_none()
@@ -136,6 +167,9 @@ class NotificationRepo(Repo):
             body=body,
             reference_type=reference_type,
             reference_id=reference_id,
+            event_type=event_type,
+            actor_name=actor_name,
+            transaction_type=transaction_type,
         )
         self.db.add(notification)
         await self.db.flush()

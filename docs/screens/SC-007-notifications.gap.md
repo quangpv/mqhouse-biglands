@@ -38,6 +38,16 @@
 - **Impact**: Client must parse the title string to extract components for display. Fragile across locales
 - **Fix**: Add optional structured fields: `eventType: string`, `actorName: string`, `transactionType: TransactionType` to `Notification`. This is a recommendation, not a blocker.
 
+## Resolved Gaps
+
+| Gap | Implementation | Item |
+|-----|---------------|------|
+| No `transactionType` filter | `transaction_type` param (alias `transactionType`, maps to `ReferenceType` enum) on `GET /notifications` — enables category tab filtering | 2.4 |
+| No `q` search param | `q` param on `GET /notifications` — searches across `title` using `ilike` | 2.4 |
+| No `unreadCount` in list response | `unread_count: int` field on `NotificationListResponse` alongside `data` and `pagination` | 2.5 |
+| No per-category counts | `category_counts: { all, BAN, CHO_THUE, SANG_NHUONG }` on `NotificationListResponse`; computed via `get_category_counts()` repo method | 2.5 |
+| No structured notification fields | `event_type`, `actor_name`, `transaction_type` columns added to `NotificationEntity` and exposed on `NotificationResponse` | 3.3 |
+
 ## Validated (No Gap)
 
 | Screen Element | API Match | Status |

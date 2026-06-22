@@ -78,6 +78,40 @@ class TestCreateUserAccount:
         assert response.status_code == 409
         assert response.json()["detail"] == "Username already exists"
 
+    async def test_admin_can_create_user_without_password_and_get_generated_password(
+        self, client: AsyncClient, admin_token: str,
+    ) -> None:
+        payload = {
+            "full_name": "Nguyễn Văn B",
+            "username": "nguyenvanb",
+        }
+        response = await client.post(
+            "/users",
+            json=payload,
+            headers={"Authorization": f"Bearer {admin_token}"},
+        )
+        assert response.status_code == 201
+        data = response.json()
+        assert data["generated_password"] is not None
+        assert len(data["generated_password"]) >= 8
+
+    async def test_user_created_with_password_does_not_return_generated_password(
+        self, client: AsyncClient, admin_token: str,
+    ) -> None:
+        payload = {
+            "full_name": "Nguyễn Văn C",
+            "username": "nguyenvanc",
+            "password": "mysecret123",
+        }
+        response = await client.post(
+            "/users",
+            json=payload,
+            headers={"Authorization": f"Bearer {admin_token}"},
+        )
+        assert response.status_code == 201
+        data = response.json()
+        assert data["generated_password"] is None
+
     async def test_creating_users_is_only_allowed_for_admins(
         self, client: AsyncClient, agent_token: str,
     ) -> None:

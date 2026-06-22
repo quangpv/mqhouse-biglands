@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone
 from fastapi import Depends
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from src.data.entities.listing import ListingEntity, ListingStatus, TransactionType
 from src.platform.config import settings
@@ -18,12 +19,18 @@ class ListingRepo(Repo):
         self.db = db
 
     async def get(self, listing_id: uuid.UUID) -> ListingEntity | None:
-        result = await self.db.execute(select(ListingEntity).where(ListingEntity.id == listing_id))
+        result = await self.db.execute(
+            select(ListingEntity)
+            .options(selectinload(ListingEntity.created_by))
+            .where(ListingEntity.id == listing_id)
+        )
         return result.scalar_one_or_none()
 
     async def get_by_ids(self, listing_ids: list[uuid.UUID]) -> list[ListingEntity]:
         result = await self.db.execute(
-            select(ListingEntity).where(ListingEntity.id.in_(listing_ids))
+            select(ListingEntity)
+            .options(selectinload(ListingEntity.created_by))
+            .where(ListingEntity.id.in_(listing_ids))
         )
         return list(result.scalars().all())
 
@@ -112,18 +119,19 @@ class ListingRepo(Repo):
         self,
         search: str | None = None,
         transaction_type: str | None = None,
-        status: str | None = None,
+        status: list[str] | None = None,
         property_type: str | None = None,
         filter_by: str | None = None,
         sort_by: str | None = None,
         sort_order: str | None = None,
         owner_id: uuid.UUID | None = None,
+        is_hot: bool | None = None,
     ):
-        query = select(ListingEntity)
+        query = select(ListingEntity).options(selectinload(ListingEntity.created_by))
 
         if owner_id:
             query = query.where(ListingEntity.created_by_id == owner_id)
-        else:
+        elif not status:
             query = query.where(ListingEntity.status.in_([ListingStatus.CON_HANG, ListingStatus.DA_COC]))
 
         if search:
@@ -139,7 +147,7 @@ class ListingRepo(Repo):
         if transaction_type:
             query = query.where(ListingEntity.transaction_type == TransactionType(transaction_type))
         if status:
-            query = query.where(ListingEntity.status == ListingStatus(status))
+            query = query.where(ListingEntity.status.in_([ListingStatus(s) for s in status]))
         if property_type:
             from src.data.entities.listing import PropertyType
             query = query.where(ListingEntity.property_type == PropertyType(property_type))
@@ -149,6 +157,11 @@ class ListingRepo(Repo):
         elif filter_by == "pinned":
             from src.data.entities.user_pin import UserPinEntity
             query = query.join(UserPinEntity, UserPinEntity.listing_id == ListingEntity.id)
+
+        if is_hot is True:
+            query = query.where(ListingEntity.is_hot.is_(True))
+        elif is_hot is False:
+            query = query.where(~ListingEntity.is_hot.is_(True))
 
         sort_column = {
             "created_at": ListingEntity.created_at,

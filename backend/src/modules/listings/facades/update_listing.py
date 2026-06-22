@@ -32,10 +32,16 @@ async def update_listing(
     update_data = data.model_dump(exclude_unset=True)
     action = update_data.pop("action", None)
 
+    if listing.status == ListingStatus.DA_COC and "transaction_type" in update_data:
+        raise BadRequestError("Cannot change transaction type when listing is deposited")
+
+    requires_approval = False
+
     if listing.status == ListingStatus.CON_HANG:
         changed_fields = set(update_data.keys())
         if changed_fields & REAPPROVAL_FIELDS:
             listing.status = ListingStatus.PENDING_APPROVAL
+            requires_approval = True
 
     for field, value in update_data.items():
         setattr(listing, field, value)
@@ -49,5 +55,8 @@ async def update_listing(
             raise BadRequestError("At least one image is required before submitting")
         listing.status = ListingStatus.PENDING_APPROVAL
         listing = await repo.save(listing)
+        requires_approval = True
 
-    return listing_to_response(listing)
+    result = listing_to_response(listing)
+    result.requires_approval = requires_approval
+    return result

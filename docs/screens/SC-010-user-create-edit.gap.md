@@ -20,6 +20,13 @@
 - **Impact**: Admin must always enter a password — auto-generation is not supported
 - **Fix**: Make `password` optional in `CreateUserRequest`. When omitted, server auto-generates and returns it in the `generatedPassword` response field
 
+## Resolved Gaps
+
+| Gap | Implementation | Item |
+|-----|---------------|------|
+| `generatedPassword` in create response | `generated_password: str` on `UserResponse`, returned when password was auto-generated (omitted from request body) | 2.10 |
+| Password auto-generation strategy | `password` made optional (`str \| None`) in `CreateUserRequest`. When omitted, server generates a random password and returns it via `generated_password` | 2.10 |
+
 ## Validated (No Gap)
 
 | Screen Element | API Match | Status |

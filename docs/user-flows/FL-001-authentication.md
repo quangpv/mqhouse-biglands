@@ -28,13 +28,16 @@ flowchart TD
 
 ## Alternative Flows
 
-- **Forgot password**: User clicks "Quên mật khẩu?" (not implemented in current scope — rely on admin reset)
+- **Forgot password**: User clicks "Quên mật khẩu?" → enters registered email → receives JWT reset link → clicks link → enters new password + confirmation → password updated, redirect to login
 - **Already authenticated**: Redirect directly to `/` from login page
 
 ## Notes
 
 - Page title shows "Đăng nhập quản lý" on the login page, but "Biglands" on all other pages after authentication
 - After successful login, user name appears in the top banner with avatar
+- Forgot/reset password implemented via JWT tokens (no DB schema change needed):
+  - `POST /api/v1/auth/forgot-password` — accepts email, sends reset link
+  - `POST /api/v1/auth/reset-password` — accepts token + new password, updates password hash
 
 ## Screen References
 

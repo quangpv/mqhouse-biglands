@@ -19,6 +19,12 @@
 - **Schema**: `POST /users` returns `User` — no `generatedPassword` field
 - **Fix**: Add optional `generatedPassword: string` to the 201 response, present only when password was auto-generated
 
+## Resolved Gaps
+
+| Gap | Implementation | Item |
+|-----|---------------|------|
+| `generatedPassword` in create response | `generated_password: str` field on `UserResponse`, returned only when password was auto-generated (omitted from request body) | 2.10 |
+
 ## Validated (No Gap)
 
 | Screen Element | API Match | Status |

@@ -2,7 +2,7 @@ from src.data.entities.user import UserEntity
 from src.modules.users.schemas import UserResponse
 
 
-def user_to_response(entity: UserEntity) -> UserResponse:
+def user_to_response(entity: UserEntity, generated_password: str | None = None) -> UserResponse:
     return UserResponse(
         id=entity.id,
         full_name=entity.full_name,
@@ -15,4 +15,5 @@ def user_to_response(entity: UserEntity) -> UserResponse:
         organization_name=entity.organization.display_name if entity.organization else None,
         created_at=entity.created_at,
         updated_at=entity.updated_at,
+        generated_password=generated_password,
     )

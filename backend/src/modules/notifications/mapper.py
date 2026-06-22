@@ -11,5 +11,8 @@ def notification_to_response(entity: NotificationEntity) -> NotificationResponse
         reference_type=entity.reference_type.value if entity.reference_type else None,
         reference_id=entity.reference_id,
         is_read=entity.is_read,
+        event_type=entity.event_type,
+        actor_name=entity.actor_name,
+        transaction_type=entity.transaction_type,
         created_at=entity.created_at,
     )

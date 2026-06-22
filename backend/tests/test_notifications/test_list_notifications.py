@@ -19,6 +19,9 @@ class TestListNotifications:
         assert data["page"] == 1
         assert data["size"] == 20
         assert "total_pages" in data
+        assert data["unread_count"] == 2
+        assert "category_counts" in data
+        assert isinstance(data["category_counts"], dict)
         first = data["data"][0]
         assert "id" in first
         assert "user_id" in first
@@ -27,6 +30,9 @@ class TestListNotifications:
         assert "reference_type" in first
         assert "reference_id" in first
         assert "is_read" in first
+        assert "event_type" in first
+        assert "actor_name" in first
+        assert "transaction_type" in first
         assert "created_at" in first
 
     async def test_agent_does_not_see_other_users_notifications(
@@ -71,6 +77,32 @@ class TestListNotifications:
         data = response.json()
         assert len(data["data"]) == 2
         assert data["total"] == 3
+
+    async def test_notifications_can_be_filtered_by_reference_type(
+        self, client: AsyncClient, agent_token: str, agent_notifications: dict,
+    ) -> None:
+        response = await client.get(
+            "/notifications",
+            params={"transactionType": "LISTING"},
+            headers={"Authorization": f"Bearer {agent_token}"},
+        )
+        assert response.status_code == 200
+        data = response.json()["data"]
+        assert len(data) >= 1
+        for item in data:
+            assert item["reference_type"] == "LISTING"
+
+    async def test_notifications_can_be_searched(
+        self, client: AsyncClient, agent_token: str, agent_notifications: dict,
+    ) -> None:
+        response = await client.get(
+            "/notifications",
+            params={"q": "approved"},
+            headers={"Authorization": f"Bearer {agent_token}"},
+        )
+        assert response.status_code == 200
+        data = response.json()["data"]
+        assert len(data) >= 1
 
     async def test_unauthenticated_user_cannot_list_notifications(
         self, client: AsyncClient,

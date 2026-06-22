@@ -12,6 +12,12 @@
 - **Impact**: Admin cannot search for "CON_HANG listings that are not hot yet" without fetching all and filtering client-side
 - **Fix**: Add optional `isHot` (boolean) query param to `GET /listings`
 
+## Resolved Gaps
+
+| Gap | Implementation | Item |
+|-----|---------------|------|
+| No `isHot` filter on `GET /listings` | `is_hot: bool \| None` param (alias `isHot`) — Admin can search "CON_HANG listings that are not hot yet" via `?status=CON_HANG&isHot=false` | 2.8 |
+
 ## Validated (No Gap)
 
 | Screen Element | API Match | Status |

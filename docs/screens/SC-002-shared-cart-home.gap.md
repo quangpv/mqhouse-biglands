@@ -32,6 +32,15 @@
 - **Impact**: My Cart cannot filter to current user's listings without a dedicated endpoint
 - **Fix**: Add optional `createdBy` query param (UUID string, or `"me"` shorthand) to `GET /listings`
 
+## Resolved Gaps
+
+| Gap | Implementation | Item |
+|-----|---------------|------|
+| `pricePerM2` | Computed in mapper: `price / totalArea` when `totalArea > 0`; returned as nullable number on `ListingResponse` | 2.2 |
+| `creator` (embedded agent) | `CreatorInfo` schema with `id`, `fullName`, `phone`; embedded in `ListingResponse` paired with `selectinload` on repo queries | 1.2 |
+| Per-filter counts | `filterCounts: { all: int, hot: int, pinned: int }` on `ListingListResponse`; computed via `count_active()`, hot/pinned subqueries | 2.3 |
+| `createdBy` filter | `created_by` query param (alias `createdBy`, UUID or `"me"` shorthand) on `GET /listings` | 1.1 |
+
 ## Validated (No Gap)
 
 | Screen Element | API Match | Status |

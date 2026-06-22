@@ -38,11 +38,18 @@
 - **Screen**: Admin sees only 2 tabs: "Đã đăng" and "Quá hạn" (no "Chờ duyệt" / "Từ chối" because admin posts auto-approve)
 - **API**: No mechanism to know which tabs to show — this is a frontend role-based concern, but the API should document that ADMIN listings skip approval
 
+## Resolved Gaps
+
+| Gap | Implementation | Item |
+|-----|---------------|------|
+| No `createdBy` filter | `created_by` param (alias `createdBy`, accepts `"me"`) on `GET /listings` — client sends `?createdBy=me`, server resolves to `current_user.id` | 1.1 |
+| No multi-status filter | `status` param changed from single value to `list[str] \| None`, accepts comma-separated values like `CON_HANG,DA_COC` via `Query(default=None)` | 1.3 |
+
 ## Validated (No Gap)
 
 | Screen Element | API Match | Status |
 |----------------|-----------|--------|
-| Listing card display | Same as SC-002 (gap for `creator` name and `pricePerM2` applies here too) | ✓ |
+| Listing card display | Same as SC-002 (gap for `creator` name and `pricePerM2` applies here too — both resolved) | ✓ |
 | Search | `GET /listings?q=` | ✓ |
 | Create button | FE route `/gio-hang/tao` | ✓ |
 | Edit action | `PUT /listings/{id}` | ✓ |

@@ -17,6 +17,24 @@ class LoginResponse(BaseModel):
     user: 'UserResponse'
 
 
+class ForgotPasswordRequest(BaseModel):
+    username: str = Field(..., min_length=1, max_length=100)
+
+
+class ForgotPasswordResponse(BaseModel):
+    token: str
+    message: str
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str = Field(..., min_length=1)
+    new_password: str = Field(..., min_length=6)
+
+
+class ResetPasswordResponse(BaseModel):
+    message: str
+
+
 class UserResponse(BaseModel):
     id: uuid.UUID
     full_name: str
