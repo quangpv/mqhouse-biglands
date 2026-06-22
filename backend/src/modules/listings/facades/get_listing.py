@@ -32,10 +32,10 @@ async def get_listing(
     images = await image_repo.list_by_listing(listing_id)
     deal_events = await deal_repo.get_by_listing(listing_id)
     is_pinned = await pin_repo.get_by_user_and_listing(current_user.id, listing_id) is not None if current_user else False
+    base.is_pinned = is_pinned
 
     return ListingDetailResponse(
         **base.model_dump(),
         images=[{"id": img.id, "url": img.url, "order": img.order, "is_primary": img.is_primary} for img in images],
         deal_events=[{"id": e.id, "event_type": e.event_type.value, "created_at": e.created_at} for e in deal_events],
-        is_pinned=is_pinned,
     )

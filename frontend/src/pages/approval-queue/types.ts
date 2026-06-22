@@ -3,9 +3,9 @@ export type QueueType = "listing-post" | "deposit" | "closure" | "cancellation" 
 export type TransactionType = "BAN" | "CHO_THUE" | "SANG_NHUONG"
 
 export interface QueueFilterState {
-  dateFrom: string
-  dateTo: string
-  agentId: string
+  date_from: string
+  date_to: string
+  agent_id: string
 }
 
 export interface IQueueItem {

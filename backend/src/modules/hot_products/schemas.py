@@ -5,6 +5,8 @@ from decimal import Decimal
 from pydantic import BaseModel, Field
 
 
+class PromoteToHotRequest(BaseModel):
+    listing_id: uuid.UUID
 
 
 class HotListingResponse(BaseModel):

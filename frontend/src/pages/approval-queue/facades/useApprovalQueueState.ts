@@ -17,9 +17,9 @@ export function useApprovalQueueState(queueType: QueueType) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [selectAll, setSelectAll] = useState(false)
   const [filters, setFilters] = useState<QueueFilterState>({
-    dateFrom: "",
-    dateTo: "",
-    agentId: "",
+    date_from: "",
+    date_to: "",
+    agent_id: "",
   })
 
   const queuesQuery = useQuery({

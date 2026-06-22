@@ -35,7 +35,7 @@ export default function HotProductsPage() {
   const [removeTarget, setRemoveTarget] = useState<string | null>(null)
 
   const handleAdd = (listingId: string) => {
-    promote.mutate({ listingId, hotOrder: totalCount + 1 })
+    promote.mutate({ listingId })
   }
 
   const handleRemove = (listingId: string) => {

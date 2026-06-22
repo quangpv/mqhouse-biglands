@@ -2,7 +2,7 @@ import uuid
 
 from fastapi import Depends, Query
 
-from src.data.entities.user import UserEntity, UserRole
+from src.data.entities.user import UserEntity
 from src.data.repositories.listing_image_repo import ListingImageRepo
 from src.data.repositories.listing_repo import ListingRepo
 from src.data.repositories.user_pin_repo import UserPinRepo
@@ -23,8 +23,8 @@ async def list_listings(
     sort_by: str | None = Query(default=None),
     sort_order: str | None = Query(default=None),
     owner_id: str | None = Query(default=None, description="Filter by owner. Use 'me' for current user."),
-    created_by: str | None = Query(default=None, alias="createdBy", description="Filter by creator. Use 'me' for current user."),
-    is_hot: bool | None = Query(default=None, alias="isHot"),
+    created_by: str | None = Query(default=None, description="Filter by creator. Use 'me' for current user."),
+    is_hot: bool | None = Query(default=None),
     current_user: UserEntity | None = Depends(get_current_user),
     repo: ListingRepo = Depends(ListingRepo),
     pin_repo: UserPinRepo = Depends(UserPinRepo),
@@ -37,8 +37,6 @@ async def list_listings(
             resolved_owner_id = current_user.id
     elif owner_source is not None:
         resolved_owner_id = uuid.UUID(owner_source)
-    if resolved_owner_id is None and current_user is not None and current_user.role != UserRole.ADMIN:
-        resolved_owner_id = current_user.id
     query = repo.build_list_query(
         search=search,
         transaction_type=transaction_type,
@@ -53,11 +51,14 @@ async def list_listings(
     rows, total = await repo.paginated_list(query, page=page, size=size)
 
     listing_ids = [r.id for r in rows]
+    pinned_ids = await pin_repo.get_pinned_listing_ids(current_user.id, listing_ids) if current_user else set()
     primary_image_map = await image_repo.get_primary_images_batch(listing_ids)
     items = [
         listing_to_response(listing, current_user=current_user, primary_image_url=primary_image_map.get(listing.id))
         for listing in rows
     ]
+    for item in items:
+        item.is_pinned = item.id in pinned_ids
     total_count = await repo.count_active()
     hot_count = await repo.count_hot_listings()
     pinned_count = await pin_repo.count_by_user(current_user.id) if current_user else 0

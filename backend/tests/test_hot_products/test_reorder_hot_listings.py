@@ -12,7 +12,7 @@ class TestReorderHotListings:
     ) -> None:
         reversed_ids = list(reversed(hot_listings))
         response = await client.put(
-            "/hot-listings/reorder",
+            "/api/v1/hot-listings/reorder",
             json={"listing_ids": reversed_ids},
             headers={"Authorization": f"Bearer {admin_token}"},
         )
@@ -30,7 +30,7 @@ class TestReorderHotListings:
     ) -> None:
         bad_ids = [hot_listings[0], con_hang_listing]
         response = await client.put(
-            "/hot-listings/reorder",
+            "/api/v1/hot-listings/reorder",
             json={"listing_ids": bad_ids},
             headers={"Authorization": f"Bearer {admin_token}"},
         )
@@ -41,7 +41,7 @@ class TestReorderHotListings:
     ) -> None:
         dup_ids = [hot_listings[0], hot_listings[0]]
         response = await client.put(
-            "/hot-listings/reorder",
+            "/api/v1/hot-listings/reorder",
             json={"listing_ids": dup_ids},
             headers={"Authorization": f"Bearer {admin_token}"},
         )
@@ -51,7 +51,7 @@ class TestReorderHotListings:
         self, client: AsyncClient, agent_token: str, hot_listings: list[str],
     ) -> None:
         response = await client.put(
-            "/hot-listings/reorder",
+            "/api/v1/hot-listings/reorder",
             json={"listing_ids": hot_listings},
             headers={"Authorization": f"Bearer {agent_token}"},
         )

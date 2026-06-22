@@ -4,6 +4,19 @@ import { ApiError } from "./api-error"
 const httpClient: AxiosInstance = axios.create({
   baseURL: "/api/v1",
   headers: { "Content-Type": "application/json" },
+  paramsSerializer: (params) => {
+    const searchParams = new URLSearchParams()
+    for (const [key, value] of Object.entries(params)) {
+      if (Array.isArray(value)) {
+        for (const item of value) {
+          searchParams.append(key, String(item))
+        }
+      } else if (value !== undefined && value !== null) {
+        searchParams.append(key, String(value))
+      }
+    }
+    return searchParams.toString()
+  },
 })
 
 httpClient.interceptors.request.use((config) => {

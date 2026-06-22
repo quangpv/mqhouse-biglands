@@ -15,7 +15,7 @@ export function useMyCartState() {
     queryKey: listingQueries.list({ tab: "my-cart", search, page, status: statusFilter }),
     queryFn: () =>
       listingRepository.list({
-        createdBy: "me",
+        created_by: "me",
         status: statusFilter,
         q: search || undefined,
         page,

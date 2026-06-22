@@ -34,6 +34,7 @@ export interface ListingDTO {
   video_url: string | null
   status: ListingStatus
   is_hot: boolean
+  is_pinned: boolean
   hot_order: number | null
   view_count: number
   price_per_m2: number | null
@@ -89,7 +90,6 @@ export interface DealEventDTO {
 export interface ListingDetailResponseDTO extends ListingDTO {
   images: ListingImageDTO[]
   deal_events: DealEventDTO[]
-  is_pinned: boolean
 }
 
 export interface FilterCountsDTO {

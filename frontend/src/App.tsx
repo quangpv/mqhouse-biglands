@@ -53,7 +53,7 @@ function AppRoutes() {
         <Route path="tin/:id" element={<ProductDetailPage />} />
         <Route path="tin/tao-moi" element={<AuthGuard roles={["ADMIN", "AGENT"]}><CreateListingPage /></AuthGuard>} />
         <Route path="tin/:id/chinh-sua" element={<AuthGuard roles={["ADMIN", "AGENT"]}><EditListingPage /></AuthGuard>} />
-        <Route path="gio-hang-chung" element={<AuthGuard roles={["AGENT"]}><MyCartPage /></AuthGuard>} />
+        <Route path="gio-hang-chung" element={<AuthGuard roles={["AGENT", "APPROVER", "ADMIN"]}><MyCartPage /></AuthGuard>} />
         <Route path="thong-bao" element={<NotificationsPage />} />
         <Route path="duyet/:queueType" element={<AuthGuard roles={["APPROVER", "ADMIN"]}><QueueListPage /></AuthGuard>} />
         <Route path="duyet/:queueType/:id" element={<AuthGuard roles={["APPROVER", "ADMIN"]}><QueueDetailPage /></AuthGuard>} />

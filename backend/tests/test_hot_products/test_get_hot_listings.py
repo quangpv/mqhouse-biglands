@@ -27,7 +27,7 @@ class TestGetHotListings:
         db_session.add_all([listing1, listing2, listing3])
         await db_session.flush()
 
-        response = await client.get("/hot-listings")
+        response = await client.get("/api/v1/hot-listings")
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 3
@@ -38,14 +38,14 @@ class TestGetHotListings:
     async def test_empty_hot_list_returns_empty_array(
         self, client: AsyncClient,
     ) -> None:
-        response = await client.get("/hot-listings")
+        response = await client.get("/api/v1/hot-listings")
         assert response.status_code == 200
         assert response.json() == []
 
     async def test_hot_list_endpoint_is_publicly_accessible(
         self, client: AsyncClient, hot_listing: str,
     ) -> None:
-        response = await client.get("/hot-listings")
+        response = await client.get("/api/v1/hot-listings")
         assert response.status_code == 200
 
     async def test_non_hot_listings_are_excluded_from_hot_list(
@@ -58,7 +58,7 @@ class TestGetHotListings:
         db_session.add_all([hot, normal])
         await db_session.flush()
 
-        response = await client.get("/hot-listings")
+        response = await client.get("/api/v1/hot-listings")
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 1

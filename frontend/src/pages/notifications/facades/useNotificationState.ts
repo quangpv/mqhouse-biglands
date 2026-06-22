@@ -10,7 +10,7 @@ export function useNotificationState() {
 
   const listQuery = useQuery({
     queryKey: notificationQueries.list({ filter, page }),
-    queryFn: () => notificationRepository.list({ page, size: 20, isRead: filter === "unread" ? false : undefined }),
+    queryFn: () => notificationRepository.list({ page, size: 20, is_read: filter === "unread" ? false : undefined }),
   })
 
   const unreadQuery = useQuery({

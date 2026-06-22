@@ -11,7 +11,7 @@ import { Badge } from "@/shared/components/ui/badge"
 import { Card } from "@/shared/components/ui/card"
 import { EmptyState } from "@/shared/components/empty-state"
 import { ErrorDisplay } from "@/shared/components/error-display"
-import { ListingCard, ListingCardSkeleton } from "./components/ListingCard"
+import { ListingCard, ListingCardSkeleton } from "@/shared/components/listing-card"
 import { Plus, ChevronLeft, ChevronRight, Flame } from "lucide-react"
 import { formatPrice } from "@/shared/utils"
 
@@ -80,7 +80,7 @@ export default function SharedCartPage() {
                 <Card className="overflow-hidden">
                   <div className="relative h-28 bg-muted">
                     {listing.primary_image_url ? (
-                      <img src={listing.primaryImageUrl} alt="" className="h-full w-full object-cover" />
+                      <img src={listing.primary_image_url} alt="" className="h-full w-full object-cover" />
                     ) : (
                       <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
                         No Image
@@ -131,9 +131,9 @@ export default function SharedCartPage() {
         </TabsList>
       </Tabs>
 
-      <div className="space-y-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {activeQuery.isLoading ? (
-          Array.from({ length: 6 }).map((_, i) => <ListingCardSkeleton key={i} />)
+          Array.from({ length: 8 }).map((_, i) => <ListingCardSkeleton key={i} />)
         ) : activeQuery.isError ? (
           <ErrorDisplay message="Không thể tải danh sách" onRetry={() => activeQuery.refetch()} />
         ) : listings.length === 0 ? (

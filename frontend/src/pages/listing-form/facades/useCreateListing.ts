@@ -11,11 +11,13 @@ export function useCreateListing() {
   const queryClient = useQueryClient()
   const [images, setImages] = useState<File[]>([])
   const [listingId, setListingId] = useState<string | null>(null)
+  const [isSaving, setIsSaving] = useState(false)
   const { showError } = useToast()
 
   const mutation = useMutation({
-    mutationFn: async (data: IListingForm) => {
-      const payload = formToCreatePayload(data)
+    mutationFn: async ({ data, action }: { data: IListingForm; action: "draft" | "submit" }) => {
+      setIsSaving(action === "draft")
+      const payload = formToCreatePayload({ ...data, action })
       const result = await listingRepository.create(payload as unknown as Record<string, unknown>)
       const id = result.id as string
       setListingId(id)
@@ -34,8 +36,9 @@ export function useCreateListing() {
       const id = result.id as string
       navigate(`/tin/${id}`)
     },
+    onSettled: () => setIsSaving(false),
     onError: (err) => showError(err),
   })
 
-  return { mutation, images, setImages, listingId }
+  return { mutation, images, setImages, listingId, isSaving }
 }

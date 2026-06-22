@@ -14,7 +14,7 @@ async def list_notifications(
     page: int = 1,
     per_page: int = 20,
     is_read: bool | None = None,
-    transaction_type: str | None = Query(default=None, alias="transactionType"),
+    transaction_type: str | None = Query(default=None),
     q: str | None = None,
     current_user: UserEntity = Depends(get_current_user),
     repo: NotificationRepo = Depends(NotificationRepo),

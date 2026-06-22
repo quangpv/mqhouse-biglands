@@ -5,7 +5,8 @@ import { Sheet, SheetTrigger, SheetContent } from "@/shared/components/ui/sheet"
 
 const navItems = [
   { path: "/", label: "Trang chủ", roles: ["AGENT", "APPROVER", "ADMIN"] },
-  { path: "/gio-hang-chung", label: "Giỏ hàng chung", roles: ["AGENT"] },
+  { path: "/gio-hang-chung", label: "Giỏ hàng của tôi", roles: ["AGENT", "APPROVER", "ADMIN"] },
+  { path: "/thong-bao", label: "Thông báo", roles: ["AGENT", "APPROVER", "ADMIN"] },
   { path: "/duyet/listing-post", label: "Duyệt tin", roles: ["APPROVER", "ADMIN"] },
   { path: "/nguoi-dung", label: "Người dùng", roles: ["ADMIN"] },
   { path: "/tin-noi-bat", label: "Tin nổi bật", roles: ["ADMIN"] },

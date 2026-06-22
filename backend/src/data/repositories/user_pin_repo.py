@@ -25,6 +25,17 @@ class UserPinRepo(Repo):
         )
         return result.scalar_one_or_none()
 
+    async def get_pinned_listing_ids(self, user_id: uuid.UUID, listing_ids: list[uuid.UUID]) -> set[uuid.UUID]:
+        if not listing_ids:
+            return set()
+        result = await self.db.execute(
+            select(UserPinEntity.listing_id).where(
+                UserPinEntity.user_id == user_id,
+                UserPinEntity.listing_id.in_(listing_ids),
+            )
+        )
+        return set(result.scalars().all())
+
     async def list_by_user(self, user_id: uuid.UUID) -> list[UserPinEntity]:
         result = await self.db.execute(
             select(UserPinEntity)

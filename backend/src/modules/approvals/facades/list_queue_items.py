@@ -12,9 +12,9 @@ from src.shared.errors.exceptions import BadRequestError
 async def list_queue_items(
     queue_type: str,
     transaction_type: str | None = None,
-    date_from: str | None = Query(default=None, alias="dateFrom"),
-    date_to: str | None = Query(default=None, alias="dateTo"),
-    agent_id: str | None = Query(default=None, alias="agentId"),
+    date_from: str | None = Query(default=None),
+    date_to: str | None = Query(default=None),
+    agent_id: str | None = Query(default=None),
     page: int = 1,
     per_page: int = 20,
     repo: ApprovalRepo = Depends(ApprovalRepo),

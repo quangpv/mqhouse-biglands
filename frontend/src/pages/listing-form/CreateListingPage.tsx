@@ -15,10 +15,10 @@ import type { IListingForm } from "./types"
 export default function CreateListingPage() {
   const navigate = useNavigate()
   const { form, autoCalcTotalArea } = useListingFormState()
-  const { mutation, images, setImages } = useCreateListing()
+  const { mutation, images, setImages, isSaving } = useCreateListing()
 
-  async function onSubmit(data: IListingForm) {
-    mutation.mutate(data)
+  async function onSubmit(data: IListingForm, action: "draft" | "submit") {
+    mutation.mutate({ data, action })
   }
 
   return (
@@ -33,7 +33,7 @@ export default function CreateListingPage() {
       <Separator />
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit((data) => onSubmit(data, "submit"))} className="space-y-6">
           <BasicInfoSection form={form} />
           <PropertyDetailsSection form={form} onAreaChange={autoCalcTotalArea} />
           <LocationSection form={form} />
@@ -50,8 +50,16 @@ export default function CreateListingPage() {
             >
               Hủy
             </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={mutation.isPending}
+              onClick={form.handleSubmit((data) => onSubmit(data, "draft"))}
+            >
+              {isSaving ? "Đang lưu..." : "Lưu nháp"}
+            </Button>
             <Button type="submit" disabled={mutation.isPending}>
-              {mutation.isPending ? "Đang xử lý..." : "Đăng tin"}
+              {mutation.isPending && !isSaving ? "Đang xử lý..." : "Đăng tin"}
             </Button>
           </div>
         </form>

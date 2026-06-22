@@ -11,7 +11,7 @@ class TestUnpromoteFromHot:
         self, client: AsyncClient, admin_token: str, hot_listing: str,
     ) -> None:
         response = await client.delete(
-            f"/listings/{hot_listing}/promote",
+            f"/api/v1/hot-listings/{hot_listing}",
             headers={"Authorization": f"Bearer {admin_token}"},
         )
         assert response.status_code == 200
@@ -22,7 +22,7 @@ class TestUnpromoteFromHot:
         self, client: AsyncClient, admin_token: str, con_hang_listing: str,
     ) -> None:
         response = await client.delete(
-            f"/listings/{con_hang_listing}/promote",
+            f"/api/v1/hot-listings/{con_hang_listing}",
             headers={"Authorization": f"Bearer {admin_token}"},
         )
         assert response.status_code == 200
@@ -32,7 +32,7 @@ class TestUnpromoteFromHot:
     ) -> None:
         fake_id = uuid.uuid4()
         response = await client.delete(
-            f"/listings/{fake_id}/promote",
+            f"/api/v1/hot-listings/{fake_id}",
             headers={"Authorization": f"Bearer {admin_token}"},
         )
         assert response.status_code == 404
@@ -41,7 +41,7 @@ class TestUnpromoteFromHot:
         self, client: AsyncClient, agent_token: str, hot_listing: str,
     ) -> None:
         response = await client.delete(
-            f"/listings/{hot_listing}/promote",
+            f"/api/v1/hot-listings/{hot_listing}",
             headers={"Authorization": f"Bearer {agent_token}"},
         )
         assert response.status_code == 403
@@ -49,5 +49,5 @@ class TestUnpromoteFromHot:
     async def test_unauthenticated_user_cannot_unpromote(
         self, client: AsyncClient, hot_listing: str,
     ) -> None:
-        response = await client.delete(f"/listings/{hot_listing}/promote")
+        response = await client.delete(f"/api/v1/hot-listings/{hot_listing}")
         assert response.status_code == 401

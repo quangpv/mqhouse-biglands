@@ -2,7 +2,8 @@ import { useMyCartState } from "./facades/useMyCartState"
 import { useDeleteListing } from "./facades/useDeleteListing"
 import { useWithdrawListing } from "./facades/useWithdrawListing"
 import { MyCartFilterTabs } from "./components/MyCartFilterTabs"
-import { MyCartListingCard, MyCartListingCardSkeleton } from "./components/MyCartListingCard"
+import { MyCartListingCard } from "./components/MyCartListingCard"
+import { ListingCardSkeleton } from "@/shared/components/listing-card"
 import { PageHeader } from "@/shared/components/page-header"
 import { Input } from "@/shared/components/ui/input"
 import { Button } from "@/shared/components/ui/button"
@@ -20,7 +21,7 @@ export default function MyCartPage() {
   return (
     <div>
       <PageHeader
-        title="Giỏ hàng chung"
+        title="Giỏ hàng của tôi"
         description={query.data ? `${query.data.totalCount} tin` : undefined}
         action={
           <Button onClick={() => navigate("/tin/tao-moi")}>
@@ -44,9 +45,9 @@ export default function MyCartPage() {
 
       <MyCartFilterTabs tabs={statusTabs} active={tab} onTabChange={setTab} />
 
-      <div className="space-y-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {query.isLoading ? (
-          Array.from({ length: 6 }).map((_, i) => <MyCartListingCardSkeleton key={i} />)
+          Array.from({ length: 8 }).map((_, i) => <ListingCardSkeleton key={i} />)
         ) : query.isError ? (
           <ErrorDisplay message="Không thể tải danh sách" onRetry={() => query.refetch()} />
         ) : listings.length === 0 ? (

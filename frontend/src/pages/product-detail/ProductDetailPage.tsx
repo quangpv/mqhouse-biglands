@@ -3,6 +3,7 @@ import { useReportDeposit } from "./facades/useReportDeposit"
 import { useReportClosure } from "./facades/useReportClosure"
 import { useReportCancellation } from "./facades/useReportCancellation"
 import { useReportSoldOut } from "./facades/useReportSoldOut"
+import { useSubmitListing } from "./facades/useSubmitListing"
 import { ImageGallery } from "./components/ImageGallery"
 import { KeyInfoSection } from "./components/KeyInfoSection"
 import { AgentContactInfo } from "./components/AgentContactInfo"
@@ -26,6 +27,7 @@ export default function ProductDetailPage() {
   const { mutate: doClosure, isPending: isClosing } = useReportClosure(st.id!)
   const { mutate: doCancellation, isPending: isCancelling } = useReportCancellation(st.id!)
   const { mutate: doSoldOut, isPending: isSellingOut } = useReportSoldOut(st.id!)
+  const { mutate: doSubmit, isPending: isSubmitting } = useSubmitListing(st.id!)
 
   if (st.query.isLoading) return <LoadingScreen />
   if (st.query.isError || !st.listing) {
@@ -72,6 +74,8 @@ export default function ProductDetailPage() {
         onClosure={() => st.openDialog("closure")}
         onCancellation={() => st.openDialog("cancellation")}
         onSoldOut={() => st.openDialog("sold-out")}
+        onSubmitForApproval={() => doSubmit()}
+        isSubmitting={isSubmitting}
       />
 
       <Separator />

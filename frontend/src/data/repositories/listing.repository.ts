@@ -9,7 +9,7 @@ export interface ListingListParams {
   status?: string[]
   created_by?: string
   is_hot?: boolean
-  filter?: string
+  filter_by?: string
   sort_by?: string
   sort_order?: string
 }
@@ -22,7 +22,7 @@ export const listingRepository = {
     httpClient.get<ListingListResponseDTO>("/listings", { params: { ...params, is_hot: true } }).then((r) => r.data),
 
   getMyPins: (params?: ListingListParams) =>
-    httpClient.get<ListingListResponseDTO>("/listings", { params: { ...params, filter: "pinned" } }).then((r) => r.data),
+    httpClient.get<ListingListResponseDTO>("/listings", { params: { ...params, filter_by: "pinned" } }).then((r) => r.data),
 
   get: (id: string) =>
     httpClient.get<ListingDetailResponseDTO>(`/listings/${id}`).then((r) => r.data),
@@ -53,11 +53,11 @@ export const listingRepository = {
       headers: { "Content-Type": "multipart/form-data" },
     }).then((r) => r.data),
 
-  promoteToHot: (id: string, hotOrder: number) =>
-    httpClient.post(`/listings/${id}/promote`, { hotOrder }).then((r) => r.data),
+  promoteToHot: (id: string) =>
+    httpClient.post("/hot-listings", { listing_id: id }).then((r) => r.data),
 
   unpromoteFromHot: (id: string) =>
-    httpClient.delete(`/listings/${id}/promote`).then((r) => r.data),
+    httpClient.delete(`/hot-listings/${id}`).then((r) => r.data),
 
   reorderHotListings: (order: Array<{ listingId: string; hotOrder: number }>) =>
     httpClient.put("/hot-listings/reorder", { order }).then((r) => r.data),

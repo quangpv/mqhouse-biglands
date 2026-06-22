@@ -79,6 +79,16 @@ export default function EditListingPage() {
             >
               Hủy
             </Button>
+            {listing.status === "DRAFT" && (
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={mutation.isPending}
+                onClick={form.handleSubmit((data) => mutation.mutate({ ...data, action: "submit" }))}
+              >
+                {mutation.isPending ? "Đang xử lý..." : "Đăng tin"}
+              </Button>
+            )}
             <Button type="submit" disabled={mutation.isPending}>
               {mutation.isPending ? "Đang xử lý..." : "Lưu thay đổi"}
             </Button>

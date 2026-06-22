@@ -3,17 +3,16 @@ import { useToast } from "@/shared/context/toast-provider"
 import { listingRepository } from "@/data/repositories/listing.repository"
 import { listingQueries } from "@/data/queries/listing.queries"
 
-export function usePromoteToHot() {
+export function useSubmitListing(listingId: string) {
   const queryClient = useQueryClient()
   const { success, showError } = useToast()
 
   return useMutation({
-    mutationFn: ({ listingId }: { listingId: string }) =>
-      listingRepository.promoteToHot(listingId),
+    mutationFn: () => listingRepository.submit(listingId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: listingQueries.hot() })
+      queryClient.invalidateQueries({ queryKey: listingQueries.detail(listingId) })
       queryClient.invalidateQueries({ queryKey: listingQueries.lists() })
-      success("Đã thêm vào tin nổi bật")
+      success("Đã gửi yêu cầu duyệt")
     },
     onError: (err) => showError(err),
   })

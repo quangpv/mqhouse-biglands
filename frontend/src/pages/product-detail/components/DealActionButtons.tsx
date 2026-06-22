@@ -10,6 +10,8 @@ interface DealActionButtonsProps {
   onClosure: () => void
   onCancellation: () => void
   onSoldOut: () => void
+  onSubmitForApproval?: () => void
+  isSubmitting?: boolean
 }
 
 export function DealActionButtons({
@@ -19,9 +21,12 @@ export function DealActionButtons({
   onClosure,
   onCancellation,
   onSoldOut,
+  onSubmitForApproval,
+  isSubmitting,
 }: DealActionButtonsProps) {
   const isConHang = listing.status === "CON_HANG"
   const isDaCoc = listing.status === "DA_COC"
+  const isDraft = listing.status === "DRAFT"
 
   return (
     <div className="space-y-3">
@@ -32,6 +37,17 @@ export function DealActionButtons({
             Chỉnh sửa lại thông tin hàng
           </Button>
         </Link>
+      )}
+
+      {isOwner && isDraft && (
+        <Button
+          variant="default"
+          className="w-full gap-2"
+          onClick={onSubmitForApproval}
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? "Đang gửi..." : "Đăng tin"}
+        </Button>
       )}
 
       <div className="grid grid-cols-2 gap-2">

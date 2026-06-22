@@ -1,23 +1,21 @@
-import uuid
-
-from fastapi import Depends
+from fastapi import Body, Depends
 
 from src.data.entities.listing import ListingStatus
 from src.data.entities.user import UserEntity
 from src.data.repositories.listing_repo import ListingRepo
 from src.modules.hot_products.mapper import listing_to_hot_response
-from src.modules.hot_products.schemas import HotListingResponse
+from src.modules.hot_products.schemas import HotListingResponse, PromoteToHotRequest
 from src.platform.auth import get_current_user
 from src.platform.config import settings
 from src.shared.errors.exceptions import ConflictError, NotFoundError
 
 
 async def promote_to_hot(
-    listing_id: uuid.UUID,
+    body: PromoteToHotRequest = Body(...),
     current_user: UserEntity = Depends(get_current_user),
     listing_repo: ListingRepo = Depends(ListingRepo),
 ) -> HotListingResponse:
-    listing = await listing_repo.get(listing_id)
+    listing = await listing_repo.get(body.listing_id)
     if listing is None:
         raise NotFoundError("Listing not found")
     if listing.status != ListingStatus.CON_HANG:

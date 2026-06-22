@@ -121,6 +121,7 @@ class ListingResponse(BaseModel):
     approved_by_id: uuid.UUID | None = None
     approved_at: datetime | None = None
     created_at: datetime
+    is_pinned: bool = False
     requires_approval: bool = False
     updated_at: datetime
 
@@ -130,7 +131,6 @@ class ListingResponse(BaseModel):
 class ListingDetailResponse(ListingResponse):
     images: list = []
     deal_events: list = []
-    is_pinned: bool = False
 
 
 class FilterCounts(BaseModel):
