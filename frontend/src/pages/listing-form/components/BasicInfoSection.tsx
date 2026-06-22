@@ -17,21 +17,16 @@ const TRANSACTION_LABELS: Record<string, string> = {
 }
 
 const PROPERTY_LABELS: Record<string, string> = {
-  CHDV: "Căn hộ chung cư",
-  NHA_O: "Nhà ở",
-  DAT_NEN: "Đất nền",
-  CAO_OC: "Cao ốc",
-  KHU_DO_THI: "Khu đô thị",
-  KHO_XUONG: "Kho - Xưởng",
-  PHONG_TRO: "Phòng trọ",
+  NHA_PHO: "Nhà phố",
+  CAN_HO: "Căn hộ",
+  CHDV: "Căn hộ dịch vụ",
+  DAT: "Đất",
+  BIET_THU: "Biệt thự",
   VAN_PHONG: "Văn phòng",
   MAT_BANG: "Mặt bằng",
+  KHO_XUONG: "Kho - Xưởng",
   NHA_TRO: "Nhà trọ",
-  BIET_THU: "Biệt thự",
-  CONDO_TEL: "Condo-tel",
-  SHOPHOUSE: "Shophouse",
-  RESORT: "Resort",
-  RUNG_TRANG_TRAI: "Rừng - Trang trại",
+  KHAC: "Khác",
 }
 
 export function BasicInfoSection({ form, disabled }: Props) {
