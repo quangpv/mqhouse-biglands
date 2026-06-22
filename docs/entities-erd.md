@@ -17,12 +17,14 @@ Registered platform user (agent, approver, admin).
 | createdAt | DateTime | Yes | Account creation timestamp |
 | updatedAt | DateTime | Yes | Last update timestamp |
 | createdBy | UUID | No | Admin who created this user |
+| organizationId | UUID | No | Organization this user belongs to |
 
 Relationships:
 - User creates Listings (1:N)
 - User creates DealEvents (1:N)
 - User performs Approvals (1:N)
 - User receives Notifications (1:N)
+- User belongs to Organization (N:1)
 
 ## Entity: Listing
 
@@ -146,6 +148,56 @@ System notification for users.
 Relationships:
 - Notification belongs to User (N:1)
 
+## Entity: Organization
+
+A team or real estate agency on the platform.
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| id | UUID | Yes | Unique identifier |
+| name | String | Yes | Unique org slug (e.g., `mq-land`) |
+| displayName | String | Yes | Human-readable name (e.g., "MQ Land") |
+| createdAt | DateTime | Yes | Creation timestamp |
+| updatedAt | DateTime | Yes | Last update timestamp |
+
+Relationships:
+- Organization has Users (1:N)
+
+## Entity: Review
+
+User review on a listing. Max 1 per user per listing, auto-published.
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| id | UUID | Yes | Unique identifier |
+| listingId | UUID | Yes | Reviewed listing |
+| authorId | UUID | Yes | User who wrote the review |
+| authorName | String | Yes | Display name of the author |
+| content | Text | Yes | Review text (1–2000 chars) |
+| createdAt | DateTime | Yes | Submission timestamp |
+| updatedAt | DateTime | Yes | Last update timestamp |
+
+Relationships:
+- Review belongs to Listing (N:1)
+- Review written by User (N:1)
+- Review has ReviewImages (1:N)
+
+Unique constraint: one review per (authorId, listingId).
+
+## Entity: ReviewImage
+
+Images attached to a review.
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| id | UUID | Yes | Unique identifier |
+| reviewId | UUID | Yes | Parent review |
+| url | String | Yes | Image URL |
+| order | Integer | Yes | Display order (1-based) |
+
+Relationships:
+- ReviewImage belongs to Review (N:1)
+
 ---
 
 ## ERD
@@ -161,6 +213,15 @@ erDiagram
         enum role
         boolean isActive
         datetime createdAt
+        uuid organizationId FK
+    }
+
+    Organization {
+        uuid id PK
+        string name
+        string displayName
+        datetime createdAt
+        datetime updatedAt
     }
 
     Listing {
@@ -183,7 +244,6 @@ erDiagram
         string frontageType
         enum status
         boolean isHot
-        boolean isPinned
         uuid createdById FK
         uuid approvedById FK
         datetime createdAt
@@ -232,13 +292,35 @@ erDiagram
         datetime createdAt
     }
 
+    Review {
+        uuid id PK
+        uuid listingId FK
+        uuid authorId FK
+        string authorName
+        text content
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    ReviewImage {
+        uuid id PK
+        uuid reviewId FK
+        string url
+        int order
+    }
+
+    Organization ||--o{ User : "has members"
     User ||--o{ Listing : creates
     User ||--o{ DealEvent : reports
     User ||--o{ Approval : decides
     User ||--o{ Notification : receives
+    User ||--o{ Review : writes
+    User }o--|| Organization : "belongs to"
     Listing ||--o{ ListingImage : has
     Listing ||--o{ DealEvent : tracks
     Listing ||--o{ Approval : requires
+    Listing ||--o{ Review : "reviewed by"
+    Review ||--o{ ReviewImage : "has images"
 ```
 
 ---
@@ -282,3 +364,8 @@ stateDiagram-v2
 - BR-013 Location uses a 3-level cascade: City → District → Ward (Ward disabled until District selected).
 - BR-014 A listing can have up to 20 images and 1 YouTube video.
 - BR-015 The global listing counter shows the total count of active listings across all transaction types.
+- BR-016 At most one review per user per listing (unique constraint on authorId + listingId).
+- BR-017 Reviews are auto-published; no approval queue.
+- BR-018 Max 10 images per review.
+- BR-019 Organizations are admin-managed; all authenticated users can view the org list.
+- BR-020 Only users with role ADMIN can create, update, or delete organizations.

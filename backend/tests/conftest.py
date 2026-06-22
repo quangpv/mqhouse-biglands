@@ -16,6 +16,7 @@ from sqlalchemy import NullPool
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 
 from src.data.entities._base import Base
+from src.data.entities.organization import OrganizationEntity
 from src.data.entities.user import UserEntity, UserRole
 from src.main import app
 from src.platform.config import settings
@@ -25,6 +26,8 @@ from src.platform.security import create_jwt
 ADMIN_UUID = uuid.UUID("00000000-0000-0000-0000-000000000001")
 AGENT_UUID = uuid.UUID("00000000-0000-0000-0000-000000000002")
 DEACTIVATED_UUID = uuid.UUID("00000000-0000-0000-0000-000000000003")
+ORG_MQ_LAND_ID = uuid.UUID("00000000-0000-0000-0000-000000000041")
+ORG_ID_LAND_ID = uuid.UUID("00000000-0000-0000-0000-000000000042")
 
 _ADMIN_PWH = _bcrypt.hashpw(b"admin123", _bcrypt.gensalt(rounds=4)).decode()
 _AGENT_PWH = _bcrypt.hashpw(b"agent123", _bcrypt.gensalt(rounds=4)).decode()
@@ -139,6 +142,32 @@ async def seed_users(setup_schema):
     )
     async with AsyncSession(get_engine()) as session:
         session.add_all([admin, agent, deactivated])
+        await session.commit()
+
+
+@pytest_asyncio.fixture(scope="session", autouse=True)
+async def seed_organizations(seed_users):
+    orgs = [
+        OrganizationEntity(
+            id=ORG_MQ_LAND_ID,
+            name="mq-land",
+            display_name="MQ Land",
+        ),
+        OrganizationEntity(
+            id=ORG_ID_LAND_ID,
+            name="id-land",
+            display_name="ID Land",
+        ),
+    ]
+    async with AsyncSession(get_engine()) as session:
+        session.add_all(orgs)
+        await session.flush()
+        admin = await session.get(UserEntity, ADMIN_UUID)
+        if admin:
+            admin.organization_id = ORG_MQ_LAND_ID
+        agent = await session.get(UserEntity, AGENT_UUID)
+        if agent:
+            agent.organization_id = ORG_ID_LAND_ID
         await session.commit()
 
 

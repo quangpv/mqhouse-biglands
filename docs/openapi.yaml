@@ -631,6 +631,138 @@ paths:
           $ref: "#/components/responses/NotFound"
 
   # ──────────────────────────────────────────────
+  #  REVIEWS
+  # ──────────────────────────────────────────────
+  /listings/{listingId}/reviews:
+    get:
+      tags: [Reviews]
+      summary: List reviews for a listing
+      operationId: listReviews
+      parameters:
+        - $ref: "#/components/parameters/listingId"
+        - $ref: "#/components/parameters/page"
+        - $ref: "#/components/parameters/size"
+      responses:
+        "200":
+          description: Paginated list of reviews
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReviewListResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+    post:
+      tags: [Reviews]
+      summary: Create a review on a listing
+      operationId: createReview
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/listingId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateReviewRequest"
+      responses:
+        "201":
+          description: Review created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Review"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+
+  /listings/{listingId}/reviews/{reviewId}:
+    get:
+      tags: [Reviews]
+      summary: Get a review by ID
+      operationId: getReview
+      parameters:
+        - $ref: "#/components/parameters/listingId"
+        - $ref: "#/components/parameters/reviewId"
+      responses:
+        "200":
+          description: Review details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Review"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    delete:
+      tags: [Reviews]
+      summary: Delete a review (author or Admin only)
+      operationId: deleteReview
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/listingId"
+        - $ref: "#/components/parameters/reviewId"
+      responses:
+        "204":
+          description: Review deleted
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /listings/{listingId}/reviews/{reviewId}/images:
+    post:
+      tags: [Reviews]
+      summary: Upload an image to a review
+      operationId: uploadReviewImage
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/listingId"
+        - $ref: "#/components/parameters/reviewId"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Image file (JPEG, PNG, WEBP; max 10MB)
+              required: [file]
+      responses:
+        "201":
+          description: Review image uploaded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReviewImage"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+          description: "Max 10 images per review (REV-C03) or invalid file type"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # ──────────────────────────────────────────────
   #  DEAL EVENTS
   # ──────────────────────────────────────────────
   /listings/{id}/deal-events/deposit:
@@ -1268,6 +1400,148 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
 
+  # ──────────────────────────────────────────────
+  #  ORGANIZATIONS
+  # ──────────────────────────────────────────────
+  /organizations:
+    get:
+      tags: [Organizations]
+      summary: List all organizations
+      operationId: listOrganizations
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/page"
+        - $ref: "#/components/parameters/size"
+      responses:
+        "200":
+          description: Paginated list of organizations
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrganizationListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+    post:
+      tags: [Organizations]
+      summary: Create a new organization (Admin only)
+      operationId: createOrganization
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOrganizationRequest"
+      responses:
+        "201":
+          description: Organization created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Organization"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          $ref: "#/components/responses/Conflict"
+
+  /organizations/{orgId}:
+    get:
+      tags: [Organizations]
+      summary: Get organization by ID
+      operationId: getOrganization
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Organization UUID
+      responses:
+        "200":
+          description: Organization details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Organization"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    put:
+      tags: [Organizations]
+      summary: Update organization (Admin only)
+      operationId: updateOrganization
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Organization UUID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateOrganizationRequest"
+      responses:
+        "200":
+          description: Organization updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Organization"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+
+    delete:
+      tags: [Organizations]
+      summary: Delete an organization (Admin only; must have no members)
+      operationId: deleteOrganization
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Organization UUID
+      responses:
+        "204":
+          description: Organization deleted
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+
 components:
   securitySchemes:
     BearerAuth:
@@ -1342,6 +1616,24 @@ components:
         type: string
         format: uuid
       description: Notification UUID
+
+    reviewId:
+      name: reviewId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Review UUID
+
+    orgId:
+      name: orgId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Organization UUID
 
   responses:
     ValidationError:
@@ -1491,6 +1783,15 @@ components:
         isActive:
           type: boolean
           description: "User can log in and perform actions when true"
+        organizationId:
+          type: string
+          format: uuid
+          nullable: true
+          description: "Organization this user belongs to (FK → Organization.id)"
+        organizationName:
+          type: string
+          nullable: true
+          description: "Display name of the user's organization (denormalized)"
         createdAt:
           type: string
           format: date-time
@@ -2359,6 +2660,135 @@ components:
                 type: integer
                 minimum: 1
                 maximum: 14
+
+    # ── Review ────────────────────────────────
+    Review:
+      type: object
+      required: [id, listingId, authorId, authorName, content, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        listingId:
+          type: string
+          format: uuid
+          description: Reviewed listing
+        authorId:
+          type: string
+          format: uuid
+          description: User who wrote the review
+        authorName:
+          type: string
+          description: Display name of the author
+        content:
+          type: string
+          minLength: 1
+          maxLength: 2000
+          description: Review text
+        images:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReviewImage"
+          description: Attached images (max 10)
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateReviewRequest:
+      type: object
+      required: [content]
+      properties:
+        content:
+          type: string
+          minLength: 1
+          maxLength: 2000
+          description: Review text (1-2000 characters)
+
+    ReviewListResponse:
+      type: object
+      required: [data, pagination]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Review"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+
+    ReviewImage:
+      type: object
+      required: [id, url, order]
+      properties:
+        id:
+          type: string
+          format: uuid
+        url:
+          type: string
+          description: Image URL
+        order:
+          type: integer
+          description: Display order (1-based)
+
+    # ── Organization ──────────────────────────
+    Organization:
+      type: object
+      required: [id, name, displayName, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maxLength: 100
+          description: "Unique organization slug (e.g., mq-land)"
+        displayName:
+          type: string
+          maxLength: 255
+          description: "Human-readable name (e.g., MQ Land)"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateOrganizationRequest:
+      type: object
+      required: [name, displayName]
+      properties:
+        name:
+          type: string
+          maxLength: 100
+          minLength: 1
+          description: "Unique slug (e.g., mq-land)"
+        displayName:
+          type: string
+          maxLength: 255
+          minLength: 1
+          description: "Display name (e.g., MQ Land)"
+
+    UpdateOrganizationRequest:
+      type: object
+      properties:
+        displayName:
+          type: string
+          maxLength: 255
+          minLength: 1
+          description: "Updated display name"
+
+    OrganizationListResponse:
+      type: object
+      required: [data, pagination]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Organization"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
 
     # ── Common ─────────────────────────────────
     Pagination:

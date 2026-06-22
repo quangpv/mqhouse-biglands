@@ -55,7 +55,7 @@ src/
 │   │   ├── approval.py                  # ApprovalEntity
 │   │   ├── notification.py             # NotificationEntity
 │   │   ├── user_pin.py                 # UserPinEntity (proposed)
-│   │   └── review.py                    # ReviewEntity (proposed)
+│   │   └── review.py                        # ReviewEntity
 │   └── repositories/
 │       ├── __init__.py                  # Re-exports all repos
 │       ├── user_repo.py                 # UserRepo
@@ -65,7 +65,7 @@ src/
 │       ├── approval_repo.py             # ApprovalRepo
 │       ├── notification_repo.py         # NotificationRepo
 │       ├── user_pin_repo.py             # UserPinRepo (proposed)
-│       └── review_repo.py               # ReviewRepo (proposed)
+│       └── review_repo.py               # ReviewRepo
 │
 ├── modules/
 │   ├── __init__.py
@@ -437,7 +437,7 @@ Constraints:
 ```
 
 ```
-ReviewEntity  (proposed — see domain-model.md §8)
+ReviewEntity  (implemented — see domain-model.md §8)
 ├── id (PK, UUID)
 ├── listing_id (FK → Listing.id)
 ├── user_id (FK → User.id)
@@ -893,9 +893,9 @@ def create_app() -> FastAPI:
 
 | Entity | Module | Depends On | Priority |
 |--------|--------|------------|----------|
-| Review | `reviews` | Business rules (MR-01) | Medium |
-| ReviewImage | `reviews` | Review entity | Low |
-| Organization | `orgs` | G-03 resolution | Medium |
+| Review | `reviews` | Text-only reviews, auto-published, max 1 per user per listing | Done |
+| ReviewImage | `reviews` | Review images table, max 10 per review | Done |
+| Organization | `orgs` | Admin-managed orgs with user FK | Done |
 | Notification preferences persistence | `user_settings` | Current scope — added as JSONB on User | In scope |
 
 ### 12.2 Resolved Contradictions (Implementation Decisions)

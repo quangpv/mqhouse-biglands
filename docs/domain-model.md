@@ -1,6 +1,6 @@
 # Domain Model — Biglands
 
-> **Version**: 1.0  
+> **Version**: 1.1  
 > **Source Documents**: business-spec.md, entities-erd.md, epics/, screens/, user-flows/  
 > **Validation Status**: Cross-referenced against all source documents
 
@@ -14,12 +14,14 @@
 4. [Entity: DealEvent](#4-entity-dealevent)
 5. [Entity: Approval](#5-entity-approval)
 6. [Entity: Notification](#6-entity-notification)
-7. [Proposed Entity: UserPin](#7-proposed-entity-userpin)
-8. [Proposed Entity: Review](#8-proposed-entity-review)
-9. [Entity Relationship Diagram](#9-entity-relationship-diagram)
-10. [Model Validation](#10-model-validation)
-11. [Appendix: Status State Machine](#11-appendix-status-state-machine)
-12. [Appendix: Event → Notification Mapping](#12-appendix-event--notification-mapping)
+7. [Entity: UserPin](#7-entity-userpin)
+8. [Entity: Review](#8-entity-review)
+9. [Entity: ReviewImage](#9-entity-reviewimage)
+10. [Entity: Organization](#10-entity-organization)
+11. [Entity Relationship Diagram](#11-entity-relationship-diagram)
+12. [Model Validation](#12-model-validation)
+13. [Appendix: Status State Machine](#13-appendix-status-state-machine)
+14. [Appendix: Event → Notification Mapping](#14-appendix-event--notification-mapping)
 
 ---
 
@@ -57,6 +59,7 @@ Represents a registered platform user. All users are created by an Admin; self-r
 | `createdAt` | DateTime | Yes (Auto) | `now()` | Account creation timestamp |
 | `updatedAt` | DateTime | Yes (Auto) | `now()` | Last update timestamp |
 | `createdBy` | UUID (FK) | No | — | Admin who created this user (self-referencing FK → User.id) |
+| `organizationId` | UUID (FK) | No | — | Organization this user belongs to (FK → Organization.id) |
 
 ### Relationships
 
@@ -67,6 +70,7 @@ Represents a registered platform user. All users are created by an Admin; self-r
 | Performs approvals | 1:N | Approval | onDelete: RESTRICT |
 | Receives notifications | 1:N | Notification | onDelete: CASCADE |
 | Created by admin | N:1 | User | self-referencing; nullable for initial seed user |
+| Belongs to organization | N:1 | Organization | onDelete: SET NULL |
 
 ### Constraints
 
@@ -514,7 +518,7 @@ System event triggers → Notification created (isRead = false)
 
 ---
 
-## 7. Proposed Entity: UserPin
+## 7. Entity: UserPin
 
 ### Purpose
 
@@ -551,25 +555,23 @@ Many-to-many relationship between User and Listing representing per-user bookmar
 
 ---
 
-## 8. Proposed Entity: Review
+## 8. Entity: Review
 
 ### Purpose
 
-User reviews and ratings on listings. Observed in the Product Detail screen (SC-003) but currently missing from all entity definitions and user stories.
+User reviews on listings. Authenticated users can submit text reviews about a property. Reviews are auto-published (no pre-moderation) and limited to one review per user per listing.
 
-**Status**: This entity is **proposed** only. It requires business-level definition of authorship rules, content moderation, and rating semantics before implementation.
-
-### Fields (Proposed)
+### Fields
 
 | Field | Type | Required | Default | Description |
 |-------|------|----------|---------|-------------|
 | `id` | UUID | Yes (PK) | Auto | Unique identifier |
 | `listingId` | UUID (FK) | Yes | — | Reviewed listing |
-| `userId` | UUID (FK) | Yes | — | Reviewer |
-| `content` | Text | Yes | — | Review text |
-| `rating` | Integer | No | — | Numerical rating (e.g., 1-5) |
+| `authorId` | UUID (FK) | Yes | — | User who wrote the review |
+| `authorName` | String(255) | Yes | — | Display name of the author (denormalized) |
+| `content` | Text | Yes | — | Review text (1–2000 characters) |
 | `createdAt` | DateTime | Yes (Auto) | `now()` | Submission timestamp |
-| `isModerated` | Boolean | No | `false` | Whether review passed moderation |
+| `updatedAt` | DateTime | Yes (Auto) | `now()` | Last update timestamp |
 
 ### Relationships
 
@@ -577,27 +579,126 @@ User reviews and ratings on listings. Observed in the Product Detail screen (SC-
 |-------------|------|--------|-----------|
 | Belongs to listing | N:1 | Listing | onDelete: CASCADE |
 | Written by user | N:1 | User | onDelete: RESTRICT |
+| Has images | 1:N | ReviewImage | onDelete: CASCADE |
 
-### Constraints (Proposed)
+### Constraints
 
-| ID | Constraint |
-|----|-----------|
-| REV-C01 | Max 10 images per review (from SC-003) |
-| REV-C02 | `content` must be non-empty (`"Gửi đánh giá"` button is disabled until content entered) |
+| ID | Constraint | Source |
+|----|-----------|--------|
+| REV-C01 | At most one review per `(authorId, listingId)` pair (unique constraint) | BR-016 |
+| REV-C02 | `content` must be non-empty (1–2000 characters) | SC-003 |
+| REV-C03 | Max 10 images per review | SC-003 |
 
-### Unresolved Questions
+### Invariants
 
-Before implementing Review, the following must be defined (see business-spec.md MR-01):
+| ID | Invariant | Description |
+|----|-----------|-------------|
+| REV-I01 | Auto-published | Reviews are visible immediately; no approval queue. |
+| REV-I02 | No rating system | Reviews are text-only; numerical ratings are not used. |
+| REV-I03 | Author-only delete | Only the review author or an Admin can delete a review. |
+| REV-I04 | Image belongs to same listing | A review image's parent review must have `listingId` matching the listing context. |
 
-- Who can write reviews? (Any authenticated user? Only agents? Only parties to the deal?)
-- Are numerical ratings used, or is it text-only?
-- Do reviews require moderation?
-- Are reviews tied to the listing or to the agent?
-- How are review images stored and moderated?
+### Lifecycle
+
+```
+User writes review → Auto-published (visible immediately)
+                      ↓
+           Author/Admin deletes → Removed permanently (no soft-delete)
+```
+
+### Authorship Rules
+
+- Any authenticated user with role AGENT, APPROVER, or ADMIN can write a review on any listing.
+- The same user cannot write a second review for the same listing (409 Conflict on duplicate).
+- The author's display name is denormalized into `authorName` to preserve it if the user changes their name.
 
 ---
 
-## 9. Entity Relationship Diagram
+## 9. Entity: ReviewImage
+
+### Purpose
+
+Images attached to a review. Follows the same storage pattern as ListingImage but without a primary image concept.
+
+### Fields
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `id` | UUID | Yes (PK) | Auto | Unique identifier |
+| `reviewId` | UUID (FK) | Yes | — | Parent review |
+| `url` | String(1000) | Yes | — | Image URL |
+| `order` | Integer | Yes | 0 | Display order (1-based) |
+
+### Relationships
+
+| Relationship | Type | Target | Constraint |
+|-------------|------|--------|-----------|
+| Belongs to review | N:1 | Review | onDelete: CASCADE |
+
+### Constraints
+
+| ID | Constraint | Source |
+|----|-----------|--------|
+| RIMG-C01 | Max 10 images per `reviewId` | SC-003 |
+| RIMG-C02 | `order` must be unique per `reviewId` | — |
+
+### Lifecycle
+
+```
+Uploaded with review → Displayed in review gallery → Cascade deleted when review is deleted
+```
+
+---
+
+## 10. Entity: Organization
+
+### Purpose
+
+Represents a team or real estate agency within the platform. Users are optionally assigned to an organization, which determines the display name shown in role columns and user lists.
+
+### Fields
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `id` | UUID | Yes (PK) | Auto | Unique identifier |
+| `name` | String(100) | Yes | — | Unique organization slug/identifier (e.g., `mq-land`) |
+| `displayName` | String(255) | Yes | — | Human-readable display name (e.g., "MQ Land") |
+| `createdAt` | DateTime | Yes (Auto) | `now()` | Creation timestamp |
+| `updatedAt` | DateTime | Yes (Auto) | `now()` | Last update timestamp |
+
+### Relationships
+
+| Relationship | Type | Target | Constraint |
+|-------------|------|--------|-----------|
+| Has users | 1:N | User | onDelete: SET NULL |
+
+### Constraints
+
+| ID | Constraint | Source |
+|----|-----------|--------|
+| ORG-C01 | `name` must be unique across all organizations | — |
+| ORG-C02 | `name` cannot be changed after creation (immutable identifier) | — |
+
+### Invariants
+
+| ID | Invariant | Description |
+|----|-----------|-------------|
+| ORG-I01 | Admin-only write | Only users with role ADMIN can create, update, or delete organizations. All authenticated users can read. |
+| ORG-I02 | No delete with members | An organization cannot be deleted if it has active users assigned. |
+
+### Lifecycle
+
+```
+Admin creates organization → Available for user assignment
+                              ↓
+          Admin updates display name → Updated in user list display
+                              ↓
+          Admin deletes (if no members) → Removed; users' organizationId set to null
+```
+
+---
+
+## 11. Entity Relationship Diagram
 
 ```mermaid
 erDiagram
@@ -613,6 +714,15 @@ erDiagram
         datetime createdAt
         datetime updatedAt
         uuid createdBy FK
+        uuid organizationId FK
+    }
+
+    Organization {
+        uuid id PK
+        string name
+        string displayName
+        datetime createdAt
+        datetime updatedAt
     }
 
     Listing {
@@ -709,13 +819,21 @@ erDiagram
     Review {
         uuid id PK
         uuid listingId FK
-        uuid userId FK
+        uuid authorId FK
+        string authorName
         text content
-        int rating
         datetime createdAt
-        boolean isModerated
+        datetime updatedAt
     }
 
+    ReviewImage {
+        uuid id PK
+        uuid reviewId FK
+        string url
+        int order
+    }
+
+    Organization ||--o{ User : "has members"
     User ||--o{ Listing : creates
     User ||--o{ DealEvent : reports
     User ||--o{ Approval : decides
@@ -723,17 +841,19 @@ erDiagram
     User ||--o{ UserPin : pins
     User ||--o{ Review : writes
     User ||--o{ User : "created by"
+    User }o--|| Organization : "belongs to"
     Listing ||--o{ ListingImage : has
     Listing ||--o{ DealEvent : tracks
     Listing ||--o{ Approval : requires
     Listing ||--o{ UserPin : "pinned by"
     Listing ||--o{ Review : "reviewed by"
     Listing }o--|| User : "approved by"
+    Review ||--o{ ReviewImage : "has images"
 ```
 
 ---
 
-## 10. Model Validation
+## 12. Model Validation
 
 ### 10.1 Deviations from Original ERD
 
@@ -749,18 +869,18 @@ The following intentional deviations have been made from the original `entities-
 | D-06 | No `Listing.hotOrder` | Added `hotOrder` (optional) | Hot products require ordering (HP-003); `isHot` alone is insufficient |
 | D-07 | `Notification.referenceType` with 3 values | Extended to support: `LISTING`, `APPROVAL`, `DEAL_EVENT` | Aligned with notification event triggers in user-flows |
 
-### 10.2 Remaining Model Gaps
+### 12.2 Remaining Model Gaps
 
-| ID | Gap | Impact | Source |
-|----|-----|--------|--------|
-| G-01 | No `Review` entity | UI exists (SC-003) but no domain definition | MR-01 |
-| G-02 | Notification preferences undefined | Story exists (US-003) but epic declares out of scope; may require a new entity | C-04 |
-| G-03 | Organization/Team concept absent | Role column in user list (SC-009) shows org names ("MQ Land", "ID Land") not enum values | AR-13 |
-| G-04 | `QUA_HAN` expiration mechanism undefined | State machine includes expired state but no trigger mechanism defined | MR-03 |
-| G-05 | Review image storage undefined | Max 10 images per review but no entity or storage pattern | MR-01 |
-| G-06 | `ReviewImage` entity needed if reviews allow images | Would mirror `ListingImage` pattern | MR-01 |
+| ID | Gap | Impact | Source | Status |
+|----|-----|--------|--------|--------|
+| G-01 | No `Review` entity | UI exists (SC-003) but no domain definition | MR-01 | **Resolved** — implemented as text-only reviews, auto-published, max 1 per user per listing (v1.1) |
+| G-02 | Notification preferences undefined | Story exists (US-003) but epic declares out of scope; may require a new entity | C-04 | Open |
+| G-03 | Organization/Team concept absent | Role column in user list (SC-009) shows org names ("MQ Land", "ID Land") not enum values | AR-13 | **Resolved** — Organization entity implemented (v1.1) |
+| G-04 | `QUA_HAN` expiration mechanism undefined | State machine includes expired state but no trigger mechanism defined | MR-03 | Open |
+| G-05 | Review image storage undefined | Max 10 images per review but no entity or storage pattern | MR-01 | **Resolved** — ReviewImage entity mirrors ListingImage pattern (v1.1) |
+| G-06 | `ReviewImage` entity needed if reviews allow images | Would mirror `ListingImage` pattern | MR-01 | **Resolved** — implemented (v1.1) |
 
-### 10.3 Contradictions Impacting the Model
+### 12.3 Contradictions Impacting the Model
 
 These unresolved contradictions from business-spec.md affect the domain model and must be resolved before implementation:
 
@@ -774,7 +894,7 @@ These unresolved contradictions from business-spec.md affect the domain model an
 
 ---
 
-## 11. Appendix: Status State Machine
+## 13. Appendix: Status State Machine
 
 ```mermaid
 stateDiagram-v2
@@ -826,7 +946,7 @@ stateDiagram-v2
 
 ---
 
-## 12. Appendix: Event → Notification Mapping
+## 14. Appendix: Event → Notification Mapping
 
 | Trigger Event | DealEvent Created | Approval Created | Notification Sent To |
 |--------------|------------------|-----------------|---------------------|
@@ -849,4 +969,4 @@ stateDiagram-v2
 
 ---
 
-*End of Domain Model — Biglands v1.0*
+*End of Domain Model — Biglands v1.1*

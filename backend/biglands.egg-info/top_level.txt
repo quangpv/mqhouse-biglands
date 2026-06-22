@@ -1,0 +1,6 @@
+alembic
+prod-data
+scripts
+src
+tests
+uploads

@@ -224,6 +224,17 @@
 | View hot list management | — | No | No | Yes |
 | Add/remove hot listing | — | No | No | Yes |
 | Reorder hot listings | — | No | No | Yes |
+| **Reviews** | | | | |
+| View reviews on listing | — | Yes | Yes | Yes |
+| Write review | — | Yes | Yes | Yes |
+| Upload review images | — | Yes | Yes | Yes |
+| Delete own review | — | Yes | Yes | Yes |
+| Delete any review | — | No | No | Yes |
+| **Organizations** | | | | |
+| View organization list | — | Yes | Yes | Yes |
+| Create organization | — | No | No | Yes |
+| Edit organization | — | No | No | Yes |
+| Delete organization | — | No | No | Yes |
 | **Notifications** | | | | |
 | View notifications | — | Yes (scoped) | Yes (scoped) | Yes (all) |
 | Mark as read | — | Yes | Yes | Yes |
@@ -332,7 +343,28 @@
 | HP-004 | Maximum number of hot items: 14 (observed). | user-flows FL-012 |
 | HP-005 | Hot listings appear in a dedicated horizontal scrollable strip above the main listing grid. | screens SC-002 |
 
-### 4.9 Display & UI Rules
+### 4.9 Review Rules
+
+| ID | Rule | Source |
+|----|------|--------|
+| RV-001 | Any authenticated user (AGENT, APPROVER, ADMIN) can write a review on any listing. | SC-003 |
+| RV-002 | At most one review per `(authorId, listingId)` pair (unique constraint). | SC-003 |
+| RV-003 | Reviews are text-only (no numerical ratings) and auto-published. | SC-003 |
+| RV-004 | Review content must be 1–2000 characters. | SC-003 |
+| RV-005 | Max 10 images per review. | SC-003 |
+| RV-006 | Only the review author or an Admin can delete a review. | — |
+
+### 4.10 Organization Rules
+
+| ID | Rule | Source |
+|----|------|--------|
+| ORG-001 | Only users with role ADMIN can create, update, or delete organizations. | — |
+| ORG-002 | All authenticated users can view the organization list. | SC-009 |
+| ORG-003 | Organization `name` must be unique (slug, e.g., `mq-land`). | — |
+| ORG-004 | Organization `name` is immutable after creation. | — |
+| ORG-005 | An organization cannot be deleted if it has active users assigned. | — |
+
+### 4.11 Display & UI Rules
 
 | ID | Rule | Source |
 |----|------|--------|
@@ -489,11 +521,16 @@
 **FR-19.7** Notifications shall be displayed in reverse-chronological order with relative timestamps.  
 **FR-19.8** Clicking a notification shall navigate to the related listing detail page.  
 
-### FR-20: Reviews & Ratings (Unsourced — See Missing Requirements)
+### FR-20: Reviews
 
-**FR-20.1** The product detail page includes a "Nhận xét & Đánh giá" section with text input.  
-**FR-20.2** Users can submit reviews with text and up to 10 images.  
-**FR-20.3** Empty state shows "Chưa có nhận xét nào".  
+**FR-20.1** Any authenticated user (Agent, Approver, Admin) can write a text review on any listing.  
+**FR-20.2** Reviews are text-only (no numerical ratings) and auto-published (no moderation queue).  
+**FR-20.3** At most one review per user per listing (server-enforced unique constraint).  
+**FR-20.4** Review content must be 1–2000 characters.  
+**FR-20.5** Users can attach up to 10 images per review (uploaded as multipart files).  
+**FR-20.6** Only the review author or an Admin can delete a review.  
+**FR-20.7** Empty state shows "Chưa có nhận xét nào".  
+**FR-20.8** The review list is paginated, ordered by newest first.  
 
 ---
 
@@ -574,6 +611,8 @@ The following requirements are implied by the documents or observed in screen sp
 - How review images are stored and moderated.
 
 **Recommendation**: Define a story under a new or existing epic covering review submission, moderation (if any), and display.
+
+**Resolution (v1.1)**: Reviews implemented as text-only, auto-published, max 1 per user per listing, max 10 images via ReviewImage entity. See FR-20, domain-model.md §8–9, and entities-erd.md.
 
 ### MR-02: Owner Phone Display
 
@@ -734,6 +773,8 @@ The following requirements are implied by the documents or observed in screen sp
 
 **Issue**: SC-009 says role column displays organization/team names like "MQ Land", "ID Land" — not the AGENT/APPROVER/ADMIN enum values from the entity definitions.  
 **Clarification Needed**: Is the role display mapped to organizations? Is the Role enum separate from an organizational group/team concept? Do users belong to organizations?
+
+**Resolution (v1.1)**: Organization entity implemented. Users have an optional `organizationId` FK, and the user list displays the org's `displayName` (e.g., "MQ Land") instead of the role enum. The Role enum (AGENT/APPROVER/ADMIN) remains separate for access control.
 
 ### AR-14: Concurrent Deposit Reporting
 

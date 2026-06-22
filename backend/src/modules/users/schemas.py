@@ -14,6 +14,7 @@ class CreateUserRequest(BaseModel):
     email: str | None = Field(None, max_length=255)
     password: str = Field(..., min_length=6)
     role: UserRole = UserRole.AGENT
+    organization_id: str | None = Field(None, description="UUID of the organization")
 
 
 class UpdateUserRequest(BaseModel):
@@ -35,6 +36,8 @@ class UserResponse(BaseModel):
     email: str | None = None
     role: UserRole
     is_active: bool
+    organization_id: str | None = None
+    organization_name: str | None = None
     created_at: datetime
     updated_at: datetime
 

@@ -1,3 +1,5 @@
+import uuid
+
 from fastapi import Depends
 from sqlalchemy.exc import IntegrityError
 
@@ -23,6 +25,7 @@ async def create_user(
         password_hash=hash_password(data.password),
         role=data.role,
         is_active=True,
+        organization_id=uuid.UUID(data.organization_id) if data.organization_id else None,
         created_by_id=current_user.id,
     )
     try:
