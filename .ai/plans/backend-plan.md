@@ -3,6 +3,16 @@
 > Backend plan derived from 11 screen `.gap.md` files + frontend plan open questions.
 > Purpose: document all gaps between what the UI needs and what `openapi.yaml` currently provides.
 
+## Status: ✅ All items implemented
+
+| Priority | Count | Status |
+|---|---|---|
+| Must Have (M-01 → M-07) | 7 | ✅ All implemented |
+| Should Have (S-01 → S-10) | 10 | ✅ All implemented |
+| Could Have (C-01 → C-03) | 3 | ✅ All implemented |
+
+See `.ai/plans/plan1.md` for per-item annotations.
+
 ## 1. Organization Entity (Why Needed)
 
 **Source**: SC-009 User Management List gap
