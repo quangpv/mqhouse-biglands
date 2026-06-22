@@ -117,6 +117,7 @@ class ListingResponse(BaseModel):
     hot_order: int | None = None
     view_count: int | None = 0
     price_per_m2: Decimal | None = None
+    primary_image_url: str | None = None
     created_by_id: uuid.UUID
     creator: CreatorInfo | None = None
     approved_by_id: uuid.UUID | None = None

@@ -6,6 +6,7 @@ from src.modules.listings.schemas import CreatorInfo, ListingResponse
 def listing_to_response(
     entity: ListingEntity,
     current_user: UserEntity | None = None,
+    primary_image_url: str | None = None,
 ) -> ListingResponse:
     creator = None
     if entity.created_by is not None:
@@ -36,6 +37,7 @@ def listing_to_response(
         area_length=entity.area_length,
         total_area=entity.total_area,
         price_per_m2=price_per_m2,
+        primary_image_url=primary_image_url,
         num_rooms=entity.num_rooms,
         num_bathrooms=entity.num_bathrooms,
         num_floors=entity.num_floors,

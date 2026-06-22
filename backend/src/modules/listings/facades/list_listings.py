@@ -3,6 +3,7 @@ import uuid
 from fastapi import Depends, Query
 
 from src.data.entities.user import UserEntity, UserRole
+from src.data.repositories.listing_image_repo import ListingImageRepo
 from src.data.repositories.listing_repo import ListingRepo
 from src.data.repositories.user_pin_repo import UserPinRepo
 from src.modules.listings.mapper import listing_to_response
@@ -27,6 +28,7 @@ async def list_listings(
     current_user: UserEntity | None = Depends(get_current_user),
     repo: ListingRepo = Depends(ListingRepo),
     pin_repo: UserPinRepo = Depends(UserPinRepo),
+    image_repo: ListingImageRepo = Depends(ListingImageRepo),
 ) -> ListingListResponse:
     resolved_owner_id: uuid.UUID | None = None
     owner_source = created_by or owner_id
@@ -49,7 +51,13 @@ async def list_listings(
         is_hot=is_hot,
     )
     rows, total = await repo.paginated_list(query, page=page, size=size)
-    items = [listing_to_response(listing, current_user=current_user) for listing in rows]
+
+    listing_ids = [r.id for r in rows]
+    primary_image_map = await image_repo.get_primary_images_batch(listing_ids)
+    items = [
+        listing_to_response(listing, current_user=current_user, primary_image_url=primary_image_map.get(listing.id))
+        for listing in rows
+    ]
     total_count = await repo.count_active()
     hot_count = await repo.count_hot_listings()
     pinned_count = await pin_repo.count_by_user(current_user.id) if current_user else 0

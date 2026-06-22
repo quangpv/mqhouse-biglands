@@ -37,6 +37,7 @@ export interface ListingDTO {
   hotOrder: number | null
   viewCount: number
   pricePerM2: number | null
+  primaryImageUrl: string | null
   requiresApproval: boolean
   createdById: string
   creatorInfo: CreatorInfoDTO | null
@@ -93,9 +94,9 @@ export interface ListingDetailResponseDTO {
 }
 
 export interface FilterCountsDTO {
-  conHang: number
-  daCoc: number
-  tatToan: number
+  all: number
+  hot: number
+  pinned: number
 }
 
 export interface ListingListResponseDTO {

@@ -18,6 +18,12 @@ export const listingRepository = {
   list: (params?: ListingListParams) =>
     httpClient.get<ListingListResponseDTO>("/listings", { params }).then((r) => r.data),
 
+  getHotListings: (params?: ListingListParams) =>
+    httpClient.get<ListingListResponseDTO>("/listings", { params: { ...params, isHot: true } }).then((r) => r.data),
+
+  getMyPins: (params?: ListingListParams) =>
+    httpClient.get<ListingListResponseDTO>("/listings", { params: { ...params, filter: "pinned" } }).then((r) => r.data),
+
   get: (id: string) =>
     httpClient.get<ListingDetailResponseDTO>(`/listings/${id}`).then((r) => r.data),
 

@@ -2012,6 +2012,7 @@ components:
         - requiresApproval
         - createdAt
         - updatedAt
+        - primaryImageUrl
       properties:
         id:
           type: string
@@ -2176,6 +2177,11 @@ components:
         updatedAt:
           type: string
           format: date-time
+        primaryImageUrl:
+          type: string
+          format: uri
+          nullable: true
+          description: "URL of the primary image (first image where is_primary=true, else first by order)"
 
     CreatorInfo:
       type: object

@@ -42,6 +42,20 @@ class ListingImageRepo(Repo):
         await self.db.delete(image)
         await self.db.flush()
 
+    async def get_primary_images_batch(self, listing_ids: list[uuid.UUID]) -> dict[uuid.UUID, str]:
+        if not listing_ids:
+            return {}
+        result = await self.db.execute(
+            select(ListingImageEntity)
+            .where(ListingImageEntity.listing_id.in_(listing_ids))
+            .order_by(ListingImageEntity.listing_id, ListingImageEntity.is_primary.desc().nulls_last(), ListingImageEntity.order)
+        )
+        out: dict[uuid.UUID, str] = {}
+        for img in result.scalars().all():
+            if img.listing_id not in out:
+                out[img.listing_id] = img.url
+        return out
+
     async def clear_primary(self, listing_id: uuid.UUID) -> None:
         result = await self.db.execute(
             select(ListingImageEntity).where(
