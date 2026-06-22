@@ -12,7 +12,7 @@ def listing_to_response(
     if entity.created_by is not None:
         creator = CreatorInfo(
             id=entity.created_by.id,
-            fullName=entity.created_by.full_name,
+            full_name=entity.created_by.full_name,
             phone=entity.created_by.phone,
         )
     price_per_m2 = entity.price / entity.total_area if entity.total_area > 0 else None
