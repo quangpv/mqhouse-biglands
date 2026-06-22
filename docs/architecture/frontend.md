@@ -1,6 +1,6 @@
 # Frontend Architecture — Biglands
 
-> **Skill**: `simple-frontend-dev` — React/TypeScript, View → Facade → Data  
+> **Skill**: `simple-frontend-dev`(.ai/skills/frontend-dev) — React/TypeScript, View → Facade → Data  
 > **Source Documents**: openapi.yaml, domain-model.md, business-spec.md, screens/, user-flows/  
 > **Status**: Design reference — no implementation
 

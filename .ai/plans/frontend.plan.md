@@ -184,15 +184,3 @@ Foundation ─┬─ Auth ── Shared Cart ── Product Detail ── Listin
 9. **User Management** — relies on approval patterns for role
 10. **Hot Products** — depends on listing admin patterns (last)
 
-## Open Questions
-
-| # | Issue | Impact | Resolution |
-|---|---|---|---|
-| OQ-01 | `GET /api/v1/listings` missing `createdBy` filter | My Cart can't filter by current user | **Resolved** — `createdBy` param (alias `createdBy`, `"me"` shorthand) added |
-| OQ-02 | No Review endpoints in OpenAPI | Cannot implement Review epic | Ask PO/backend to add |
-| OQ-03 | Notification filter params unspecified | Cannot filter by type | **Resolved** — `transactionType`, `q` params + `unreadCount`, `categoryCounts`, structured fields added |
-| OQ-04 | `creator` not embedded in Listing response | Detail can't show agent name | **Resolved** — `creator: { id, fullName, phone }` embedded in ListingResponse |
-| OQ-05 | `pricePerM2` missing from Listing schema | Cannot show price/m² | **Resolved** — computed in mapper as `price / totalArea` |
-| OQ-06 | POST create user response unclear | UX for created user flow | **Resolved** — `generatedPassword` returned when auto-generated |
-| OQ-07 | "Quên mật khẩu?" has no endpoint | Link must be disabled | **Resolved** — `POST /auth/forgot-password` + `POST /auth/reset-password` implemented |
-| OQ-08 | 15 queue type enum values unknown | Route params untyped | Extract from backend enum |
