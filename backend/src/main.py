@@ -12,6 +12,7 @@ from src.modules.property_types import module as property_types_module
 from src.modules.organizations import module as organizations_module
 from src.modules.profile import module as profile_module
 from src.modules.properties import module as properties_module
+from src.modules.approvals import module as approvals_module
 from src.modules.ws import module as ws_module
 from src.platform.bootstrap import module as bootstrap_module
 from src.platform.config import settings
@@ -32,6 +33,7 @@ MODULES: list[Callable[..., Any]] = [
     users_module,
     profile_module,
     properties_module,
+    approvals_module,
     ws_module,
 ]
 

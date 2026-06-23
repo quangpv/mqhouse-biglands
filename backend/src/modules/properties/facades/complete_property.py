@@ -2,8 +2,10 @@ import uuid
 
 from fastapi import Depends, Path
 
+from src.data.entities.approval import ApprovalEntity, ApprovalStatus
 from src.data.entities.property import Action, PropertyStatus
 from src.data.entities.user import UserEntity, UserRole
+from src.data.repositories.approval_repo import ApprovalRepo
 from src.data.repositories.property_repo import PropertyRepo
 from src.modules.properties.mapper import entity_to_response
 from src.modules.properties.schemas import CompleteRequest, PropertyResponse
@@ -15,6 +17,7 @@ async def complete_property(
     body: CompleteRequest,
     property_id: uuid.UUID = Path(..., alias="property_id"),
     repo: PropertyRepo = Depends(PropertyRepo),
+    approval_repo: ApprovalRepo = Depends(ApprovalRepo),
     current_user: UserEntity = Depends(get_current_user),
 ) -> PropertyResponse:
     entity = await repo.get(property_id)
@@ -42,7 +45,7 @@ async def complete_property(
     entity.status = new_status
     entity = await repo.save(entity)
 
-    await repo.create_transition(
+    transition = await repo.create_transition(
         property_id=property_id,
         from_status=old_status,
         to_status=new_status,
@@ -55,6 +58,15 @@ async def complete_property(
         contract_date=body.contract_date,
         file_ids=body.file_ids or None,
     )
+
+    if current_user.role == UserRole.SALE:
+        approval = ApprovalEntity(
+            property_id=entity.id,
+            transition_id=transition.id,
+            transaction_type_id=entity.transaction_type_id,
+            status=ApprovalStatus.PENDING,
+        )
+        await approval_repo.save(approval)
 
     reloaded = await repo.get(entity.id)
     assert reloaded is not None

@@ -60,6 +60,9 @@ class Action(PyEnum):
     SOLDOUT = "soldout"
     CANCEL = "cancel"
     COMPLETE = "complete"
+    EDIT = "edit"
+    APPROVE = "approve"
+    REJECT = "reject"
 
 
 class PropertyEntity(Base, UUIDMixin, TimestampMixin):
@@ -114,10 +117,6 @@ class PropertyEntity(Base, UUIDMixin, TimestampMixin):
     is_hot: Mapped[bool | None] = mapped_column(Boolean, nullable=True, default=False)
     hot_order: Mapped[int | None] = mapped_column(Integer, nullable=True)
     view_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-
-    previous_status: Mapped[PropertyStatus | None] = mapped_column(
-        Enum(PropertyStatus, values_callable=_values_callable), nullable=True
-    )
 
     created_by_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id"), nullable=False

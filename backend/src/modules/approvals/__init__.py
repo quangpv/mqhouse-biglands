@@ -1,5 +1,5 @@
-from fastapi import APIRouter
+from src.modules.approvals.router import router
 
 
 def module():
-    return APIRouter()
+    return router

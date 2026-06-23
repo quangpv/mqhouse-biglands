@@ -22,6 +22,8 @@ from src.data.entities.property_transition import PropertyTransitionEntity
 
 from src.data.entities.transition_file import TransitionFileEntity
 
+from src.data.entities.approval import ApprovalEntity, ApprovalStatus
+
 __all__ = [
     "Base",
     "OrganizationEntity",
@@ -39,6 +41,8 @@ __all__ = [
     "PropertyImageEntity",
     "PropertyTransitionEntity",
     "TransitionFileEntity",
+    "ApprovalEntity",
+    "ApprovalStatus",
     "CommissionType",
     "DirectionType",
     "PropertyStatus",

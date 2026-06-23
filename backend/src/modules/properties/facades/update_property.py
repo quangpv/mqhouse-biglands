@@ -1,9 +1,13 @@
 import uuid
+from decimal import Decimal
+from enum import Enum as PyEnum
 
 from fastapi import Depends, Path
 
-from src.data.entities.property import PropertyStatus
+from src.data.entities.approval import ApprovalEntity, ApprovalStatus
+from src.data.entities.property import Action, PropertyStatus
 from src.data.entities.user import UserEntity, UserRole
+from src.data.repositories.approval_repo import ApprovalRepo
 from src.data.repositories.property_repo import PropertyRepo
 from src.modules.properties.mapper import apply_to_entity, entity_to_response
 from src.modules.properties.schemas import PropertyResponse, UpdatePropertyRequest
@@ -15,6 +19,7 @@ async def update_property(
     body: UpdatePropertyRequest,
     property_id: uuid.UUID = Path(..., alias="property_id"),
     repo: PropertyRepo = Depends(PropertyRepo),
+    approval_repo: ApprovalRepo = Depends(ApprovalRepo),
     current_user: UserEntity = Depends(get_current_user),
 ) -> PropertyResponse:
     entity = await repo.get(property_id)
@@ -31,13 +36,35 @@ async def update_property(
     if current_user.role == UserRole.SALE:
         if entity.created_by_id != current_user.id:
             raise ForbiddenError("Only the owner can update this property")
-        previous = entity.status
+        action = Action.EDIT
+        transition_from = entity.status
+        transition_to = PropertyStatus.EDIT_PENDING
+        needs_approval = True
         entity.status = PropertyStatus.EDIT_PENDING
-        entity.previous_status = previous
     elif current_user.role in (UserRole.ADMIN, UserRole.APPROVER):
-        if entity.previous_status is not None:
-            entity.status = entity.previous_status
-            entity.previous_status = None
+        action = Action.EDIT
+        transition_from = entity.status
+        transition_to = entity.status
+        needs_approval = False
+    else:
+        raise ForbiddenError("Insufficient permissions")
+
+    changed_fields = body.model_dump(exclude_none=True)
+
+    if needs_approval:
+        snapshot = {}
+        for field in changed_fields:
+            val = getattr(entity, field, None)
+            if isinstance(val, Decimal):
+                snapshot[field] = float(val)
+            elif isinstance(val, uuid.UUID):
+                snapshot[field] = str(val)
+            elif isinstance(val, PyEnum):
+                snapshot[field] = val.value
+            else:
+                snapshot[field] = val
+    else:
+        snapshot = None
 
     apply_to_entity(entity, body)
 
@@ -48,6 +75,26 @@ async def update_property(
                 await repo.create_image(property_id, fid, order=len(current_ids))
 
     entity = await repo.save(entity)
+
+    transition = await repo.create_transition(
+        property_id=property_id,
+        from_status=transition_from,
+        to_status=transition_to,
+        action=action,
+        actor_id=current_user.id,
+        actor_name=current_user.full_name,
+    )
+
+    if needs_approval:
+        approval = ApprovalEntity(
+            property_id=entity.id,
+            transition_id=transition.id,
+            transaction_type_id=entity.transaction_type_id,
+            status=ApprovalStatus.PENDING,
+            old_values=snapshot,
+        )
+        await approval_repo.save(approval)
+
     reloaded = await repo.get(entity.id)
     assert reloaded is not None
     await repo.load_images(reloaded)

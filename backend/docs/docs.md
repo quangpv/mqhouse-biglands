@@ -7,7 +7,7 @@ Tag = [newest, best_selling, hot]
 Status = [draft, post_pending, edit_pending, deposit_pending, soldout_pending, complete_pending, cancel_pending, available, deposited, soldout, expired, completed]
 Action = [submit, withdraw, deposit, soldout, cancel, complete]
 NotificationType = [request_edit, request_post, request_deposit, request_soldout, request_cancel, request_complete]
-ApprovalStatus = [pending, resolved, rejected]
+ApprovalStatus = [pending, approved, rejected]
 UserRole = [sale, approver, admin]
 EntityType = [review , property , avatar]
 
@@ -270,9 +270,24 @@ NotesRequest = { notes: string | null }
 CreateReviewRequest = { content: string, file_ids: UUID[] }
 PromoteToHotRequest = { start_time: Date, end_time: Date }
 
-ApprovalListParams = { transaction_types: string[] | null, status: ApprovalStatus[] | null } & PropertyFilterRequest
-ApproveRequest = { notes: string | null }
-RejectRequest = { notes: string | null }
+ApprovalListParams = {
+	transaction_type_ids: UUID[] | null
+	status: ApprovalStatus[] | null
+	search: string | null
+	property_type_ids: UUID[] | null
+	district: string[] | null
+	ward: string[] | null
+	price_from: number | null
+	price_to: number | null
+	area_from: number | null
+	area_to: number | null
+	requested_by_id: UUID | null
+	sort_by: 'created_at' | 'price' | 'area' | null
+	sort_order: 'asc' | 'desc' | null
+	page: number
+	size: number
+}
+ApprovalDecisionRequest = { reason: string | null }
 
 NotificationListParams = { is_read: bool | null, page: number, size: number }
 UpdateNotificationPrefsRequest = Partial<NotificationPreferences>
@@ -322,25 +337,42 @@ PinResponse = { message: string }
 
 #### Approvals
 
+ApprovalRequestDetail = {
+	action: string
+	from_status: Status | null
+	to_status: Status
+	notes: string | null
+	customer_name: string | null
+	customer_phone: string | null
+	contract_date: Date | null
+	file_ids: UUID[]
+	old_values: { [key: string]: any } | null
+}
+
+// old_values: populated only for EDIT_PENDING approvals.
+// Contains property field values before the edit was applied.
+// Frontend should diff against current property values in ApprovalResponse.property.
+// Example: { "price": 1000000000, "title": "Old Title", "area_width": 5.0 }
+
+DecisionInfo = {
+	decided_by: CreatorInfo
+	reason: string | null
+	decided_at: Date
+}
+
 ApprovalResponse = {
 	id: UUID
 	property: Property
 	transaction_type: string
 	status: ApprovalStatus
 	requested_by: CreatorInfo
-	approve_details: {
-		notes: string | null
-		customer_name: string | null
-		customer_phone: string | null
-		contract_date: Date | null
-		file_ids: UUID[] | null
-	} | null
+	request: ApprovalRequestDetail
+	decision: DecisionInfo | null
 	created_at: Date
 }
 
 ApprovalListResponse = ListDTO<ApprovalResponse>
-ApprovalDetailResponse = ApprovalResponse
-ApprovalCountsResponse = { [type: string]: number }
+ApprovalCountItem = { transaction_type_code: string, count: number }
 
 #### Files
 FileUploadResponse = { file_ids: UUID[] }
@@ -785,6 +817,42 @@ Response: PropertyTransitionListResponse
 
 ---
 
+## Approvals
+
+GET /approvals
+Desc: List approvals requiring action
+Rules: Only admin/approver can access
+Params: ApprovalListParams
+Response: ApprovalListResponse
+
+GET /approvals/counts
+Desc: Get approval counts by transaction type
+Rules: Only admin/approver can access
+Response: [ApprovalCountItem]
+
+GET /approvals/{id}
+Desc: Get approval detail
+Rules: Only admin/approver can access
+Response: ApprovalResponse
+
+POST /approvals/{id}/approve
+Desc: Approve a pending request
+Rules:
+- Only admin/approver can access
+- Accept approval status: pending
+Request: ApprovalDecisionRequest
+Response: ApprovalResponse
+
+POST /approvals/{id}/reject
+Desc: Reject a pending request
+Rules:
+- Only admin/approver can access
+- Accept approval status: pending
+Request: ApprovalDecisionRequest
+Response: ApprovalResponse
+
+---
+
 ## Reviews
 
 GET /properties/{id}/reviews
@@ -868,42 +936,6 @@ POST /notifications/read-all
 Desc: Mark all notifications as read
 Rules: Authenticated
 Response: ReadAllResponse
-
----
-
-## Approvals
-
-GET /approvals
-Desc: List approvals
-Rules: Only admin/approver can access
-Request Params: ApprovalListParams
-Response: ApprovalListResponse
-
-GET /approvals/counts
-Desc: Get approval counts by release type
-Rules: Only admin/approver can access
-Response: ApprovalCountsResponse
-
-GET /approvals/{id}
-Desc: Get approval detail
-Rules: Only admin/approver can access
-Response: ApprovalDetailResponse
-
-POST /approvals/{id}/transitions/approve
-Desc: Approve a pending request
-Rules:
-- Only admin/approver can access
-- Accept approval status: pending
-Request: ApproveRequest
-Response: ApprovalDetailResponse
-
-POST /approvals/{id}/transitions/reject
-Desc: Reject a pending request
-Rules:
-- Only admin/approver can access
-- Accept approval status: pending
-Request: RejectRequest
-Response: ApprovalDetailResponse
 
 ---
 
