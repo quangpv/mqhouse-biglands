@@ -14,6 +14,7 @@ if TYPE_CHECKING:
     from src.data.entities.property_image import PropertyImageEntity
     from src.data.entities.property_transition import PropertyTransitionEntity
     from src.data.entities.property_type import PropertyTypeEntity
+    from src.data.entities.review import ReviewEntity
     from src.data.entities.transaction_type import TransactionTypeEntity
     from src.data.entities.user import UserEntity
 
@@ -146,4 +147,10 @@ class PropertyEntity(Base, UUIDMixin, TimestampMixin):
         lazy="selectin",
         cascade="all, delete-orphan",
         order_by="PropertyTransitionEntity.created_at",
+    )
+    reviews: Mapped[list["ReviewEntity"]] = relationship(  # type: ignore
+        "ReviewEntity",
+        back_populates="property",
+        lazy="selectin",
+        cascade="all, delete-orphan",
     )

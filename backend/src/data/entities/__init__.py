@@ -24,6 +24,10 @@ from src.data.entities.transition_file import TransitionFileEntity
 
 from src.data.entities.approval import ApprovalEntity, ApprovalStatus
 
+from src.data.entities.review import ReviewEntity
+
+from src.data.entities.review_file import ReviewFileEntity
+
 __all__ = [
     "Base",
     "OrganizationEntity",
@@ -43,6 +47,8 @@ __all__ = [
     "TransitionFileEntity",
     "ApprovalEntity",
     "ApprovalStatus",
+    "ReviewEntity",
+    "ReviewFileEntity",
     "CommissionType",
     "DirectionType",
     "PropertyStatus",

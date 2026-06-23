@@ -10,6 +10,8 @@ from src.data.repositories.organization_repo import OrganizationRepo
 
 from src.data.repositories.approval_repo import ApprovalRepo
 
+from src.data.repositories.review_repo import ReviewRepo
+
 __all__ = [
     "UserRepo",
     "TokenBlacklistRepo",
@@ -17,4 +19,5 @@ __all__ = [
     "FileRepo",
     "OrganizationRepo",
     "ApprovalRepo",
+    "ReviewRepo",
 ]

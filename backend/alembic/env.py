@@ -20,7 +20,7 @@ if config.config_file_name is not None:
 target_metadata = Base.metadata
 
 EXCLUDED_TABLES = {
-    "listings", "listing_images", "reviews", "review_images",
+    "listings", "listing_images",
     "deal_events", "notifications", "user_pins",
 }
 
