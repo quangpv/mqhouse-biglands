@@ -29,7 +29,7 @@ class UserRepo(Repo):
         organization_id: uuid.UUID | None = None,
         page: int = 1,
         size: int = 20,
-    ) -> tuple[list[UserEntity], int]:
+    ) -> tuple[list[UserEntity], int, int]:
         query = select(UserEntity).options(*_USER_LOADS)
 
         if role is not None:

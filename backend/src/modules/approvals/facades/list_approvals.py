@@ -2,6 +2,7 @@ from fastapi import Depends, Query
 
 from src.data.entities.approval import ApprovalStatus
 from src.data.entities.user import UserEntity, UserRole
+from src.data.repositories._base import Repo
 from src.data.repositories.approval_repo import ApprovalRepo
 from src.modules.approvals.mapper import entity_to_response
 from src.modules.approvals.schemas import ApprovalListResponse, PageDTO
@@ -48,7 +49,7 @@ async def list_approvals(
         requested_by_id=r_id,
     )
 
-    total_pages = (total + size - 1) // size if total > 0 else 0
+    total_pages = Repo.calc_total_pages(total, size)
 
     return ApprovalListResponse(
         data=[entity_to_response(row) for row in rows],

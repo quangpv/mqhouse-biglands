@@ -3,6 +3,7 @@ import uuid
 from fastapi import Depends, Path, Query
 
 from src.data.entities.user import UserEntity
+from src.data.repositories._base import Repo
 from src.data.repositories.property_repo import PropertyRepo
 from src.data.repositories.review_repo import ReviewRepo
 from src.modules.reviews.mapper import entity_to_response
@@ -24,7 +25,7 @@ async def list_reviews(
         raise NotFoundError("Property not found")
 
     rows, total = await repo.list_by_property(property_id, page=page, size=size)
-    total_pages = (total + size - 1) // size if total > 0 else 0
+    total_pages = Repo.calc_total_pages(total, size)
 
     return ReviewListResponse(
         data=[entity_to_response(r) for r in rows],

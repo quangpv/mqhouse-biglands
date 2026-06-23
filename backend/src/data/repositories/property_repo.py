@@ -2,9 +2,7 @@ import uuid
 from datetime import date, datetime
 from decimal import Decimal
 
-from fastapi import Depends
 from sqlalchemy import func, select, or_
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
 from src.data.entities.property import Action, DirectionType, PropertyEntity, PropertyStatus
@@ -12,12 +10,10 @@ from src.data.entities.property_image import PropertyImageEntity
 from src.data.entities.property_transition import PropertyTransitionEntity
 from src.data.entities.transition_file import TransitionFileEntity
 from src.data.entities.user import UserEntity
-from src.platform.dependencies import get_db
+from src.data.repositories._base import Repo
 
 
-class PropertyRepo:
-    def __init__(self, db: AsyncSession = Depends(get_db)):
-        self.db = db
+class PropertyRepo(Repo):
 
     _BASE_LOAD = (
         joinedload(PropertyEntity.creator),

@@ -17,7 +17,7 @@ async def list_users(
     organization_id: uuid.UUID | None = Query(None),
     repo: UserRepo = Depends(UserRepo),
 ) -> UserListData:
-    entities, total = await repo.search(
+    entities, total, total_pages = await repo.search(
         role=role,
         is_active=is_active,
         search=search,
@@ -25,8 +25,6 @@ async def list_users(
         page=page,
         size=size,
     )
-
-    total_pages = (total + size - 1) // size
 
     return UserListData(
         data=[entity_to_response(e) for e in entities],

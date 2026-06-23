@@ -4,6 +4,7 @@ from fastapi import Depends, Query
 
 from src.data.entities.property import DirectionType, PropertyStatus
 from src.data.entities.user import UserEntity
+from src.data.repositories._base import Repo
 from src.data.repositories.property_repo import PropertyRepo
 from src.modules.properties.mapper import entity_to_response
 from src.modules.properties.schemas import PageDTO, PropertyListResponse
@@ -69,7 +70,7 @@ async def list_my_properties(
         sort_order=sort_order,
     )
 
-    total_pages = (total + size - 1) // size if total > 0 else 0
+    total_pages = Repo.calc_total_pages(total, size)
 
     return PropertyListResponse(
         data=[entity_to_response(row) for row in rows],
