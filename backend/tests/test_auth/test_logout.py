@@ -17,7 +17,7 @@ async def test_any_authenticated_user_can_log_out(client: AsyncClient, admin_tok
 async def test_logged_out_token_cannot_be_used_again(client: AsyncClient, admin_token: str) -> None:
         await client.post("/auth/logout", headers={"Authorization": f"Bearer {admin_token}"})
         response = await client.get(
-            "/auth/me",
+            "/me",
             headers={"Authorization": f"Bearer {admin_token}"},
         )
         assert response.status_code == 401

@@ -13,6 +13,7 @@ class CreateUserRequest(BaseModel):
     email: str | None = Field(None, max_length=255)
     password: str = Field(..., min_length=6)
     role: UserRole
+    device_limit_enabled: bool = False
     organization_id: uuid.UUID | None = None
     property_type_ids: list[uuid.UUID] = []
     transaction_type_ids: list[uuid.UUID] = []
@@ -27,6 +28,7 @@ class UpdateUserRequest(BaseModel):
     role: UserRole | None = None
     property_type_ids: list[uuid.UUID] | None = None
     transaction_type_ids: list[uuid.UUID] | None = None
+    device_limit_enabled: bool | None = None
 
 
 class UserResponse(BaseModel):
@@ -37,6 +39,7 @@ class UserResponse(BaseModel):
     email: str | None = None
     role: UserRole
     is_active: bool
+    device_limit_enabled: bool
     organization_id: str | None = None
     organization_name: str | None = None
     property_type_ids: list[uuid.UUID]

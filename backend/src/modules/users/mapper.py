@@ -11,6 +11,7 @@ def request_to_entity(body: CreateUserRequest) -> UserEntity:
         email=body.email,
         password_hash=hash_password(body.password),
         role=body.role,
+        device_limit_enabled=body.device_limit_enabled,
         organization_id=body.organization_id,
     )
     entity.transaction_types = [
@@ -43,6 +44,8 @@ def apply_to_entity(entity: UserEntity, body: UpdateUserRequest) -> UserEntity:
         entity.property_types = [
             UserPropertyTypeEntity(property_type_id=pid) for pid in body.property_type_ids
         ]
+    if body.device_limit_enabled is not None:
+        entity.device_limit_enabled = body.device_limit_enabled
     return entity
 
 
@@ -55,6 +58,7 @@ def entity_to_response(entity: UserEntity) -> UserResponse:
         email=entity.email,
         role=entity.role,
         is_active=entity.is_active,
+        device_limit_enabled=entity.device_limit_enabled,
         organization_id=str(entity.organization_id) if entity.organization_id else None,
         organization_name=entity.organization.display_name if entity.organization else None,
         property_type_ids=[pt.property_type_id for pt in entity.property_types],

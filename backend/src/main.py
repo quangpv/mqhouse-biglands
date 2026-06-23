@@ -10,6 +10,7 @@ from src.modules.transaction_types import module as transaction_types_module
 from src.modules.users import module as users_module
 from src.modules.property_types import module as property_types_module
 from src.modules.organizations import module as organizations_module
+from src.modules.profile import module as profile_module
 from src.modules.ws import module as ws_module
 from src.platform.bootstrap import module as bootstrap_module
 from src.platform.config import settings
@@ -28,6 +29,7 @@ MODULES: list[Callable[..., Any]] = [
     property_types_module,
     organizations_module,
     users_module,
+    profile_module,
     ws_module,
 ]
 

@@ -40,6 +40,9 @@ class UserEntity(Base, UUIDMixin, TimestampMixin):
 
     created_by_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
 
+    device_limit_enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    device_id: Mapped[str | None] = mapped_column(String(500), nullable=True)
+
     transaction_types: Mapped[list["UserTransactionTypeEntity"]] = relationship(
         "UserTransactionTypeEntity",
         back_populates="user",
