@@ -14,6 +14,14 @@ from src.data.entities.transaction_type import TransactionTypeEntity
 
 from src.data.entities.property_type import PropertyTypeEntity
 
+from src.data.entities.property import PropertyEntity, CommissionType, DirectionType, PropertyStatus, Action
+
+from src.data.entities.property_image import PropertyImageEntity
+
+from src.data.entities.property_transition import PropertyTransitionEntity
+
+from src.data.entities.transition_file import TransitionFileEntity
+
 __all__ = [
     "Base",
     "OrganizationEntity",
@@ -27,4 +35,12 @@ __all__ = [
     "FileEntity",
     "TransactionTypeEntity",
     "PropertyTypeEntity",
+    "PropertyEntity",
+    "PropertyImageEntity",
+    "PropertyTransitionEntity",
+    "TransitionFileEntity",
+    "CommissionType",
+    "DirectionType",
+    "PropertyStatus",
+    "Action",
 ]

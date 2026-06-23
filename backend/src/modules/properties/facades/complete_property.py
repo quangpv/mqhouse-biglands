@@ -1,0 +1,62 @@
+import uuid
+
+from fastapi import Depends, Path
+
+from src.data.entities.property import Action, PropertyStatus
+from src.data.entities.user import UserEntity, UserRole
+from src.data.repositories.property_repo import PropertyRepo
+from src.modules.properties.mapper import entity_to_response
+from src.modules.properties.schemas import CompleteRequest, PropertyResponse
+from src.platform.auth import get_current_user
+from src.shared.errors.exceptions import ForbiddenError, NotFoundError
+
+
+async def complete_property(
+    body: CompleteRequest,
+    property_id: uuid.UUID = Path(..., alias="property_id"),
+    repo: PropertyRepo = Depends(PropertyRepo),
+    current_user: UserEntity = Depends(get_current_user),
+) -> PropertyResponse:
+    entity = await repo.get(property_id)
+    if not entity:
+        raise NotFoundError("Property not found")
+
+    if entity.status != PropertyStatus.DEPOSITED:
+        raise ForbiddenError("Only deposited properties can be completed")
+
+    from datetime import date
+    if body.contract_date < date.today():
+        raise ForbiddenError("Contract date must be today or later")
+
+    if len(body.file_ids) > 10:
+        raise ForbiddenError("Maximum 10 files allowed")
+
+    if current_user.role == UserRole.SALE:
+        new_status = PropertyStatus.COMPLETE_PENDING
+    elif current_user.role in (UserRole.ADMIN, UserRole.APPROVER):
+        new_status = PropertyStatus.COMPLETED
+    else:
+        raise ForbiddenError("Insufficient permissions")
+
+    old_status = entity.status
+    entity.status = new_status
+    entity = await repo.save(entity)
+
+    await repo.create_transition(
+        property_id=property_id,
+        from_status=old_status,
+        to_status=new_status,
+        action=Action.COMPLETE,
+        actor_id=current_user.id,
+        actor_name=current_user.full_name,
+        notes=body.notes,
+        customer_name=body.customer_name,
+        customer_phone=body.customer_phone,
+        contract_date=body.contract_date,
+        file_ids=body.file_ids or None,
+    )
+
+    reloaded = await repo.get(entity.id)
+    assert reloaded is not None
+    await repo.load_images(reloaded)
+    return entity_to_response(reloaded)

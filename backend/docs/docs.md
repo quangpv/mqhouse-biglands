@@ -4,7 +4,7 @@
 CommissionType = [PERCENTAGE, FLAT]
 DirectionType = [EAST, WEST, SOUTH, NORTH, NORTHEAST, SOUTHEAST, NORTHWEST, SOUTHWEST]
 Tag = [newest, best_selling, hot]
-Status = [draff, post_pending, edit_pending, deposit_pending, soldout_pending, complete_pending, available, deposited, soldout, expired, completed]
+Status = [draft, post_pending, edit_pending, deposit_pending, soldout_pending, complete_pending, cancel_pending, available, deposited, soldout, expired, completed]
 Action = [submit, withdraw, deposit, soldout, cancel, complete]
 NotificationType = [request_edit, request_post, request_deposit, request_soldout, request_cancel, request_complete]
 ApprovalStatus = [pending, resolved, rejected]
@@ -84,6 +84,30 @@ Property = {
 	requires_approval: boolean
 	created_at: Date
 	updated_at: Date
+}
+
+TransitionFile = {
+	id: UUID
+	transition_id: UUID
+	file_id: UUID
+	created_at: Date
+}
+
+PropertyTransition = {
+	id: UUID
+	property_id: UUID
+	from_status: Status | null
+	to_status: Status
+	action: Action
+	actor_id: UUID
+	actor_name: string
+	approval: Approval | null
+	notes: string | null
+	customer_name: string | null
+	customer_phone: string | null
+	contract_date: Date | null
+	file_ids: UUID[]
+	created_at: Date
 }
 
 Approval = {
@@ -237,7 +261,7 @@ ForgotPasswordRequest = { email: string }
 ResetPasswordRequest = { token: string, password: string }
 ChangePasswordRequest = { current_password: string, new_password: string }
 
-CreatePropertyRequest = { type: 'draff' | 'post_pending', data: PropertyInfo }
+CreatePropertyRequest = { type: 'draft' | 'post_pending', data: PropertyInfo }
 PropertyListParams = { is_hot: bool | null, is_pin: bool | null, created_by: 'me' | UUID | null, sort_by: 'created_at' | 'price' | 'view_count' | null, sort_order: 'asc' | 'desc' | null } & PropertyFilterRequest
 UpdatePropertyRequest = { [key in PropertyInfo]: value }  // partial property fields
 
@@ -290,8 +314,8 @@ MyPinListResponse = ListDTO<Property>
 #### Properties
 PropertyResponse = Property
 PropertyListResponse = ListDTO<Property>
-StatusLogEntry = { id: UUID, property_id: UUID, from_status: Status | null, to_status: Status, actor_id: UUID, actor_name: string, approval: Approval | null, notes: string | null, created_at: Date }
-StatusLogResponse = [StatusLogEntry]
+PropertyTransitionResponse = PropertyTransition
+PropertyTransitionListResponse = [PropertyTransitionResponse]
 
 #### Pins
 PinResponse = { message: string }
@@ -638,7 +662,7 @@ Response: PropertyResponse
 PUT /properties/{id}
 Desc: Update property
 Rules:
-- Accept status: draff, post_pending, available
+- Accept status: draft, post_pending, available
 - When Request User is
   - Sale:
     - Only updatable by owner
@@ -659,14 +683,14 @@ Rules:
     - Only deletable by owner
   - Admin, Approver:
     - Can delete any property
-- Hard delete for: draff, post_pending, available
+- Hard delete for: draft, post_pending, available
 - Soft delete for: deposit_pending, deposited, soldout_pending, soldout, expired, complete_pending, completed
 Response: 204 No Content
 
 POST /properties/{id}/transitions/submit
 Desc: Submit property for approval/posting
 Rules:
-- Accept status: draff
+- Accept status: draft
 - When Request User is
   - Sale:
     - Only submittable by owner
@@ -685,7 +709,7 @@ Rules:
 - When Request User is
   - Sale:
     - Only withdrawable by owner
-    - Change status to draff
+    - Change status to draft
   - Admin, Approver:
     - Not needed (can directly submit to available)
 Request: NotesRequest
@@ -757,7 +781,7 @@ GET /properties/{id}/status-logs
 Desc: Get property status change history
 Rules:
 - Only owner and admin/approver roles can see
-Response: StatusLogResponse
+Response: PropertyTransitionListResponse
 
 ---
 
