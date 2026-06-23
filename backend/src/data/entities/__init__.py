@@ -6,7 +6,7 @@ from src.data.entities.refresh_token import RefreshTokenEntity
 
 from src.data.entities.token_blacklist import TokenBlacklistEntity
 
-from src.data.entities.user import UserEntity
+from src.data.entities.user import UserEntity, UserTransactionTypeEntity, UserPropertyTypeEntity
 
 from src.data.entities.file import FileEntity
 
@@ -20,6 +20,8 @@ __all__ = [
     "OrgTransactionTypeEntity",
     "OrgPropertyTypeEntity",
     "UserEntity",
+    "UserTransactionTypeEntity",
+    "UserPropertyTypeEntity",
     "TokenBlacklistEntity",
     "RefreshTokenEntity",
     "FileEntity",

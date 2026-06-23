@@ -114,8 +114,11 @@ User = {
 	email: string | null
 	role: UserRole
 	is_active: boolean
+	device_limit_enabled: boolean
 	organization_id: UUID | null
 	organization: Organization | null
+	property_type_ids: UUID[]
+	transaction_type_ids: UUID[]
 	notification_prefs: NotificationPreferences | null
 	created_at: Date
 }
@@ -251,8 +254,8 @@ NotificationListParams = { is_read: bool | null, page: number, size: number }
 UpdateNotificationPrefsRequest = Partial<NotificationPreferences>
 
 UserListParams = { role: UserRole | null, is_active: bool | null, search: string | null, organization_id: UUID | null, page: number, size: number }
-CreateUserRequest = { full_name: string, username: string, phone: string | null, email: string | null, password: string, role: UserRole, organization_id: UUID | null }
-UpdateUserRequest = { full_name: string | null, phone: string | null, email: string | null, is_active: bool | null, organization_id: UUID | null }
+CreateUserRequest = { full_name: string, username: string, phone: string | null, email: string | null, password: string, role: UserRole, device_limit_enabled: boolean, organization_id: UUID | null, property_type_ids: UUID[], transaction_type_ids: UUID[] }
+UpdateUserRequest = { full_name: string | null, phone: string | null, email: string | null, is_active: bool | null, organization_id: UUID | null, property_type_ids: UUID[] | null, transaction_type_ids: UUID[] | null, device_limit_enabled: boolean | null }
 UpdateUserRoleRequest = { role: UserRole }
 
 CreateOrganizationRequest = OrganizationInfo
@@ -373,7 +376,13 @@ Prefix: `/auth`
 
 POST /auth/login
 Desc: Login
-Rules: Public
+Rules:
+- Public
+- If user has device_limit_enabled=true and role is SALE or APPROVER:
+  - First login: registers device from X-Device-Token header
+  - Subsequent logins: X-Device-Token must match registered device
+  - Returns 403 Forbidden on device mismatch
+  - ADMIN is exempt from device limit
 Request: LoginRequest
 Response: LoginResponse
 
@@ -594,12 +603,6 @@ Response: UserResponse
 PATCH /users/{user_id}/reactivate
 Desc: Reactivate user
 Rules: ADMIN
-Response: UserResponse
-
-PATCH /users/{user_id}
-Desc: Change partial users fields
-Rules: ADMIN only (cannot self-demote from ADMIN)
-Request: UpdateUserRoleRequest
 Response: UserResponse
 
 ---

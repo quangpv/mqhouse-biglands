@@ -40,6 +40,45 @@ class UserEntity(Base, UUIDMixin, TimestampMixin):
 
     created_by_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
 
+    transaction_types: Mapped[list["UserTransactionTypeEntity"]] = relationship(
+        "UserTransactionTypeEntity",
+        back_populates="user",
+        lazy="selectin",
+        cascade="all, delete-orphan",
+    )
+    property_types: Mapped[list["UserPropertyTypeEntity"]] = relationship(
+        "UserPropertyTypeEntity",
+        back_populates="user",
+        lazy="selectin",
+        cascade="all, delete-orphan",
+    )
+
     _raw_token: str | None = None
     _jti: str | None = None
     _exp: int | None = None
+
+
+class UserTransactionTypeEntity(Base):
+    __tablename__ = "user_transaction_types"
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    transaction_type_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("transaction_types.id", ondelete="CASCADE"), primary_key=True
+    )
+
+    user: Mapped["UserEntity"] = relationship(back_populates="transaction_types")
+
+
+class UserPropertyTypeEntity(Base):
+    __tablename__ = "user_property_types"
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    property_type_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("property_types.id", ondelete="CASCADE"), primary_key=True
+    )
+
+    user: Mapped["UserEntity"] = relationship(back_populates="property_types")

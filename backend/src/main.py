@@ -7,6 +7,7 @@ from src.modules.auth import module as auth_module
 from src.modules.files import module as files_module
 from src.modules.geography import module as geography_module
 from src.modules.transaction_types import module as transaction_types_module
+from src.modules.users import module as users_module
 from src.modules.property_types import module as property_types_module
 from src.modules.organizations import module as organizations_module
 from src.modules.ws import module as ws_module
@@ -26,6 +27,7 @@ MODULES: list[Callable[..., Any]] = [
     transaction_types_module,
     property_types_module,
     organizations_module,
+    users_module,
     ws_module,
 ]
 
