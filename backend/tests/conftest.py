@@ -243,6 +243,9 @@ class FakeEmailService(EmailService):
     async def send_password_reset(self, email: str, token: str) -> None:
         self.sent_emails.append({"email": email, "token": token})
 
+    async def send_welcome(self, email: str, username: str, password: str) -> None:
+        self.sent_emails.append({"email": email, "username": username, "password": password})
+
 
 @pytest_asyncio.fixture
 async def fake_email_service() -> FakeEmailService:

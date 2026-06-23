@@ -1,9 +1,14 @@
 import pytest
 from httpx import AsyncClient
 
+from tests.conftest import FakeEmailService
+
 
 @pytest.mark.asyncio
-async def test_admin_can_create_user(client: AsyncClient, admin_token: str) -> None:
+async def test_admin_can_create_user(
+    client: AsyncClient, admin_token: str,
+    override_email_service: None, fake_email_service: FakeEmailService,
+) -> None:
     response = await client.post(
         "/users/",
         json={
@@ -28,6 +33,12 @@ async def test_admin_can_create_user(client: AsyncClient, admin_token: str) -> N
     assert "id" in data
     assert "created_at" in data
     assert "updated_at" in data
+
+    assert len(fake_email_service.sent_emails) == 1
+    sent = fake_email_service.sent_emails[0]
+    assert sent["email"] == "newuser@biglands.com"
+    assert sent["username"] == "newuser"
+    assert sent["password"] == "Pass123!"
 
 
 @pytest.mark.asyncio
