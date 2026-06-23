@@ -4,6 +4,7 @@ from typing import Any
 from fastapi import APIRouter, FastAPI
 
 from src.modules.auth import module as auth_module
+from src.modules.files import module as files_module
 from src.modules.geography import module as geography_module
 from src.modules.ws import module as ws_module
 from src.platform.bootstrap import module as bootstrap_module
@@ -17,6 +18,7 @@ MODULES: list[Callable[..., Any]] = [
     scheduler_module,
     bootstrap_module,
     auth_module,
+    files_module,
     geography_module,
     ws_module,
 ]

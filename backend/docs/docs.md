@@ -268,7 +268,7 @@ UpdatePropertyTypeRequest = { code: string, display_name: string }
 
 MessageResponse = { message: string }
 
-# Auth
+#### Auth
 LoginResponse = { access_token: string, refresh_token:string }
 RefreshTokenResponse = LoginResponse
 LogoutResponse = MessageResponse
@@ -277,23 +277,23 @@ ResetPasswordResponse = MessageResponse
 ChangePasswordResponse = MessageResponse
 UserProfileResponse = User
 
-# Profile
+#### Profile
 ProfileResponse = User
 
-# My Assets
+#### My Assets
 MyPropertyListResponse = ListDTO<Property>
 MyPinListResponse = ListDTO<Property>
 
-# Properties
+#### Properties
 PropertyResponse = Property
 PropertyListResponse = ListDTO<Property>
 StatusLogEntry = { id: UUID, property_id: UUID, from_status: Status | null, to_status: Status, actor_id: UUID, actor_name: string, approval: Approval | null, notes: string | null, created_at: Date }
 StatusLogResponse = [StatusLogEntry]
 
-# Pins
+#### Pins
 PinResponse = { message: string }
 
-# Approvals
+#### Approvals
 
 ApprovalResponse = {
 	id: UUID
@@ -315,15 +315,15 @@ ApprovalListResponse = ListDTO<ApprovalResponse>
 ApprovalDetailResponse = ApprovalResponse
 ApprovalCountsResponse = { [type: string]: number }
 
-# Files
+#### Files
 FileUploadResponse = { file_ids: UUID[] }
 FileInfoResponse = FileInfo
 
-# Reviews
+#### Reviews
 ReviewListResponse = ListDTO<Review>
 ReviewDetailResponse = Review
 
-# Hot Properties
+#### Hot Properties
 HotProperty = {
 	id: UUID
 	property: Property
@@ -336,34 +336,34 @@ HotProperty = {
 HotPropertyListResponse = [HotProperty]
 HotPropertyResponse = HotProperty
 
-# Users
+#### Users
 UserListResponse = ListDTO<User>
 UserResponse = User
 
-# Organizations
+#### Organizations
 OrganizationListResponse = [Organization]
 OrganizationResponse = Organization
 
-# Transaction Types
+#### Transaction Types
 TransactionTypeResponse = TransactionTypeInfo
 TransactionTypeListResponse = [TransactionTypeInfo]
 
-# Property Types
+#### Property Types
 PropertyTypeResponse = PropertyTypeInfo
 PropertyTypeListResponse = [PropertyTypeInfo]
 
-# Geography
+#### Geography
 CityListResponse = [Province]
 DistrictListResponse = [District]
 WardListResponse = [Ward]
 
-# Notifications
+#### Notifications
 NotificationListResponse = ListDTO<Notification>
 NotificationResponse = Notification
 NotificationCountResponse = { count: number }
 ReadAllResponse = { message: string }
 
-# Notification Preferences
+#### Notification Preferences
 NotificationPrefsResponse = NotificationPreferences
 
 ---
@@ -408,27 +408,208 @@ Response: ResetPasswordResponse
 
 ---
 
+## Geography
+Prefix: `/geography`
+
+GET /geography/cities
+Desc: List available cities
+Rules: Public
+Response: CityListResponse
+
+GET /geography/cities/{city_id}/districts
+Desc: List districts in a city
+Rules: Public
+Response: DistrictListResponse
+
+GET /geography/cities/{city_id}/districts/{district_id}/wards
+Desc: List wards in a district
+Rules: Public
+Response: WardListResponse
+
+---
+
+## WebSocket
+Path: `/ws`
+
+Desc: Real-time notification channel
+Rules: Authenticated (token query param)
+Connection: ws://host/ws?token={jwt_token}
+
+Server messages:
+{
+	type: 'notification_created'
+	data: Notification
+}
+
+{
+	type: 'connection_established'
+	data: { message: string }
+}
+
+{
+	type: 'error'
+	data: { message: string }
+}
+
+## Files
+
+POST /files
+Desc: Upload files (multipart)
+Rules: Any authenticated
+Request: Multipart { files: Part[] }
+Response: FileUploadResponse
+
+GET /files/{id}
+Desc: Get file metadata
+Rules: Any authenticated
+Response: FileInfoResponse
+
+---
+
+## Transaction Types
+Prefix: `/transaction-types`
+
+GET /transaction-types
+Desc: List all transaction types
+Rules: Authenticated
+Response: TransactionTypeListResponse
+
+POST /transaction-types
+Desc: Create transaction type
+Rules: ADMIN
+Request: CreateTransactionTypeRequest
+Response: TransactionTypeResponse
+
+GET /transaction-types/{id}
+Desc: Get transaction type by id
+Rules: Authenticated
+Response: TransactionTypeResponse
+
+PUT /transaction-types/{id}
+Desc: Update transaction type
+Rules: ADMIN
+Request: UpdateTransactionTypeRequest
+Response: TransactionTypeResponse
+
+DELETE /transaction-types/{id}
+Desc: Delete transaction type
+Rules: ADMIN
+Response: 204 No Content
+
+---
+
+## Property Types
+Prefix: `/property-types`
+
+GET /property-types
+Desc: List all property types
+Rules: Authenticated
+Response: PropertyTypeListResponse
+
+POST /property-types
+Desc: Create property type
+Rules: ADMIN
+Request: CreatePropertyTypeRequest
+Response: PropertyTypeResponse
+
+GET /property-types/{id}
+Desc: Get property type by id
+Rules: Authenticated
+Response: PropertyTypeResponse
+
+PUT /property-types/{id}
+Desc: Update property type
+Rules: ADMIN
+Request: UpdatePropertyTypeRequest
+Response: PropertyTypeResponse
+
+DELETE /property-types/{id}
+Desc: Delete property type
+Rules: ADMIN
+Response: 204 No Content
+
+---
+
+## Organizations
+Prefix: `/organizations`
+
+GET /organizations
+Desc: List organizations
+Rules: Authenticated
+Response: OrganizationListResponse
+
+GET /organizations/{org_id}
+Desc: Get organization detail
+Rules: Authenticated
+Response: OrganizationResponse
+
+POST /organizations
+Desc: Create organization
+Rules: ADMIN
+Request: CreateOrganizationRequest
+Response: OrganizationResponse
+
+PUT /organizations/{org_id}
+Desc: Update organization
+Rules: ADMIN
+Request: UpdateOrganizationRequest
+Response: OrganizationResponse
+
+DELETE /organizations/{org_id}
+Desc: Delete organization
+Rules: ADMIN
+Response: 204 No Content
+
+---
+
+## Users
+POST /users
+Desc: Create user
+Rules: ADMIN
+Request: CreateUserRequest
+Response: UserResponse
+
+GET /users
+Desc: List users
+Rules: ADMIN
+Params: UserListParams
+Response: UserListResponse
+
+GET /users/{user_id}
+Desc: Get user detail
+Rules: ADMIN
+Response: UserResponse
+
+PUT /users/{user_id}
+Desc: Update user
+Rules: ADMIN
+Request: UpdateUserRequest
+Response: UserResponse
+
+PATCH /users/{user_id}/deactivate
+Desc: Deactivate user
+Rules: ADMIN
+Response: UserResponse
+
+PATCH /users/{user_id}/reactivate
+Desc: Reactivate user
+Rules: ADMIN
+Response: UserResponse
+
+PATCH /users/{user_id}
+Desc: Change partial users fields
+Rules: ADMIN only (cannot self-demote from ADMIN)
+Request: UpdateUserRoleRequest
+Response: UserResponse
+
+---
+
 ## Profile
 
 GET /me
 Desc: Get my user profile
 Rules: Authenticated
 Response: ProfileResponse
-
----
-
-## My Assets
-
-GET /me/properties
-Desc: List my properties
-Rules: Authenticated
-Params: & PropertyFilterRequest
-Response: MyPropertyListResponse
-
-GET /me/pins
-Desc: List my pinned properties
-Rules: Authenticated
-Response: MyPinListResponse
 
 ---
 
@@ -577,72 +758,6 @@ Response: StatusLogResponse
 
 ---
 
-## Pins
-
-### Replacement
-POST /properties/{id}/pins
-Desc: Add property to my pins
-Rules: Any authenticated
-Response: PinResponse
-
-DELETE /properties/{id}/pins
-Desc: Remove property from my pins
-Rules: Any authenticated
-Response: 204 No Content
-
----
-
-## Approvals
-
-GET /approvals
-Desc: List approvals
-Rules: Only admin/approver can access
-Request Params: ApprovalListParams
-Response: ApprovalListResponse
-
-GET /approvals/counts
-Desc: Get approval counts by release type
-Rules: Only admin/approver can access
-Response: ApprovalCountsResponse
-
-GET /approvals/{id}
-Desc: Get approval detail
-Rules: Only admin/approver can access
-Response: ApprovalDetailResponse
-
-POST /approvals/{id}/transitions/approve
-Desc: Approve a pending request
-Rules:
-- Only admin/approver can access
-- Accept approval status: pending
-Request: ApproveRequest
-Response: ApprovalDetailResponse
-
-POST /approvals/{id}/transitions/reject
-Desc: Reject a pending request
-Rules:
-- Only admin/approver can access
-- Accept approval status: pending
-Request: RejectRequest
-Response: ApprovalDetailResponse
-
----
-
-## Files
-
-POST /files
-Desc: Upload files (multipart)
-Rules: Any authenticated
-Request: Multipart { files: Part[] }
-Response: FileUploadResponse
-
-GET /files/{id}
-Desc: Get file metadata
-Rules: Any authenticated
-Response: FileInfoResponse
-
----
-
 ## Reviews
 
 GET /properties/{id}/reviews
@@ -688,160 +803,17 @@ Response: 204 No Content
 
 ---
 
-## Users
-POST /users
-Desc: Create user
-Rules: ADMIN
-Request: CreateUserRequest
-Response: UserResponse
+## Pins
 
-GET /users
-Desc: List users
-Rules: ADMIN
-Params: UserListParams
-Response: UserListResponse
+### Replacement
+POST /properties/{id}/pins
+Desc: Add property to my pins
+Rules: Any authenticated
+Response: PinResponse
 
-GET /users/{user_id}
-Desc: Get user detail
-Rules: ADMIN
-Response: UserResponse
-
-PUT /users/{user_id}
-Desc: Update user
-Rules: ADMIN
-Request: UpdateUserRequest
-Response: UserResponse
-
-PATCH /users/{user_id}/deactivate
-Desc: Deactivate user
-Rules: ADMIN
-Response: UserResponse
-
-PATCH /users/{user_id}/reactivate
-Desc: Reactivate user
-Rules: ADMIN
-Response: UserResponse
-
-PATCH /users/{user_id}
-Desc: Change partial users fields
-Rules: ADMIN only (cannot self-demote from ADMIN)
-Request: UpdateUserRoleRequest
-Response: UserResponse
-
----
-
-## Organizations
-Prefix: `/organizations`
-
-GET /organizations
-Desc: List organizations
-Rules: Authenticated
-Response: OrganizationListResponse
-
-GET /organizations/{org_id}
-Desc: Get organization detail
-Rules: Authenticated
-Response: OrganizationResponse
-
-POST /organizations
-Desc: Create organization
-Rules: ADMIN
-Request: CreateOrganizationRequest
-Response: OrganizationResponse
-
-PUT /organizations/{org_id}
-Desc: Update organization
-Rules: ADMIN
-Request: UpdateOrganizationRequest
-Response: OrganizationResponse
-
-DELETE /organizations/{org_id}
-Desc: Delete organization
-Rules: ADMIN
-Response: 204 No Content
-
----
-
-## Geography
-Prefix: `/geography`
-
-GET /geography/cities
-Desc: List available cities
-Rules: Public
-Response: CityListResponse
-
-GET /geography/cities/{city_id}/districts
-Desc: List districts in a city
-Rules: Public
-Response: DistrictListResponse
-
-GET /geography/cities/{city_id}/districts/{district_id}/wards
-Desc: List wards in a district
-Rules: Public
-Response: WardListResponse
-
----
-
-## Transaction Types
-Prefix: `/transaction-types`
-
-GET /transaction-types
-Desc: List all transaction types
-Rules: Authenticated
-Response: TransactionTypeListResponse
-
-POST /transaction-types
-Desc: Create transaction type
-Rules: ADMIN
-Request: CreateTransactionTypeRequest
-Response: TransactionTypeResponse
-
-GET /transaction-types/{id}
-Desc: Get transaction type by id
-Rules: Authenticated
-Response: TransactionTypeResponse
-
-PUT /transaction-types/{id}
-Desc: Update transaction type
-Rules: ADMIN
-Request: UpdateTransactionTypeRequest
-Response: TransactionTypeResponse
-
-DELETE /transaction-types/{id}
-Desc: Delete transaction type
-Rules: ADMIN
-Response: 204 No Content
-
----
-
-## Property Types
-Prefix: `/property-types`
-
-GET /property-types
-Desc: List all property types
-Rules: Authenticated
-Response: PropertyTypeListResponse
-
-POST /property-types
-Desc: Create property type
-Rules: ADMIN
-Request: CreatePropertyTypeRequest
-Response: PropertyTypeResponse
-
-GET /property-types/{id}
-Desc: Get property type by id
-Rules: Authenticated
-Response: PropertyTypeResponse
-
-PUT /property-types/{id}
-Desc: Update property type
-Rules: ADMIN
-Request: UpdatePropertyTypeRequest
-Response: PropertyTypeResponse
-
-DELETE /property-types/{id}
-Desc: Delete property type
-Rules: ADMIN
+DELETE /properties/{id}/pins
+Desc: Remove property from my pins
+Rules: Any authenticated
 Response: 204 No Content
 
 ---
@@ -872,6 +844,57 @@ Response: ReadAllResponse
 
 ---
 
+## Approvals
+
+GET /approvals
+Desc: List approvals
+Rules: Only admin/approver can access
+Request Params: ApprovalListParams
+Response: ApprovalListResponse
+
+GET /approvals/counts
+Desc: Get approval counts by release type
+Rules: Only admin/approver can access
+Response: ApprovalCountsResponse
+
+GET /approvals/{id}
+Desc: Get approval detail
+Rules: Only admin/approver can access
+Response: ApprovalDetailResponse
+
+POST /approvals/{id}/transitions/approve
+Desc: Approve a pending request
+Rules:
+- Only admin/approver can access
+- Accept approval status: pending
+Request: ApproveRequest
+Response: ApprovalDetailResponse
+
+POST /approvals/{id}/transitions/reject
+Desc: Reject a pending request
+Rules:
+- Only admin/approver can access
+- Accept approval status: pending
+Request: RejectRequest
+Response: ApprovalDetailResponse
+
+---
+
+## My Assets
+
+GET /me/properties
+Desc: List my properties
+Rules: Authenticated
+Params: & PropertyFilterRequest
+Response: MyPropertyListResponse
+
+GET /me/pins
+Desc: List my pinned properties
+Rules: Authenticated
+Response: MyPinListResponse
+
+---
+
 ## Notification Preferences
 
 GET /me/notification-preferences
@@ -886,26 +909,3 @@ Request: UpdateNotificationPrefsRequest
 Response: NotificationPrefsResponse
 
 ---
-
-## WebSocket
-Path: `/ws`
-
-Desc: Real-time notification channel
-Rules: Authenticated (token query param)
-Connection: ws://host/ws?token={jwt_token}
-
-Server messages:
-{
-	type: 'notification_created'
-	data: Notification
-}
-
-{
-	type: 'connection_established'
-	data: { message: string }
-}
-
-{
-	type: 'error'
-	data: { message: string }
-}

@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from fastapi import FastAPI
 
+from src.platform.container import container
 
 
 class AppScheduler:
@@ -22,6 +23,7 @@ class AppScheduler:
 
 def module(app: FastAPI):
     scheduler = AppScheduler()
+    container[AppScheduler] = scheduler
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:

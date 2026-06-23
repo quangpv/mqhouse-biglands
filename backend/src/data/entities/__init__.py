@@ -8,10 +8,13 @@ from src.data.entities.token_blacklist import TokenBlacklistEntity
 
 from src.data.entities.user import UserEntity
 
+from src.data.entities.file import FileEntity
+
 __all__ = [
     "Base",
     "OrganizationEntity",
     "UserEntity",
     "TokenBlacklistEntity",
     "RefreshTokenEntity",
+    "FileEntity",
 ]
