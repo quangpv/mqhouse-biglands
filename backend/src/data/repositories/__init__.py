@@ -12,6 +12,10 @@ from src.data.repositories.approval_repo import ApprovalRepo
 
 from src.data.repositories.review_repo import ReviewRepo
 
+from src.data.repositories.hot_property_repo import HotPropertyRepo
+
+from src.data.repositories.pin_repo import PinRepo
+
 __all__ = [
     "UserRepo",
     "TokenBlacklistRepo",
@@ -20,4 +24,6 @@ __all__ = [
     "OrganizationRepo",
     "ApprovalRepo",
     "ReviewRepo",
+    "HotPropertyRepo",
+    "PinRepo",
 ]

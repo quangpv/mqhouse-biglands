@@ -58,11 +58,11 @@ async def update_property(
             if isinstance(val, Decimal):
                 snapshot[field] = float(val)
             elif isinstance(val, uuid.UUID):
-                snapshot[field] = str(val)
+                snapshot[field] = str(val)  # type: ignore[assignment]
             elif isinstance(val, PyEnum):
                 snapshot[field] = val.value
             else:
-                snapshot[field] = val
+                snapshot[field] = val  # type: ignore[assignment]
     else:
         snapshot = None
 

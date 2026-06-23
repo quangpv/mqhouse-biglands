@@ -28,6 +28,10 @@ from src.data.entities.review import ReviewEntity
 
 from src.data.entities.review_file import ReviewFileEntity
 
+from src.data.entities.hot_property import HotPropertyEntity
+
+from src.data.entities.pin import PinEntity
+
 __all__ = [
     "Base",
     "OrganizationEntity",
@@ -49,6 +53,8 @@ __all__ = [
     "ApprovalStatus",
     "ReviewEntity",
     "ReviewFileEntity",
+    "HotPropertyEntity",
+    "PinEntity",
     "CommissionType",
     "DirectionType",
     "PropertyStatus",

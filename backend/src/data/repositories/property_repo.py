@@ -5,7 +5,7 @@ from decimal import Decimal
 from fastapi import Depends
 from sqlalchemy import func, select, or_
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload, selectinload, selectinload
+from sqlalchemy.orm import joinedload, selectinload
 
 from src.data.entities.property import Action, DirectionType, PropertyEntity, PropertyStatus
 from src.data.entities.property_image import PropertyImageEntity
@@ -28,9 +28,7 @@ class PropertyRepo:
 
     async def get(self, property_id: uuid.UUID) -> PropertyEntity | None:
         result = await self.db.execute(
-            select(PropertyEntity)
-            .options(*self._BASE_LOAD)
-            .where(PropertyEntity.id == property_id)
+            select(PropertyEntity).options(*self._BASE_LOAD).where(PropertyEntity.id == property_id)
         )
         return result.unique().scalar_one_or_none()
 
@@ -242,7 +240,13 @@ class PropertyRepo:
         )
         return list(result.scalars().all())
 
-    async def create_image(self, property_id: uuid.UUID, file_id: uuid.UUID, order: int = 0, is_primary: bool = False) -> PropertyImageEntity:
+    async def get_max_hot_order(self) -> int | None:
+        result = await self.db.execute(select(func.max(PropertyEntity.hot_order)))
+        return result.scalar()
+
+    async def create_image(
+        self, property_id: uuid.UUID, file_id: uuid.UUID, order: int = 0, is_primary: bool = False
+    ) -> PropertyImageEntity:
         image = PropertyImageEntity(
             property_id=property_id,
             file_id=file_id,

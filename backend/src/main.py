@@ -12,6 +12,8 @@ from src.modules.property_types import module as property_types_module
 from src.modules.organizations import module as organizations_module
 from src.modules.profile import module as profile_module
 from src.modules.properties import module as properties_module
+from src.modules.hots import module as hots_module
+from src.modules.pins import module as pins_module
 from src.modules.approvals import module as approvals_module
 from src.modules.reviews import module as reviews_module
 from src.modules.ws import module as ws_module
@@ -33,9 +35,11 @@ MODULES: list[Callable[..., Any]] = [
     organizations_module,
     users_module,
     profile_module,
+    hots_module,
     properties_module,
     approvals_module,
     reviews_module,
+    pins_module,
     ws_module,
 ]
 

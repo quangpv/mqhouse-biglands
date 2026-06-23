@@ -2,7 +2,7 @@ import uuid
 
 from fastapi import Depends, Path
 
-from src.data.entities.approval import ApprovalEntity, ApprovalStatus
+from src.data.entities.approval import ApprovalStatus
 from src.data.entities.property import Action, PropertyStatus
 from src.data.entities.user import UserEntity, UserRole
 from src.data.repositories.approval_repo import ApprovalRepo
@@ -41,11 +41,12 @@ async def approve_approval(
     prop = approval.property
 
     if prop.status == PropertyStatus.EDIT_PENDING:
-        to_status = approval.transition.from_status or PropertyStatus.DRAFT
+        to_status = (approval.transition.from_status if approval.transition else None) or PropertyStatus.DRAFT
     else:
-        to_status = _APPROVE_MAP.get(prop.status)
-        if to_status is None:
+        mapped = _APPROVE_MAP.get(prop.status)
+        if mapped is None:
             raise ConflictError(f"Cannot approve property in status {prop.status.value}")
+        to_status = mapped
 
     t2 = await property_repo.create_transition(
         property_id=prop.id,

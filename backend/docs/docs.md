@@ -900,7 +900,6 @@ Response: 204 No Content
 
 ## Pins
 
-### Replacement
 POST /properties/{id}/pins
 Desc: Add property to my pins
 Rules: Any authenticated
