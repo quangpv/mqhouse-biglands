@@ -17,6 +17,7 @@ from sqlalchemy import NullPool, text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 
 from src.data.entities._base import Base
+from src.data.entities.organization import OrganizationEntity
 from src.data.entities.user import UserEntity, UserRole
 from src.main import create_app
 
@@ -136,7 +137,15 @@ async def setup_schema(create_worker_db):
 
 
 @pytest_asyncio.fixture(scope="session", autouse=True)
-async def seed_users(setup_schema):
+async def seed_org(setup_schema):
+    org = OrganizationEntity(id=ORG_MQ_LAND_ID, name="MQ Land", display_name="MQ Land")
+    async with AsyncSession(get_engine()) as session:
+        session.add(org)
+        await session.commit()
+
+
+@pytest_asyncio.fixture(scope="session", autouse=True)
+async def seed_users(seed_org):
     admin = UserEntity(
         id=ADMIN_UUID,
         full_name="Admin User",
@@ -146,6 +155,7 @@ async def seed_users(setup_schema):
         email="admin@biglands.com",
         role=UserRole.ADMIN,
         is_active=True,
+        organization_id=ORG_MQ_LAND_ID,
     )
     agent = UserEntity(
         id=AGENT_UUID,
@@ -156,6 +166,7 @@ async def seed_users(setup_schema):
         email="agent@biglands.com",
         role=UserRole.SALE,
         is_active=True,
+        organization_id=ORG_MQ_LAND_ID,
     )
     approver = UserEntity(
         id=APPROVER_UUID,
@@ -166,6 +177,7 @@ async def seed_users(setup_schema):
         email="approver@biglands.com",
         role=UserRole.APPROVER,
         is_active=True,
+        organization_id=ORG_MQ_LAND_ID,
     )
     deactivated = UserEntity(
         id=DEACTIVATED_UUID,
@@ -176,6 +188,7 @@ async def seed_users(setup_schema):
         email="deac@biglands.com",
         role=UserRole.SALE,
         is_active=False,
+        organization_id=ORG_MQ_LAND_ID,
     )
     async with AsyncSession(get_engine()) as session:
         session.add_all([admin, agent, approver, deactivated])

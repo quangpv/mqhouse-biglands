@@ -76,6 +76,28 @@ class UserRepo(Repo):
         )
         return result.scalar_one_or_none()
 
+    async def get_by_roles(self, roles: list[UserRole]) -> list[UserEntity]:
+        result = await self.db.execute(
+            select(UserEntity)
+            .options(*_USER_LOADS)
+            .where(UserEntity.role.in_(roles), UserEntity.is_active == True),
+        )
+        return list(result.scalars().all())
+
+    async def get_by_organization_and_roles(
+        self, organization_id: uuid.UUID, roles: list[UserRole],
+    ) -> list[UserEntity]:
+        result = await self.db.execute(
+            select(UserEntity)
+            .options(*_USER_LOADS)
+            .where(
+                UserEntity.organization_id == organization_id,
+                UserEntity.role.in_(roles),
+                UserEntity.is_active == True,
+            ),
+        )
+        return list(result.scalars().all())
+
     async def get_by_organization(self, organization_id: uuid.UUID) -> list[UserEntity]:
         result = await self.db.execute(
             select(UserEntity)

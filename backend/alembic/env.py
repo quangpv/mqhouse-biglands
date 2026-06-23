@@ -21,7 +21,7 @@ target_metadata = Base.metadata
 
 EXCLUDED_TABLES = {
     "listings", "listing_images",
-    "deal_events", "notifications", "user_pins",
+    "deal_events", "user_pins",
 }
 
 

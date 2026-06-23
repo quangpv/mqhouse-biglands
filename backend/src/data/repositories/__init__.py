@@ -16,6 +16,8 @@ from src.data.repositories.hot_property_repo import HotPropertyRepo
 
 from src.data.repositories.pin_repo import PinRepo
 
+from src.data.repositories.notification_repo import NotificationRepo
+
 __all__ = [
     "UserRepo",
     "TokenBlacklistRepo",
@@ -26,4 +28,5 @@ __all__ = [
     "ReviewRepo",
     "HotPropertyRepo",
     "PinRepo",
+    "NotificationRepo",
 ]

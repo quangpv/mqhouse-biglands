@@ -92,3 +92,28 @@ async def test_reject_nonexistent_returns_404(
         headers={"Authorization": f"Bearer {admin_token}"},
     )
     assert response.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_reject_creates_notification_for_property_owner(
+    client: AsyncClient, admin_token: str, post_pending_approval: tuple, db_session,
+) -> None:
+    from sqlalchemy import select
+    from src.data.entities.notification import NotificationEntity
+    from tests.conftest import AGENT_UUID
+
+    _, approval_id = post_pending_approval
+
+    response = await client.post(
+        f"/approvals/{approval_id}/reject",
+        json={"reason": "Invalid"},
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+    assert response.status_code == 200
+
+    result = await db_session.execute(
+        select(NotificationEntity).where(NotificationEntity.user_id == AGENT_UUID),
+    )
+    notifications = result.scalars().all()
+    assert len(notifications) >= 1
+    assert notifications[0].event_type == "listing_post_rejected"

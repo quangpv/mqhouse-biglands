@@ -11,6 +11,8 @@ from src.modules.approvals.mapper import entity_to_response
 from src.modules.approvals.schemas import ApprovalDecisionRequest, ApprovalResponse
 from src.platform.auth import get_current_user
 from src.shared.errors.exceptions import ConflictError, ForbiddenError, NotFoundError
+from src.shared.services.notification_service import NotificationService
+from src.shared.utils.notification_formatter import format_notification_title
 
 _REJECT_MAP: dict[PropertyStatus, PropertyStatus] = {
     PropertyStatus.POST_PENDING: PropertyStatus.DRAFT,
@@ -20,12 +22,22 @@ _REJECT_MAP: dict[PropertyStatus, PropertyStatus] = {
 }
 
 
+_REJECT_EVENT_MAP: dict[PropertyStatus, str] = {
+    PropertyStatus.POST_PENDING: "listing_post_rejected",
+    PropertyStatus.DEPOSIT_PENDING: "deposit_rejected",
+    PropertyStatus.SOLDOUT_PENDING: "sold_out_rejected",
+    PropertyStatus.CANCEL_PENDING: "cancellation_rejected",
+    PropertyStatus.COMPLETE_PENDING: "closure_rejected",
+}
+
+
 async def reject_approval(
     body: ApprovalDecisionRequest,
     approval_id: uuid.UUID = Path(..., alias="approval_id"),
     approval_repo: ApprovalRepo = Depends(ApprovalRepo),
     property_repo: PropertyRepo = Depends(PropertyRepo),
     current_user: UserEntity = Depends(get_current_user),
+    notif_service: NotificationService = Depends(NotificationService),
 ) -> ApprovalResponse:
     approval = await approval_repo.get(approval_id)
     if not approval:
@@ -38,10 +50,11 @@ async def reject_approval(
         raise ForbiddenError("Insufficient permissions")
 
     prop = approval.property
+    original_status = prop.status
 
-    if prop.status == PropertyStatus.EDIT_PENDING:
+    if original_status == PropertyStatus.EDIT_PENDING:
         to_status = (approval.transition.from_status if approval.transition else None) or PropertyStatus.DRAFT
-    elif prop.status == PropertyStatus.SOLDOUT_PENDING:
+    elif original_status == PropertyStatus.SOLDOUT_PENDING:
         to_status = (approval.transition.from_status if approval.transition else None) or PropertyStatus.AVAILABLE
     else:
         mapped = _REJECT_MAP.get(prop.status)
@@ -65,5 +78,27 @@ async def reject_approval(
     approval.status = ApprovalStatus.REJECTED
     approval.decision_transition_id = t2.id
     approval = await approval_repo.save(approval)
+
+    owner_id = prop.created_by_id
+    if owner_id:
+        event_type = _REJECT_EVENT_MAP.get(original_status)
+        if event_type is None and original_status == PropertyStatus.EDIT_PENDING:
+            event_type = "edit_rejected"
+        if event_type is not None:
+            title = format_notification_title(
+                event_type=event_type,
+                transaction_type=prop.transaction_type.code if prop.transaction_type else None,
+                actor_name=current_user.full_name,
+                item_code=prop.code,
+            )
+            await notif_service.notify_property_owner(
+                owner_id=owner_id,
+                title=title,
+                event_type=event_type,
+                reference_type="property",
+                reference_id=prop.id,
+                actor_name=current_user.full_name,
+                transaction_type=prop.transaction_type.code if prop.transaction_type else None,
+            )
 
     return entity_to_response(approval)

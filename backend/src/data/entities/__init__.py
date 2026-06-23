@@ -32,6 +32,8 @@ from src.data.entities.hot_property import HotPropertyEntity
 
 from src.data.entities.pin import PinEntity
 
+from src.data.entities.notification import NotificationEntity
+
 __all__ = [
     "Base",
     "OrganizationEntity",
@@ -55,6 +57,7 @@ __all__ = [
     "ReviewFileEntity",
     "HotPropertyEntity",
     "PinEntity",
+    "NotificationEntity",
     "CommissionType",
     "DirectionType",
     "PropertyStatus",

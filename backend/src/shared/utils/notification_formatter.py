@@ -14,11 +14,14 @@ ACTION_SUFFIX_MAP: dict[str, tuple[str, str]] = {
     "closure_reported": ("vừa chốt hàng", "chờ bạn duyệt"),
     "closure_confirmed": ("đã duyệt chốt hàng", "đã duyệt"),
     "closure_rejected": ("đã từ chối chốt hàng", ""),
+    "edit_rejected": ("đã từ chối chỉnh sửa", ""),
     "cancellation_reported": ("vừa hủy cọc", "chờ bạn duyệt"),
     "cancellation_confirmed": ("đã duyệt hủy cọc", "đã duyệt"),
     "cancellation_rejected": ("đã từ chối hủy cọc", ""),
     "sold_out_reported": ("vừa báo hết hàng", "chờ bạn duyệt"),
     "sold_out_confirmed": ("đã duyệt", "đã duyệt"),
+    "sold_out_rejected": ("đã từ chối báo hết hàng", ""),
+    "listing_updated": ("vừa chỉnh sửa", "chờ bạn duyệt"),
     "listing_expired": ("đã hết hạn", ""),
 }
 

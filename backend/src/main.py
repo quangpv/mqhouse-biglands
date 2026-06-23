@@ -17,6 +17,7 @@ from src.modules.pins import module as pins_module
 from src.modules.approvals import module as approvals_module
 from src.modules.reviews import module as reviews_module
 from src.modules.ws import module as ws_module
+from src.modules.notifications import module as notifications_module
 from src.platform.bootstrap import module as bootstrap_module
 from src.platform.config import settings
 from src.platform.container import container
@@ -41,6 +42,7 @@ MODULES: list[Callable[..., Any]] = [
     reviews_module,
     pins_module,
     ws_module,
+    notifications_module,
 ]
 
 
