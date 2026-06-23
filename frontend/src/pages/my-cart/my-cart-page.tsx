@@ -1,21 +1,26 @@
+import { useMemo } from "react"
+import { useNavigate } from "react-router-dom"
 import { useMyCartState } from "./facades/useMyCartState"
 import { useDeleteListing } from "./facades/useDeleteListing"
 import { useWithdrawListing } from "./facades/useWithdrawListing"
 import { MyCartFilterTabs } from "./components/MyCartFilterTabs"
-import { MyCartListingCard } from "./components/MyCartListingCard"
-import { ListingCardSkeleton } from "@/shared/components/listing-card"
+import { ListingCard, ListingCardSkeleton } from "@/shared/components/listing-card"
+import { ListingActionDropdown } from "@/shared/components/listing-action-dropdown"
+import { useAuthStore } from "@/shared/context/auth-store"
+import { dtoToIListing } from "@/shared/mappers/listing.mapper"
 import { PageHeader } from "@/shared/components/page-header"
 import { Input } from "@/shared/components/ui/input"
 import { Button } from "@/shared/components/ui/button"
 import { EmptyState } from "@/shared/components/empty-state"
 import { ErrorDisplay } from "@/shared/components/error-display"
 import { Plus } from "lucide-react"
-import { useNavigate } from "react-router-dom"
 
 export default function MyCartPage() {
   const { query, listings, tab, setTab, search, setSearch, statusTabs } = useMyCartState()
-  const { mutate: doDelete, isPending: isDeleting } = useDeleteListing()
-  const { mutate: doWithdraw, isPending: isWithdrawing } = useWithdrawListing()
+  const mappedListings = useMemo(() => listings.map(dtoToIListing), [listings])
+  const { mutate: doDelete } = useDeleteListing()
+  const { mutate: doWithdraw } = useWithdrawListing()
+  const user = useAuthStore((s) => s.user)
   const navigate = useNavigate()
 
   return (
@@ -63,14 +68,25 @@ export default function MyCartPage() {
             }
           />
         ) : (
-          listings.map((listing) => (
-            <MyCartListingCard
+          mappedListings.map((listing) => (
+            <ListingCard
               key={listing.id}
               listing={listing}
-              onDelete={doDelete}
-              onWithdraw={doWithdraw}
-              isDeleting={isDeleting}
-              isWithdrawing={isWithdrawing}
+              onClick={() => navigate(`/tin/${listing.id}`)}
+              actionMenu={
+                <ListingActionDropdown
+                  listing={listing}
+                  user={user}
+                  onApprove={() => {}}
+                  onReject={() => {}}
+                  onEdit={(l) => navigate(`/tin/${l.id}/chinh-sua`)}
+                  onDelete={(l) => doDelete(l.id)}
+                  onWithdraw={(l) => doWithdraw(l.id)}
+                  onBlockedAction={() => {}}
+                  onPromoteToHot={() => {}}
+                  onUnpromoteFromHot={() => {}}
+                />
+              }
             />
           ))
         )}

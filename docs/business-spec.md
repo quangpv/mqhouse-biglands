@@ -323,6 +323,8 @@
 | NT-002 | Agents receive notifications when their listings are approved/rejected and when deposits/closure/cancellation/sold-out are confirmed. | notification-system US-001 |
 | NT-003 | Notifications are created automatically on key events. | notification-system US-001 |
 | NT-004 | Users can mark individual or all notifications as read. | notification-system US-002 |
+| NT-005 | Creating a listing with `action=submit` notifies all APPROVER and ADMIN users. | listing-management |
+| NT-006 | Updating a non-DRAFT listing (where action is not `submit` or `withdraw`) notifies all APPROVER and ADMIN users. | listing-management |
 
 ### 4.7 Edit & Status Change Rules
 

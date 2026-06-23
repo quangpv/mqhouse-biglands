@@ -22,7 +22,7 @@ async def test_unauthenticated_request_is_rejected(client: AsyncClient) -> None:
         are rejected with a 401 status code."""
         response = await client.get("/auth/me")
         assert response.status_code == 401
-        assert response.json()["detail"] == "Missing authorization header"
+        assert response.json()["message"] == "Missing authorization header"
 
 @pytest.mark.asyncio
 async def test_request_with_expired_or_invalid_token_is_rejected(client: AsyncClient) -> None:
@@ -33,4 +33,4 @@ async def test_request_with_expired_or_invalid_token_is_rejected(client: AsyncCl
             headers={"Authorization": "Bearer invalidtoken"},
         )
         assert response.status_code == 401
-        assert response.json()["detail"] == "Invalid or expired token"
+        assert response.json()["message"] == "Invalid or expired token"

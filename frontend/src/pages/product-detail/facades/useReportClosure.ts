@@ -3,7 +3,7 @@ import { useToast } from "@/shared/context/toast-provider"
 import { dealEventRepository } from "@/data/repositories/deal-event.repository"
 import { listingQueries } from "@/data/queries/listing.queries"
 
-export function useReportClosure(listingId: string) {
+export function useReportClosure(listingId: string, role?: string) {
   const queryClient = useQueryClient()
   const { success, showError } = useToast()
 
@@ -12,7 +12,7 @@ export function useReportClosure(listingId: string) {
       dealEventRepository.reportClosure(listingId, { notes: notes || undefined }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: listingQueries.detail(listingId) })
-      success("Báo chốt hàng thành công, chờ duyệt")
+      success(role === "ADMIN" ? "Báo chốt hàng thành công" : "Báo chốt hàng thành công, chờ duyệt")
     },
     onError: (err) => showError(err),
   })

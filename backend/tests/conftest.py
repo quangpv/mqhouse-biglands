@@ -16,13 +16,17 @@ from sqlalchemy import NullPool
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 
 from src.data.entities._base import Base
-from src.data.entities.organization import OrganizationEntity
+from src.data.entities.refresh_token import RefreshTokenEntity
+from src.data.entities.token_blacklist import TokenBlacklistEntity
 from src.data.entities.user import UserEntity, UserRole
+from src.data.repositories.refresh_token_repo import RefreshTokenRepo
+from src.data.repositories.token_blacklist_repo import TokenBlacklistRepo
 from src.main import create_app
 
 app = create_app(api_prefix="")
 from src.platform.config import settings
-from src.platform.dependencies import get_db
+from src.platform.dependencies import get_db, get_email_service
+from src.platform.email import EmailService
 from src.platform.security import create_jwt
 
 ADMIN_UUID = uuid.UUID("00000000-0000-0000-0000-000000000001")
@@ -131,7 +135,7 @@ async def seed_users(setup_schema):
         password_hash=_AGENT_PWH,
         phone="0900000002",
         email="agent@biglands.com",
-        role=UserRole.AGENT,
+        role=UserRole.SALE,
         is_active=True,
     )
     approver = UserEntity(
@@ -151,37 +155,11 @@ async def seed_users(setup_schema):
         password_hash=_DEACTIVATED_PWH,
         phone="0900000003",
         email="deac@biglands.com",
-        role=UserRole.AGENT,
+        role=UserRole.SALE,
         is_active=False,
     )
     async with AsyncSession(get_engine()) as session:
         session.add_all([admin, agent, approver, deactivated])
-        await session.commit()
-
-
-@pytest_asyncio.fixture(scope="session", autouse=True)
-async def seed_organizations(seed_users):
-    orgs = [
-        OrganizationEntity(
-            id=ORG_MQ_LAND_ID,
-            name="mq-land",
-            display_name="MQ Land",
-        ),
-        OrganizationEntity(
-            id=ORG_ID_LAND_ID,
-            name="id-land",
-            display_name="ID Land",
-        ),
-    ]
-    async with AsyncSession(get_engine()) as session:
-        session.add_all(orgs)
-        await session.flush()
-        admin = await session.get(UserEntity, ADMIN_UUID)
-        if admin:
-            admin.organization_id = ORG_MQ_LAND_ID
-        agent = await session.get(UserEntity, AGENT_UUID)
-        if agent:
-            agent.organization_id = ORG_ID_LAND_ID
         await session.commit()
 
 
@@ -220,9 +198,29 @@ async def admin_token() -> str:
 
 @pytest_asyncio.fixture
 async def agent_token() -> str:
-    return create_jwt(AGENT_UUID, UserRole.AGENT.value)
+    return create_jwt(AGENT_UUID, UserRole.SALE.value)
 
 
 @pytest_asyncio.fixture
 async def approver_token() -> str:
     return create_jwt(APPROVER_UUID, UserRole.APPROVER.value)
+
+
+class FakeEmailService(EmailService):
+    def __init__(self):
+        self.sent_emails: list[dict] = []
+
+    async def send_password_reset(self, email: str, token: str) -> None:
+        self.sent_emails.append({"email": email, "token": token})
+
+
+@pytest_asyncio.fixture
+async def fake_email_service() -> FakeEmailService:
+    return FakeEmailService()
+
+
+@pytest_asyncio.fixture
+async def override_email_service(fake_email_service: FakeEmailService) -> None:
+    app.dependency_overrides[get_email_service] = lambda: fake_email_service
+    yield
+    app.dependency_overrides.clear()

@@ -4,23 +4,45 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 
 from src.data.entities.user import UserRole
+
+
 class LoginRequest(BaseModel):
     username: str = Field(..., min_length=1, max_length=100)
     password: str = Field(..., min_length=1)
 
 
 class LoginResponse(BaseModel):
-    token: str
-    token_type: str = "bearer"
-    user: 'UserResponse'
+    access_token: str
+    refresh_token: str
+
+
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str = Field(..., min_length=1)
+
+
+class RefreshTokenResponse(BaseModel):
+    access_token: str
+    refresh_token: str
+
+
+class LogoutResponse(BaseModel):
+    message: str
+
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str = Field(..., min_length=1)
+    new_password: str = Field(..., min_length=6)
+
+
+class ChangePasswordResponse(BaseModel):
+    message: str
 
 
 class ForgotPasswordRequest(BaseModel):
-    username: str = Field(..., min_length=1, max_length=100)
+    email: str = Field(..., min_length=1, max_length=255)
 
 
 class ForgotPasswordResponse(BaseModel):
-    token: str
     message: str
 
 

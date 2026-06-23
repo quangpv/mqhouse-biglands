@@ -9,9 +9,9 @@ interface NotificationItemProps {
 }
 
 const eventIcons: Record<string, string> = {
-  listing_submitted: "📋",
-  listing_approved: "✅",
-  listing_rejected: "❌",
+  listing_post_created: "📋",
+  listing_post_approved: "✅",
+  listing_post_rejected: "❌",
   deposit_reported: "💰",
   deposit_confirmed: "✅",
   deposit_rejected: "❌",

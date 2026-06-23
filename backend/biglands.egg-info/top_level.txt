@@ -1,5 +1,5 @@
 alembic
-prod-data
+docs
 scripts
 src
 tests

@@ -25,6 +25,15 @@ class Settings(BaseSettings):
     secret_key: str = "change-me-in-production"
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 1440
+    jwt_refresh_expire_minutes: int = 10080
+
+    smtp_host: str = "localhost"
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = ""
+    smtp_use_tls: bool = True
+    email_from: str = "noreply@biglands.com"
+    frontend_url: str = "http://localhost:3000"
 
     max_upload_size_mb: int = 10
 

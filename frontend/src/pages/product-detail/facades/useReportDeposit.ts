@@ -5,7 +5,7 @@ import { dealEventRepository } from "@/data/repositories/deal-event.repository"
 import { listingQueries } from "@/data/queries/listing.queries"
 import type { IReportDepositForm } from "../types"
 
-export function useReportDeposit(listingId: string) {
+export function useReportDeposit(listingId: string, role?: string) {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
   const { success, showError } = useToast()
@@ -21,7 +21,7 @@ export function useReportDeposit(listingId: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: listingQueries.detail(listingId) })
       queryClient.invalidateQueries({ queryKey: listingQueries.lists() })
-      success("Báo cọc thành công, chờ duyệt")
+      success(role === "ADMIN" ? "Báo cọc thành công" : "Báo cọc thành công, chờ duyệt")
       navigate(".", { replace: true })
     },
     onError: (err) => showError(err),

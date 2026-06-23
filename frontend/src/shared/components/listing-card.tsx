@@ -8,8 +8,7 @@ import { Skeleton } from "@/shared/components/ui/skeleton"
 import { listingRepository } from "@/data/repositories/listing.repository"
 import { listingQueries } from "@/data/queries/listing.queries"
 import { formatPrice, formatDate, formatArea, getTransactionTypeLabel, getStatusLabel } from "@/shared/utils"
-import type { ListingDTO } from "@/data/types/listing.dto"
-
+import type { IListing } from "@/shared/types/listing.type"
 
 export function usePinListing() {
   const queryClient = useQueryClient()
@@ -28,11 +27,15 @@ export function ListingImageSection({
   onTogglePin,
   isPinPending,
   showPinButton = true,
+  actionMenu,
+  children,
 }: {
-  listing: ListingDTO
+  listing: IListing
   onTogglePin: (e: React.MouseEvent) => void
   isPinPending: boolean
   showPinButton?: boolean
+  actionMenu?: React.ReactNode
+  children?: React.ReactNode
 }) {
   return (
     <div className="relative aspect-[4/3] overflow-hidden bg-muted">
@@ -48,24 +51,34 @@ export function ListingImageSection({
         {formatPrice(listing.price, { compact: true })}
       </div>
 
-      {showPinButton && (
-        <button
-          type="button"
-          onClick={onTogglePin}
-          disabled={isPinPending}
-          className="absolute top-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/80 shadow-sm hover:bg-white transition-colors disabled:opacity-50"
-          aria-label={listing.is_pinned ? "Bỏ ghim" : "Ghim tin"}
-        >
-          <Heart
-            className={`h-4 w-4 ${listing.is_pinned ? "fill-red-500 text-red-500" : "text-gray-600"}`}
-          />
-        </button>
+      {(showPinButton || actionMenu) && (
+        <div className="absolute top-2 right-2 flex items-center gap-1">
+          {showPinButton && (
+            <button
+              type="button"
+              onClick={onTogglePin}
+              disabled={isPinPending}
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-white/80 shadow-sm hover:bg-white transition-colors disabled:opacity-50"
+              aria-label={listing.is_pinned ? "Bỏ ghim" : "Ghim tin"}
+            >
+              <Heart
+                className={`h-4 w-4 ${listing.is_pinned ? "fill-red-500 text-red-500" : "text-gray-600"}`}
+              />
+            </button>
+          )}
+          {actionMenu && (
+            <div onClick={(e) => e.stopPropagation()}>
+              {actionMenu}
+            </div>
+          )}
+        </div>
       )}
+      {children}
     </div>
   )
 }
 
-export function ListingStatusRow({ listing }: { listing: ListingDTO }) {
+export function ListingStatusRow({ listing }: { listing: IListing }) {
   return (
     <div className="flex items-center gap-2">
       <Badge variant="outline" className="border-purple-500 text-purple-700 uppercase text-[10px] font-medium">
@@ -78,7 +91,7 @@ export function ListingStatusRow({ listing }: { listing: ListingDTO }) {
   )
 }
 
-export function ListingTitle({ listing }: { listing: ListingDTO }) {
+export function ListingTitle({ listing }: { listing: IListing }) {
   return (
     <p className="text-sm font-semibold leading-tight line-clamp-2">
       {listing.title || listing.address}
@@ -86,7 +99,7 @@ export function ListingTitle({ listing }: { listing: ListingDTO }) {
   )
 }
 
-export function ListingLocation({ listing }: { listing: ListingDTO }) {
+export function ListingLocation({ listing }: { listing: IListing }) {
   const parts = [listing.street_name, listing.ward, listing.district, listing.city].filter(Boolean)
   return (
     <p className="text-xs text-muted-foreground line-clamp-1">
@@ -95,7 +108,7 @@ export function ListingLocation({ listing }: { listing: ListingDTO }) {
   )
 }
 
-export function ListingPricing({ listing }: { listing: ListingDTO }) {
+export function ListingPricing({ listing }: { listing: IListing }) {
   const priceStr = formatPrice(listing.price)
   const areaStr = formatArea(listing.total_area)
   const perM2Str = listing.price_per_m2 ? ` = ${formatPrice(listing.price_per_m2)}/m²` : ""
@@ -111,7 +124,7 @@ export function ListingPricing({ listing }: { listing: ListingDTO }) {
   )
 }
 
-export function ListingDimensions({ listing }: { listing: ListingDTO }) {
+export function ListingDimensions({ listing }: { listing: IListing }) {
   return (
     <div className="flex items-center gap-1 text-xs text-muted-foreground">
       <Ruler className="h-3 w-3" />
@@ -120,7 +133,7 @@ export function ListingDimensions({ listing }: { listing: ListingDTO }) {
   )
 }
 
-export function ListingSpecs({ listing }: { listing: ListingDTO }) {
+export function ListingSpecs({ listing }: { listing: IListing }) {
   return (
     <div className="flex items-center gap-4 text-xs text-muted-foreground">
       {listing.num_rooms > 0 && (
@@ -145,7 +158,7 @@ export function ListingSpecs({ listing }: { listing: ListingDTO }) {
   )
 }
 
-export function ListingFooter({ listing }: { listing: ListingDTO }) {
+export function ListingFooter({ listing }: { listing: IListing }) {
   return (
     <div className="border-t pt-2 mt-2 flex items-center justify-between text-[10px] text-muted-foreground">
       <span>{listing.creator?.full_name ?? "—"}</span>
@@ -155,7 +168,15 @@ export function ListingFooter({ listing }: { listing: ListingDTO }) {
 }
 
 
-export function ListingCard({ listing }: { listing: ListingDTO }) {
+export function ListingCard({
+  listing,
+  actionMenu,
+  onClick,
+}: {
+  listing: IListing
+  actionMenu?: React.ReactNode
+  onClick?: () => void
+}) {
   const pinMutation = usePinListing()
 
   const handleTogglePin = (e: React.MouseEvent) => {
@@ -164,23 +185,38 @@ export function ListingCard({ listing }: { listing: ListingDTO }) {
     pinMutation.mutate({ id: listing.id, pinned: listing.is_pinned })
   }
 
+  const content = (
+    <>
+      <ListingImageSection
+        listing={listing}
+        onTogglePin={handleTogglePin}
+        isPinPending={pinMutation.isPending}
+        actionMenu={actionMenu}
+      />
+      <div className="p-3 space-y-1.5">
+        <ListingStatusRow listing={listing} />
+        <ListingTitle listing={listing} />
+        <ListingLocation listing={listing} />
+        <ListingPricing listing={listing} />
+        <ListingDimensions listing={listing} />
+        <ListingSpecs listing={listing} />
+        <ListingFooter listing={listing} />
+      </div>
+    </>
+  )
+
+  if (onClick) {
+    return (
+      <Card className="overflow-hidden p-0 gap-0 hover:shadow-md transition-shadow cursor-pointer" onClick={onClick}>
+        {content}
+      </Card>
+    )
+  }
+
   return (
     <Link to={`/tin/${listing.id}`} className="block group">
       <Card className="overflow-hidden p-0 gap-0 hover:shadow-md transition-shadow">
-        <ListingImageSection
-          listing={listing}
-          onTogglePin={handleTogglePin}
-          isPinPending={pinMutation.isPending}
-        />
-        <div className="p-3 space-y-1.5">
-          <ListingStatusRow listing={listing} />
-          <ListingTitle listing={listing} />
-          <ListingLocation listing={listing} />
-          <ListingPricing listing={listing} />
-          <ListingDimensions listing={listing} />
-          <ListingSpecs listing={listing} />
-          <ListingFooter listing={listing} />
-        </div>
+        {content}
       </Card>
     </Link>
   )

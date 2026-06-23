@@ -1,10 +1,9 @@
-import { useState } from "react"
-import { useParams, useNavigate } from "react-router-dom"
+import { useState, useMemo } from "react"
+import { useParams } from "react-router-dom"
 import { useQuery } from "@tanstack/react-query"
 import { approvalRepository } from "@/data/repositories/approval.repository"
 import { approvalQueries } from "@/data/queries/approval.queries"
 import { Button } from "@/shared/components/ui/button"
-import { Input } from "@/shared/components/ui/input"
 import { EmptyState } from "@/shared/components/empty-state"
 import { ErrorDisplay } from "@/shared/components/error-display"
 import { ListingCardSkeleton } from "@/shared/components/listing-card"
@@ -18,11 +17,11 @@ import { useRejectItem } from "./facades/useRejectItem"
 import { useBulkApprove } from "./facades/useBulkApprove"
 import { getQueueTitle } from "./constants/queueUI"
 import type { QueueType } from "./types"
+import type { IListing } from "@/shared/types/listing.type"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 
 export default function QueueListPage() {
   const { queueType } = useParams<{ queueType: string }>()
-  const navigate = useNavigate()
   const [page, setPage] = useState(1)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [approveTarget, setApproveTarget] = useState<string | null>(null)
@@ -76,34 +75,56 @@ export default function QueueListPage() {
     )
   }
 
-  const mappedItems = items.map((item) => ({
-    id: item.id,
-    listingId: item.listing_id,
-    listingTitle: item.title ?? "",
-    listingCode: item.listing_code ?? "",
-    listingImageUrl: null,
-    listingStatus: item.status ?? "",
-    approvalType: typedQueueType,
-    agentName: item.reported_by?.full_name ?? "",
-    submittedAt: item.created_at,
-    dealEvent: item.deal_event
-      ? {
-          customerName: item.deal_event.customer_name,
-          customerPhone: item.deal_event.customer_phone,
-          depositAmount: item.deal_event.deposit_amount,
-          notes: item.deal_event.notes,
-        }
-      : null,
-    reporter: item.reported_by
-      ? { id: item.reported_by.id, fullName: item.reported_by.full_name }
-      : null,
-  }))
+  const mappedItems = useMemo(() => items.map((item) => {
+    const listing: IListing = {
+      id: item.listing_id,
+      code: item.listing_code,
+      transaction_type: item.transaction_type,
+      title: item.title,
+      price: item.price ?? 0,
+      total_area: item.total_area ?? 0,
+      price_per_m2: item.price_per_m2,
+      area_width: item.area_width ?? 0,
+      area_length: item.area_length ?? 0,
+      num_rooms: item.num_rooms,
+      num_bathrooms: item.num_bathrooms,
+      num_floors: item.num_floors,
+      street_name: item.street_name,
+      ward: item.ward,
+      district: item.district,
+      city: item.city,
+      address: item.address,
+      status: item.status,
+      is_hot: item.is_hot,
+      is_pinned: item.is_pinned,
+      hot_order: item.hot_order,
+      primary_image_url: item.primary_image_url,
+      created_by_id: item.created_by_id ?? "",
+      creator: item.creator_name ? { full_name: item.creator_name } : null,
+      created_at: item.listing_created_at ?? item.created_at,
+    }
+    return {
+      id: item.id,
+      listing,
+      dealEvent: item.deal_event
+        ? {
+            customerName: item.deal_event.customer_name ?? undefined,
+            customerPhone: item.deal_event.customer_phone ?? undefined,
+            depositAmount: item.deal_event.deposit_amount ?? undefined,
+            notes: item.deal_event.notes ?? undefined,
+          }
+        : null,
+      reporter: item.reported_by
+        ? { id: item.reported_by.id, fullName: item.reported_by.full_name ?? "" }
+        : null,
+    }
+  }), [items])
 
   return (
     <div>
       <QueueHeader title={getQueueTitle(typedQueueType)} pendingCount={pendingCount} />
 
-      <div className="space-y-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {itemsQuery.isLoading ? (
           Array.from({ length: 5 }).map((_, i) => <ListingCardSkeleton key={i} />)
         ) : itemsQuery.isError ? (
@@ -118,12 +139,14 @@ export default function QueueListPage() {
             {mappedItems.map((item) => (
               <QueueListingCard
                 key={item.id}
-                item={item}
+                listing={item.listing}
                 selected={selectedIds.has(item.id)}
                 onSelect={() => toggleSelect(item.id)}
                 onApprove={() => setApproveTarget(item.id)}
                 onReject={() => setRejectTarget(item.id)}
                 showBulkSelect={isListingPost}
+                dealEvent={item.dealEvent}
+                reporter={item.reporter}
               />
             ))}
             {totalPages > 1 && (
@@ -204,15 +227,8 @@ export default function QueueListPage() {
 }
 
 export function QueueDetailPage() {
-  const { queueType, id } = useParams<{ queueType: string; id: string }>()
-  const navigate = useNavigate()
+  const { queueType } = useParams<{ queueType: string }>()
   const typedQueueType = (queueType ?? "listing-post") as QueueType
-
-  const itemQuery = useQuery({
-    queryKey: approvalQueries.detail(id ?? ""),
-    queryFn: () => approvalRepository.get(id ?? ""),
-    enabled: !!id,
-  })
 
   return (
     <div>

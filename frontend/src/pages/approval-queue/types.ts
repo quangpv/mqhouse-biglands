@@ -8,28 +8,6 @@ export interface QueueFilterState {
   agent_id: string
 }
 
-export interface IQueueItem {
-  id: string
-  listingId: string
-  listingTitle: string
-  listingCode: string
-  listingImageUrl: string | null
-  listingStatus: string
-  approvalType: QueueType
-  agentName: string
-  submittedAt: string
-  dealEvent: {
-    customerName?: string
-    customerPhone?: string
-    depositAmount?: number
-    notes?: string
-  } | null
-  reporter: {
-    id: string
-    fullName: string
-  } | null
-}
-
 export interface IRejectForm {
   reason: string
 }

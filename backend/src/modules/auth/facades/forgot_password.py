@@ -1,19 +1,22 @@
 from datetime import datetime, timedelta, timezone
 
-from fastapi import Depends
+from fastapi import Depends, Body
 from jose import jwt
 
 from src.data.repositories.user_repo import UserRepo
-from src.modules.auth.schemas import ForgotPasswordRequest, ForgotPasswordResponse
 from src.platform.config import settings
+from src.platform.dependencies import get_email_service
+from src.platform.email import SmtpEmailService
 from src.shared.errors.exceptions import NotFoundError
+from src.modules.auth.schemas import ForgotPasswordRequest, ForgotPasswordResponse
 
 
 async def forgot_password(
-    data: ForgotPasswordRequest,
+    data: ForgotPasswordRequest = Body(...),
     repo: UserRepo = Depends(UserRepo),
+    email_service: SmtpEmailService = Depends(get_email_service),
 ) -> ForgotPasswordResponse:
-    user = await repo.get_by_username(data.username)
+    user = await repo.get_by_email(data.email)
     if user is None:
         raise NotFoundError("User not found")
 
@@ -26,4 +29,6 @@ async def forgot_password(
     }
     token = jwt.encode(payload, settings.secret_key, algorithm=settings.jwt_algorithm)
 
-    return ForgotPasswordResponse(token=token, message="Password reset token generated. Please check your email.")
+    await email_service.send_password_reset(user.email, token)
+
+    return ForgotPasswordResponse(message="Password reset link sent to your email")

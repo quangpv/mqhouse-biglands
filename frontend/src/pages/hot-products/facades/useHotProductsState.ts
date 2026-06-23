@@ -2,10 +2,11 @@ import { useState, useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { listingRepository } from "@/data/repositories/listing.repository"
 import { listingQueries } from "@/data/queries/listing.queries"
-import type { ListingDTO } from "@/data/types/listing.dto"
+import { dtoToIListing } from "@/shared/mappers/listing.mapper"
+import type { IListing } from "@/shared/types/listing.type"
 import type { IHotProduct } from "../types"
 
-function toHotProduct(listing: ListingDTO): IHotProduct {
+function toHotProduct(listing: IListing): IHotProduct {
   return {
     id: listing.id,
     listingId: listing.id,
@@ -27,7 +28,7 @@ export function useHotProductsState() {
   })
 
   const hotProducts = useMemo(() => {
-    const items = (query.data?.data ?? []).map(toHotProduct)
+    const items = (query.data?.data ?? []).map(dtoToIListing).map(toHotProduct)
     items.sort((a, b) => a.hotOrder - b.hotOrder)
     return items
   }, [query.data])

@@ -16,6 +16,25 @@ export interface ApprovalQueueItemDTO {
   event_notes: string | null
   deal_event: DealEventInfoDTO | null
   reported_by: ReporterInfoDTO | null
+  total_area: number | null
+  price_per_m2: number | null
+  area_width: number | null
+  area_length: number | null
+  num_rooms: number
+  num_bathrooms: number
+  num_floors: number
+  street_name: string
+  ward: string
+  district: string
+  city: string
+  address: string
+  is_hot: boolean
+  is_pinned: boolean
+  hot_order: number | null
+  primary_image_url: string | null
+  created_by_id: string | null
+  creator_name: string | null
+  listing_created_at: string | null
 }
 
 export interface DealEventInfoDTO {

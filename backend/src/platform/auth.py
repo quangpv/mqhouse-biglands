@@ -35,6 +35,9 @@ async def get_current_user(
     if not user.is_active:
         raise UnauthorizedError("User is deactivated")
 
+    user._raw_token = credentials.credentials
+    user._jti = jti
+    user._exp = payload.get("exp")
     return user
 
 

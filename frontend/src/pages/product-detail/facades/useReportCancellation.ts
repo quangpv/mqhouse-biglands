@@ -4,7 +4,7 @@ import { dealEventRepository } from "@/data/repositories/deal-event.repository"
 import { listingQueries } from "@/data/queries/listing.queries"
 import type { IReportCancellationForm } from "../types"
 
-export function useReportCancellation(listingId: string) {
+export function useReportCancellation(listingId: string, role?: string) {
   const queryClient = useQueryClient()
   const { success, showError } = useToast()
 
@@ -13,7 +13,7 @@ export function useReportCancellation(listingId: string) {
       dealEventRepository.reportCancellation(listingId, { notes: data.notes }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: listingQueries.detail(listingId) })
-      success("Báo huỷ cọc thành công, chờ duyệt")
+      success(role === "ADMIN" ? "Báo huỷ cọc thành công" : "Báo huỷ cọc thành công, chờ duyệt")
     },
     onError: (err) => showError(err),
   })

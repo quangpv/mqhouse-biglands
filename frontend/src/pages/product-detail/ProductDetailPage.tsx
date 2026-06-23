@@ -1,9 +1,14 @@
+import { useState } from "react"
 import { useProductDetailState } from "./facades/useProductDetailState"
+import { useAuthStore } from "@/shared/context/auth-store"
 import { useReportDeposit } from "./facades/useReportDeposit"
 import { useReportClosure } from "./facades/useReportClosure"
 import { useReportCancellation } from "./facades/useReportCancellation"
 import { useReportSoldOut } from "./facades/useReportSoldOut"
 import { useSubmitListing } from "./facades/useSubmitListing"
+import { useApproveListing } from "./facades/useApproveListing"
+import { useRejectListing } from "./facades/useRejectListing"
+import { useDeleteListing } from "@/pages/my-cart/facades/useDeleteListing"
 import { ImageGallery } from "./components/ImageGallery"
 import { KeyInfoSection } from "./components/KeyInfoSection"
 import { AgentContactInfo } from "./components/AgentContactInfo"
@@ -14,6 +19,9 @@ import { DepositDialog } from "./components/DepositDialog"
 import { CancellationDialog } from "./components/CancellationDialog"
 import { ClosureDialog } from "./components/ClosureDialog"
 import { SoldOutDialog } from "./components/SoldOutDialog"
+import { BlockedActionDialog } from "@/shared/components/blocked-action-dialog"
+import { ApproveConfirmDialog } from "@/pages/approval-queue/components/ApproveConfirmDialog"
+import { RejectReasonDialog } from "@/pages/approval-queue/components/RejectReasonDialog"
 import { Separator } from "@/shared/components/ui/separator"
 import { Badge } from "@/shared/components/ui/badge"
 import { PageHeader } from "@/shared/components/page-header"
@@ -23,11 +31,18 @@ import { getStatusLabel, getStatusColor } from "@/shared/utils"
 
 export default function ProductDetailPage() {
   const st = useProductDetailState()
-  const { mutate: doDeposit, isPending: isDepositing } = useReportDeposit(st.id!)
-  const { mutate: doClosure, isPending: isClosing } = useReportClosure(st.id!)
-  const { mutate: doCancellation, isPending: isCancelling } = useReportCancellation(st.id!)
-  const { mutate: doSoldOut, isPending: isSellingOut } = useReportSoldOut(st.id!)
+  const { user } = useAuthStore()
+  const { mutate: doDeposit, isPending: isDepositing } = useReportDeposit(st.id!, user?.role)
+  const { mutate: doClosure, isPending: isClosing } = useReportClosure(st.id!, user?.role)
+  const { mutate: doCancellation, isPending: isCancelling } = useReportCancellation(st.id!, user?.role)
+  const { mutate: doSoldOut, isPending: isSellingOut } = useReportSoldOut(st.id!, user?.role)
   const { mutate: doSubmit, isPending: isSubmitting } = useSubmitListing(st.id!)
+  const { mutate: doApprove, isPending: isApproving } = useApproveListing(st.id!)
+  const { mutate: doReject, isPending: isRejecting } = useRejectListing(st.id!)
+  const { mutate: doDelete, isPending: isDeleting } = useDeleteListing()
+
+  const [blockedAction, setBlockedAction] = useState<"edit" | "delete" | null>(null)
+  const isAdminOrApprover = user?.role === "ADMIN" || user?.role === "APPROVER"
 
   if (st.query.isLoading) return <LoadingScreen />
   if (st.query.isError || !st.listing) {
@@ -70,12 +85,19 @@ export default function ProductDetailPage() {
       <DealActionButtons
         listing={listing}
         isOwner={st.isOwner}
+        canApprove={st.isApprover}
+        isAdminOrApprover={isAdminOrApprover}
         onDeposit={() => st.openDialog("deposit")}
         onClosure={() => st.openDialog("closure")}
         onCancellation={() => st.openDialog("cancellation")}
         onSoldOut={() => st.openDialog("sold-out")}
+        onApprove={() => st.openDialog("approve")}
+        onReject={() => st.openDialog("reject")}
+        onDelete={() => doDelete(listing.id)}
+        onBlockedAction={(action) => setBlockedAction(action)}
         onSubmitForApproval={() => doSubmit()}
         isSubmitting={isSubmitting}
+        isDeleting={isDeleting}
       />
 
       <Separator />
@@ -120,6 +142,27 @@ export default function ProductDetailPage() {
         onClose={st.closeDialog}
         onSubmit={(notes) => doSoldOut(notes, { onSuccess: st.closeDialog })}
         isPending={isSellingOut}
+      />
+
+      <ApproveConfirmDialog
+        open={st.activeDialog === "approve"}
+        onOpenChange={(open) => { if (!open) st.closeDialog() }}
+        onConfirm={() => doApprove(undefined, { onSuccess: st.closeDialog })}
+        isPending={isApproving}
+      />
+
+      <RejectReasonDialog
+        open={st.activeDialog === "reject"}
+        onOpenChange={(open) => { if (!open) st.closeDialog() }}
+        onConfirm={(reason) => doReject(reason, { onSuccess: st.closeDialog })}
+        isPending={isRejecting}
+      />
+
+      <BlockedActionDialog
+        open={blockedAction !== null}
+        onOpenChange={(open) => { if (!open) setBlockedAction(null) }}
+        status={listing.status}
+        actionLabel={blockedAction === "edit" ? "sửa" : "xoá"}
       />
     </div>
   )

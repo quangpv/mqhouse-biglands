@@ -105,5 +105,4 @@ export interface ListingListResponseDTO {
   total: number
   total_pages: number
   total_count: number
-  filter_counts: FilterCountsDTO | null
 }

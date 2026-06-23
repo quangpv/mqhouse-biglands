@@ -959,6 +959,7 @@ stateDiagram-v2
 
 | Trigger Event | DealEvent Created | Approval Created | Notification Sent To |
 |--------------|------------------|-----------------|---------------------|
+| Agent creates listing with `action=submit` | — | — | All APPROVER + ADMIN |
 | Agent submits listing | — | — | Approvers (pending approval) |
 | Approver approves listing | — | `LISTING_POST` / `APPROVED` | Listing creator (Agent) |
 | Approver rejects listing | — | `LISTING_POST` / `REJECTED` | Listing creator (Agent) + reason |
@@ -974,6 +975,7 @@ stateDiagram-v2
 | Agent reports sold-out | `SOLD_OUT_REPORTED` | — | Approvers |
 | Approver confirms sold-out | `SOLD_OUT_CONFIRMED` | `SOLD_OUT` / `APPROVED` | Reporting agent |
 | Approver rejects sold-out | — | `SOLD_OUT` / `REJECTED` | Reporting agent |
+| Agent updates non-DRAFT listing (action not `submit` or `withdraw`) | — | — | All APPROVER + ADMIN |
 | Listing expired | — | — | Listing creator |
 
 ---

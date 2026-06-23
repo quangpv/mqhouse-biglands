@@ -9,7 +9,7 @@ import { listingQueries } from "@/data/queries/listing.queries"
 import { useAuthStore } from "@/shared/context/auth-store"
 import type { IReportCancellationForm } from "../types"
 
-type DialogType = "deposit" | "closure" | "cancellation" | "sold-out" | null
+type DialogType = "deposit" | "closure" | "cancellation" | "sold-out" | "approve" | "reject" | null
 
 export function useProductDetailState() {
   const { id } = useParams<{ id: string }>()
@@ -30,6 +30,7 @@ export function useProductDetailState() {
 
   const listing = query.data ?? null
   const isOwner = user ? listing?.created_by_id === user.id : false
+  const isApprover = user?.role === "APPROVER" || user?.role === "ADMIN"
 
   const openDialog = (type: DialogType) => {
     setActiveDialog(type)
@@ -41,6 +42,7 @@ export function useProductDetailState() {
     id,
     listing,
     isOwner,
+    isApprover,
     query,
     activeDialog,
     openDialog,

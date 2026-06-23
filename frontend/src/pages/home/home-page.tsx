@@ -1,5 +1,5 @@
-import { useState } from "react"
-import { useNavigate, Link } from "react-router-dom"
+import { useState, useMemo } from "react"
+import { useNavigate } from "react-router-dom"
 import { useQuery } from "@tanstack/react-query"
 import { listingRepository } from "@/data/repositories/listing.repository"
 import { listingQueries } from "@/data/queries/listing.queries"
@@ -7,21 +7,42 @@ import { PageHeader } from "@/shared/components/page-header"
 import { Input } from "@/shared/components/ui/input"
 import { Button } from "@/shared/components/ui/button"
 import { Tabs, TabsList, TabsTrigger } from "@/shared/components/ui/tabs"
-import { Badge } from "@/shared/components/ui/badge"
-import { Card } from "@/shared/components/ui/card"
 import { EmptyState } from "@/shared/components/empty-state"
 import { ErrorDisplay } from "@/shared/components/error-display"
 import { ListingCard, ListingCardSkeleton } from "@/shared/components/listing-card"
+import { ListingActionDropdown } from "@/shared/components/listing-action-dropdown"
+import { BlockedActionDialog } from "@/shared/components/blocked-action-dialog"
+import { ApproveConfirmDialog } from "@/pages/approval-queue/components/ApproveConfirmDialog"
+import { RejectReasonDialog } from "@/pages/approval-queue/components/RejectReasonDialog"
+import { useAuthStore } from "@/shared/context/auth-store"
+import { useHomeListingActions } from "./facades/useHomeListingActions"
+import { dtoToIListing } from "@/shared/mappers/listing.mapper"
 import { Plus, ChevronLeft, ChevronRight, Flame } from "lucide-react"
-import { formatPrice } from "@/shared/utils"
 
 type FilterTab = "all" | "hot" | "pinned"
 
 export default function SharedCartPage() {
   const navigate = useNavigate()
+  const user = useAuthStore((s) => s.user)
   const [tab, setTab] = useState<FilterTab>("all")
   const [search, setSearch] = useState("")
   const [page, setPage] = useState(1)
+
+  const {
+    actionDialog,
+    closeDialog,
+    handleApprove,
+    handleReject,
+    handleEdit,
+    handleDelete,
+    handleBlockedAction,
+    handlePromoteToHot,
+    handleUnpromoteFromHot,
+    confirmApprove,
+    confirmReject,
+    isApproving,
+    isRejecting,
+  } = useHomeListingActions()
 
   const allQuery = useQuery({
     queryKey: listingQueries.list({ tab: "all", search, page }),
@@ -47,7 +68,16 @@ export default function SharedCartPage() {
 
   const activeQuery = tab === "all" ? allQuery : tab === "hot" ? hotQuery : pinnedQuery
   const listings = activeQuery.data?.data ?? []
-  const filterCounts = allQuery.data?.filter_counts
+  const mappedListings = useMemo(() => listings.map(dtoToIListing), [listings])
+  const hotStripListings = useMemo(
+    () => (hotStripQuery.data?.data ?? []).map(dtoToIListing),
+    [hotStripQuery.data]
+  )
+  const filterCountsQuery = useQuery({
+    queryKey: listingQueries.filterCounts(),
+    queryFn: () => listingRepository.getFilterCounts(),
+  })
+  const filterCounts = filterCountsQuery.data
   const totalCount = allQuery.data?.total_count ?? 0
   const totalPages = allQuery.data?.total_pages ?? 1
 
@@ -64,45 +94,15 @@ export default function SharedCartPage() {
         }
       />
 
-      {hotStripQuery.data && hotStripQuery.data.data.length > 0 && (
+      {hotStripListings.length > 0 && (
         <div className="mb-6">
           <h3 className="text-sm font-semibold mb-2 flex items-center gap-1">
             <Flame className="h-4 w-4 text-red-500" />
             Hàng Hot
           </h3>
-          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin">
-            {hotStripQuery.data.data.map((listing) => (
-              <Link
-                key={listing.id}
-                to={`/tin/${listing.id}`}
-                className="shrink-0 w-44 group"
-              >
-                <Card className="overflow-hidden">
-                  <div className="relative h-28 bg-muted">
-                    {listing.primary_image_url ? (
-                      <img src={listing.primary_image_url} alt="" className="h-full w-full object-cover" />
-                    ) : (
-                      <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
-                        No Image
-                      </div>
-                    )}
-                    <Badge className="absolute top-1 left-1 bg-red-500 text-white text-[10px] px-1.5 py-0">
-                      Hot
-                    </Badge>
-                  </div>
-                  <div className="p-2 space-y-1">
-                    <p className="text-xs font-semibold truncate group-hover:underline">
-                      {listing.title || listing.address}
-                    </p>
-                    <p className="text-sm font-bold text-primary">
-                      {formatPrice(listing.price, { compact: true })}
-                    </p>
-                    <p className="text-[10px] text-muted-foreground truncate">
-                      {listing.district}
-                    </p>
-                  </div>
-                </Card>
-              </Link>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {hotStripListings.map((listing) => (
+              <ListingCard key={listing.id} listing={listing} />
             ))}
           </div>
         </div>
@@ -143,7 +143,25 @@ export default function SharedCartPage() {
           />
         ) : (
           <>
-            {listings.map((listing) => <ListingCard key={listing.id} listing={listing} />)}
+            {mappedListings.map((listing) => (
+              <ListingCard
+                key={listing.id}
+                listing={listing}
+                actionMenu={
+                  <ListingActionDropdown
+                    listing={listing}
+                    user={user}
+                    onApprove={handleApprove}
+                    onReject={handleReject}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    onBlockedAction={handleBlockedAction}
+                    onPromoteToHot={handlePromoteToHot}
+                    onUnpromoteFromHot={handleUnpromoteFromHot}
+                  />
+                }
+              />
+            ))}
             {totalPages > 1 && (
               <div className="flex items-center justify-center gap-2 pt-4">
                 <Button
@@ -184,6 +202,27 @@ export default function SharedCartPage() {
           </>
         )}
       </div>
+
+      <ApproveConfirmDialog
+        open={actionDialog?.type === "approve"}
+        onOpenChange={(open) => { if (!open) closeDialog() }}
+        onConfirm={confirmApprove}
+        isPending={isApproving}
+      />
+
+      <RejectReasonDialog
+        open={actionDialog?.type === "reject"}
+        onOpenChange={(open) => { if (!open) closeDialog() }}
+        onConfirm={confirmReject}
+        isPending={isRejecting}
+      />
+
+      <BlockedActionDialog
+        open={actionDialog?.type === "blocked-edit" || actionDialog?.type === "blocked-delete"}
+        onOpenChange={(open) => { if (!open) closeDialog() }}
+        status={actionDialog?.listing.status ?? ""}
+        actionLabel={actionDialog?.type === "blocked-edit" ? "sửa" : "xoá"}
+      />
     </div>
   )
 }

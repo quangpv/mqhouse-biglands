@@ -1,5 +1,5 @@
 import httpClient from "../infra/http-client"
-import type { ListingListResponseDTO, ListingDetailResponseDTO } from "../types/listing.dto"
+import type { FilterCountsDTO, ListingListResponseDTO, ListingDetailResponseDTO } from "../types/listing.dto"
 
 export interface ListingListParams {
   page?: number
@@ -44,6 +44,9 @@ export const listingRepository = {
 
   pin: (id: string) =>
     httpClient.put(`/listings/${id}/pin`).then((r) => r.data),
+
+  getFilterCounts: () =>
+    httpClient.get<FilterCountsDTO>("/listings/filter-counts").then((r) => r.data),
 
   unpin: (id: string) =>
     httpClient.delete(`/listings/${id}/pin`).then(() => undefined),

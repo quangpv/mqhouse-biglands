@@ -4,7 +4,6 @@ from contextlib import asynccontextmanager
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from fastapi import FastAPI
 
-from src.data.expire_listings import expire_listings
 
 
 class AppScheduler:
@@ -26,7 +25,6 @@ def module(app: FastAPI):
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
-        scheduler.add_job(expire_listings, trigger="interval", minutes=5, id="expire_listings")
         scheduler.start()
         yield
         scheduler.stop()

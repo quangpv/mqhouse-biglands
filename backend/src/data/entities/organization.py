@@ -7,5 +7,5 @@ from src.data.entities._base import Base, TimestampMixin, UUIDMixin
 class OrganizationEntity(Base, UUIDMixin, TimestampMixin):
     __tablename__ = "organizations"
 
-    name: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
     display_name: Mapped[str] = mapped_column(String(200), nullable=False)

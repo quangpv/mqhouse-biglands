@@ -5,6 +5,7 @@ export const listingQueries = {
   hot: () => [...listingQueries.all, "hot"] as const,
   hotStrip: () => [...listingQueries.all, "hot-strip"] as const,
   pins: () => [...listingQueries.all, "pins"] as const,
+  filterCounts: () => [...listingQueries.all, "filter-counts"] as const,
   details: () => [...listingQueries.all, "detail"] as const,
   detail: (id: string) => [...listingQueries.details(), id] as const,
 }
