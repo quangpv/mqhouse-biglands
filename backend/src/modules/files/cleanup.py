@@ -13,23 +13,23 @@ logger = AppLogger("files.cleanup")
 
 
 async def cleanup_orphaned_files(session: AsyncSession | None = None, upload_dir: str | None = None) -> None:
-    upload_dir = Path(upload_dir or settings.upload_dir)
-    if not upload_dir.exists():
+    upload_path = Path(upload_dir or settings.upload_dir)
+    if not upload_path.exists():
         return
 
     if session is None:
         async with async_session_factory() as s:
-            await _run_cleanup(upload_dir, s)
+            await _run_cleanup(upload_path, s)
             await s.commit()
     else:
-        await _run_cleanup(upload_dir, session)
+        await _run_cleanup(upload_path, session)
         await session.flush()
 
 
 async def _run_cleanup(upload_dir: Path, session: AsyncSession) -> None:
     repo = FileRepo(db=session)
     db_records = await repo.get_all_paths()
-    db_paths = set(rec.path for rec in db_records)
+    db_paths = {path for _, path in db_records}
 
     disk_files = {p for p in upload_dir.iterdir() if p.is_file()}
     now = time.time()

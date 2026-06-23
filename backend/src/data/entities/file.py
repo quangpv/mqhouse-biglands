@@ -8,7 +8,8 @@ from sqlalchemy.orm import Mapped, mapped_column
 from src.data.entities._base import Base, TimestampMixin, UUIDMixin
 
 
-_values_callable = lambda x: [e.value for e in x]
+def _values_callable(x):
+    return [e.value for e in x]
 
 
 class EntityType(PyEnum):

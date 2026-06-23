@@ -38,6 +38,14 @@ class UserRepo(Repo):
         )
         return result.scalar_one_or_none()
 
+    async def get_by_organization(self, organization_id: uuid.UUID) -> list[UserEntity]:
+        result = await self.db.execute(
+            select(UserEntity)
+            .options(selectinload(UserEntity.organization))
+            .where(UserEntity.organization_id == organization_id)
+        )
+        return list(result.scalars().all())
+
     async def save(self, user: UserEntity) -> UserEntity:
         self.db.add(user)
         await self.db.flush()

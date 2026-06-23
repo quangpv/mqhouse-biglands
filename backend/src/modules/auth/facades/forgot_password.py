@@ -29,6 +29,9 @@ async def forgot_password(
     }
     token = jwt.encode(payload, settings.secret_key, algorithm=settings.jwt_algorithm)
 
+    if not user.email:
+        raise NotFoundError("User has no email address")
+
     await email_service.send_password_reset(user.email, token)
 
     return ForgotPasswordResponse(message="Password reset link sent to your email")

@@ -4,6 +4,7 @@ from src.modules.files.facades.delete_file import delete_file
 from src.modules.files.facades.get_file import get_file
 from src.modules.files.facades.upload_files import upload_files
 from src.modules.files.schemas import FileInfoResponse, FileUploadResponse
+from src.platform.auth import require_auth
 
 router = APIRouter(prefix="/files", tags=["files"])
 
@@ -13,7 +14,11 @@ async def upload_endpoint(result: FileUploadResponse = Depends(upload_files)):
     return result
 
 
-@router.get("/{file_id}", response_model=FileInfoResponse)
+@router.get(
+    "/{file_id}",
+    response_model=FileInfoResponse,
+    dependencies=[Depends(require_auth)],
+)
 async def get_endpoint(result: FileInfoResponse = Depends(get_file)):
     return result
 

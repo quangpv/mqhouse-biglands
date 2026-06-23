@@ -33,7 +33,7 @@ class FileRepo(Repo):
         result = await self.db.execute(
             select(FileEntity.id, FileEntity.path)
         )
-        return list(result.all())
+        return [(r[0], r[1]) for r in result.all()]
 
     async def get_all_ids(self) -> list[uuid.UUID]:
         result = await self.db.execute(select(FileEntity.id))

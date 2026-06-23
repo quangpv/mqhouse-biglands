@@ -1,13 +1,19 @@
 import uuid
 from enum import Enum as PyEnum
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Boolean, Enum, ForeignKey, String
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.data.entities._base import Base, TimestampMixin, UUIDMixin
 
-_values_callable = lambda x: [e.value for e in x]  # noqa: E731
+if TYPE_CHECKING:
+    from src.data.entities.organization import OrganizationEntity
+
+
+def _values_callable(x):
+    return [e.value for e in x]
 
 
 class UserRole(PyEnum):
@@ -18,6 +24,7 @@ class UserRole(PyEnum):
 
 class UserEntity(Base, UUIDMixin, TimestampMixin):
     __tablename__ = "users"
+    __allow_unmapped__ = True
 
     full_name: Mapped[str] = mapped_column(String(255), nullable=False)
     username: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
@@ -32,3 +39,7 @@ class UserEntity(Base, UUIDMixin, TimestampMixin):
     organization: Mapped["OrganizationEntity | None"] = relationship("OrganizationEntity", lazy="selectin")
 
     created_by_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+
+    _raw_token: str | None = None
+    _jti: str | None = None
+    _exp: int | None = None

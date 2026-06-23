@@ -39,7 +39,7 @@ class RefreshTokenRepo(Repo):
     async def revoke_all_for_user(self, user_id: uuid.UUID) -> None:
         await self.db.execute(
             update(RefreshTokenEntity)
-            .where(RefreshTokenEntity.user_id == user_id, RefreshTokenEntity.is_revoked == False)
+            .where(RefreshTokenEntity.user_id == user_id, ~RefreshTokenEntity.is_revoked)
             .values(is_revoked=True)
         )
         await self.db.flush()

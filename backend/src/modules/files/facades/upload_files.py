@@ -1,7 +1,7 @@
 import uuid
 from pathlib import Path
 
-from fastapi import Depends, File, Form, HTTPException, UploadFile, status
+from fastapi import Depends, File, Form, UploadFile
 
 from src.data.entities.file import EntityType, FileEntity
 from src.data.entities.user import UserEntity

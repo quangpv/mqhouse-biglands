@@ -41,6 +41,12 @@ async def get_current_user(
     return user
 
 
+async def require_auth(
+    _current_user: UserEntity = Depends(get_current_user),
+) -> None:
+    pass
+
+
 def require_role(*roles: str):
     async def role_checker(current_user: UserEntity = Depends(get_current_user)) -> UserEntity:
         if current_user.role.value not in roles:

@@ -180,7 +180,7 @@ if user is None:
 | 2 | Each endpoint calls exactly one `Depends(facade_fn)` and returns its result | Router is a pure delegator |
 | 3 | All dependencies wired via `Depends()` — never `Repo(db=session)` inline | Enables DI override in tests |
 | 4 | Declare `response_model` and `status_code` on every route decorator | Self-documenting API contract |
-| 5 | Protect routes via `dependencies=[Depends(require_auth("role"))]` | Declarative, inspectable auth |
+| 5 | Protect routes via `dependencies=[Depends(require_auth)]` for read endpoints, `dependencies=[Depends(require_role("role"))]` for admin endpoints | Declarative, inspectable auth — facades should not carry pure auth guards |
 | 6 | Path params captured as function arguments, forwarded to facade | FastAPI handles parsing/validation |
 | 7 | Router exposed via a top-level `module()` function returning `APIRouter` | Consistent registration in `main.py` |
 
@@ -271,6 +271,15 @@ class NoteRepo:
         return result.scalar_one_or_none()
 ```
 
+**Mapper:**
+
+| # | Rule |
+|---|------|
+| 1 | Mapper module exposes three standard functions: `request_to_entity`, `apply_to_entity`, `entity_to_response` |
+| 2 | Default path: facades delegate entity construction to `request_to_entity(body)` and field updates to `apply_to_entity(entity, body)` |
+| 3 | The mapper is the canonical place for ORM constructor calls and field set expressions — facades orchestrate, mappers transform |
+| 4 | `entity_to_response` reads relationship collections from the entity object instead of accepting UUID list parameters |
+
 ### Naming
 
 | Category | Convention | Example |
@@ -282,7 +291,7 @@ class NoteRepo:
 | Classes (schemas) | `PascalCase + Request/Response` | `NoteCreateRequest`, `NoteResponse` |
 | Classes (repos) | `PascalCase + Repo` | `NoteRepo`, `UserRepo` |
 | Functions (facades) | `snake_case` (verb) | `create_note`, `list_notes` |
-| Functions (mappers) | `snake_case` (verb + noun) | `build_user_entity`, `note_to_response` |
+| Functions (mappers) | `snake_case` (verb + noun) | `request_to_entity`, `apply_to_entity`, `entity_to_response` |
 | Variables | `snake_case` | `hashed_password`, `access_token` |
 | Base file | `_base.py` | fixed name |
 
