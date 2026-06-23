@@ -682,13 +682,17 @@ Response: PropertyResponse
 
 GET /properties
 Desc: List all properties (with filters)
-Rules: Authenticated
+Rules:
+- Authenticated
+- Draft properties are only visible to their owner
 Request Params: PropertyListParams
 Response: PropertyListResponse
 
 GET /properties/{id}
 Desc: Get property by id
-Rules: Authenticated
+Rules:
+- Authenticated
+- Draft properties are only visible to their owner
 Response: PropertyResponse
 
 PUT /properties/{id}

@@ -3,10 +3,12 @@ import uuid
 from fastapi import Depends, Query
 
 from src.data.entities.property import DirectionType, PropertyStatus
+from src.data.entities.user import UserEntity
 from src.data.repositories._base import Repo
 from src.data.repositories.property_repo import PropertyRepo
 from src.modules.properties.mapper import entity_to_response
 from src.modules.properties.schemas import PageDTO, PropertyListResponse
+from src.platform.auth import get_current_user
 
 
 async def list_properties(
@@ -32,6 +34,7 @@ async def list_properties(
     sort_by: str = Query("created_at"),
     sort_order: str = Query("desc"),
     repo: PropertyRepo = Depends(PropertyRepo),
+    current_user: UserEntity = Depends(get_current_user),
 ) -> PropertyListResponse:
     from decimal import Decimal
 
@@ -65,6 +68,7 @@ async def list_properties(
         statuses=statuses,
         is_hot=is_hot,
         created_by_id=created_by_id,
+        draft_viewer_id=current_user.id,
         sort_by=sort_by,
         sort_order=sort_order,
     )

@@ -4,7 +4,7 @@ from httpx import AsyncClient
 
 @pytest.mark.asyncio
 async def test_admin_can_reject_post_pending(
-    client: AsyncClient, admin_token: str, post_pending_approval: tuple,
+    client: AsyncClient, admin_token: str, agent_token: str, post_pending_approval: tuple,
 ) -> None:
     prop_id, approval_id = post_pending_approval
 
@@ -17,12 +17,13 @@ async def test_admin_can_reject_post_pending(
     data = response.json()
     assert data["status"] == "rejected"
     assert data["decision"]["reason"] == "Invalid info"
+    assert data["property"]["status"] == "draft"
 
-    prop_resp = await client.get(
+    get_resp = await client.get(
         f"/properties/{prop_id}",
-        headers={"Authorization": f"Bearer {admin_token}"},
+        headers={"Authorization": f"Bearer {agent_token}"},
     )
-    assert prop_resp.json()["status"] == "draft"
+    assert get_resp.json()["status"] == "draft"
 
 
 @pytest.mark.asyncio

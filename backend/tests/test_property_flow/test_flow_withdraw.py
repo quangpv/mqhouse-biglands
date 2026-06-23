@@ -30,7 +30,7 @@ async def test_withdraw_from_post_pending(
 
     get_resp = await client.get(
         f"/properties/{prop_id}",
-        headers={"Authorization": f"Bearer {admin_token}"},
+        headers={"Authorization": f"Bearer {agent_token}"},
     )
     assert get_resp.json()["status"] == "draft"
 

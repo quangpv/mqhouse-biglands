@@ -31,10 +31,11 @@ async def test_reject_submit_returns_to_draft(
     )
     assert reject_resp.status_code == 200
     assert reject_resp.json()["status"] == "rejected"
+    assert reject_resp.json()["property"]["status"] == "draft"
 
     get_resp = await client.get(
         f"/properties/{prop_id}",
-        headers={"Authorization": f"Bearer {admin_token}"},
+        headers={"Authorization": f"Bearer {agent_token}"},
     )
     assert get_resp.json()["status"] == "draft"
 

@@ -60,6 +60,7 @@ class PropertyRepo(Repo):
         statuses: list[PropertyStatus] | None = None,
         is_hot: bool | None = None,
         created_by_id: uuid.UUID | None = None,
+        draft_viewer_id: uuid.UUID | None = None,
         sort_by: str = "created_at",
         sort_order: str = "desc",
     ) -> tuple[list[PropertyEntity], int]:
@@ -158,6 +159,14 @@ class PropertyRepo(Repo):
         if is_hot is not None:
             q = q.where(PropertyEntity.is_hot.is_(is_hot))
             count_q = count_q.where(PropertyEntity.is_hot.is_(is_hot))
+
+        if draft_viewer_id is not None:
+            draft_filter = or_(
+                PropertyEntity.status != PropertyStatus.DRAFT,
+                PropertyEntity.created_by_id == draft_viewer_id,
+            )
+            q = q.where(draft_filter)
+            count_q = count_q.where(draft_filter)
 
         if created_by_id is not None:
             q = q.where(PropertyEntity.created_by_id == created_by_id)
