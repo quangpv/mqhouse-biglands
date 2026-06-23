@@ -6,6 +6,7 @@ from fastapi import APIRouter, FastAPI
 from src.modules.auth import module as auth_module
 from src.modules.files import module as files_module
 from src.modules.geography import module as geography_module
+from src.modules.transaction_types import module as transaction_types_module
 from src.modules.ws import module as ws_module
 from src.platform.bootstrap import module as bootstrap_module
 from src.platform.config import settings
@@ -20,6 +21,7 @@ MODULES: list[Callable[..., Any]] = [
     auth_module,
     files_module,
     geography_module,
+    transaction_types_module,
     ws_module,
 ]
 

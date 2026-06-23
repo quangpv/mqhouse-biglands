@@ -10,6 +10,8 @@ from src.data.entities.user import UserEntity
 
 from src.data.entities.file import FileEntity
 
+from src.data.entities.transaction_type import TransactionTypeEntity
+
 __all__ = [
     "Base",
     "OrganizationEntity",
@@ -17,4 +19,5 @@ __all__ = [
     "TokenBlacklistEntity",
     "RefreshTokenEntity",
     "FileEntity",
+    "TransactionTypeEntity",
 ]
