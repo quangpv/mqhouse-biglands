@@ -2,9 +2,6 @@ import pytest
 from httpx import AsyncClient
 
 
-pytestmark = pytest.mark.usefixtures("seed_lookups")
-
-
 @pytest.mark.asyncio
 async def test_counts_returns_pending_by_type(
     client: AsyncClient, admin_token: str, agent_token: str, property_payload: dict,

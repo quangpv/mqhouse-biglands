@@ -45,4 +45,8 @@ cleanup() {
 }
 trap cleanup EXIT
 
-python -m pytest "$@"
+if [[ "$*" == *"-n"* ]]; then
+  python -m pytest "$@"
+else
+  python -m pytest -n 6 "$@"
+fi

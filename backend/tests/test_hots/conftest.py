@@ -2,21 +2,8 @@ import uuid
 
 import pytest_asyncio
 from httpx import AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.data.entities.property_type import PropertyTypeEntity
-from src.data.entities.transaction_type import TransactionTypeEntity
-
-TX_TYPE_ID = uuid.UUID("00000000-0000-0000-0000-0000000000f1")
-PT_TYPE_ID = uuid.UUID("00000000-0000-0000-0000-0000000000f2")
-
-
-@pytest_asyncio.fixture
-async def seed_lookups(db_session: AsyncSession):
-    tx = TransactionTypeEntity(id=TX_TYPE_ID, code="SELL", display_name="Sell")
-    pt = PropertyTypeEntity(id=PT_TYPE_ID, code="HOUSE", display_name="House")
-    db_session.add_all([tx, pt])
-    await db_session.commit()
+from tests.conftest import PT_TYPE_ID, TX_TYPE_ID
 
 
 @pytest_asyncio.fixture
@@ -48,7 +35,6 @@ async def property_payload() -> dict:
 async def test_property(
     client: AsyncClient,
     agent_token: str,
-    seed_lookups: None,
     property_payload: dict,
 ) -> uuid.UUID:
     resp = await client.post(

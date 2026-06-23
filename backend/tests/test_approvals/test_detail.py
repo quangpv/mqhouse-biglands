@@ -4,9 +4,6 @@ import pytest
 from httpx import AsyncClient
 
 
-pytestmark = pytest.mark.usefixtures("seed_lookups")
-
-
 @pytest.mark.asyncio
 async def test_get_approval_detail(
     client: AsyncClient, admin_token: str, post_pending_approval: tuple,

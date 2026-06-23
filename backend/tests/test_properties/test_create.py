@@ -1,4 +1,3 @@
-import uuid
 
 import pytest
 from httpx import AsyncClient
@@ -6,7 +5,6 @@ from httpx import AsyncClient
 from tests.conftest import ADMIN_UUID
 
 
-pytestmark = pytest.mark.usefixtures("seed_lookups")
 
 
 @pytest.mark.asyncio

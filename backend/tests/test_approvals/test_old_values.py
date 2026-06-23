@@ -2,9 +2,6 @@ import pytest
 from httpx import AsyncClient
 
 
-pytestmark = pytest.mark.usefixtures("seed_lookups")
-
-
 @pytest.mark.asyncio
 async def test_edit_pending_has_old_values(
     client: AsyncClient, admin_token: str, edit_pending_approval: tuple,

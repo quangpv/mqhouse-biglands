@@ -1,7 +1,6 @@
 import pytest
 from httpx import AsyncClient
 
-pytestmark = pytest.mark.usefixtures("seed_lookups")
 
 
 @pytest.mark.asyncio

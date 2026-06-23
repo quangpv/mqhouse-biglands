@@ -1,10 +1,5 @@
 from datetime import datetime, timedelta, timezone
 
-import pytest
-
-pytestmark = pytest.mark.usefixtures("seed_lookups")
-
-
 class TestRemoveFromHot:
     async def test_remove_hot_property_success(self, client, admin_token, test_property):
         prop_id = test_property

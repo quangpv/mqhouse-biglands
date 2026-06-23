@@ -1,3 +1,4 @@
+import os
 import socket
 import subprocess
 import time
@@ -12,15 +13,11 @@ _bcrypt.gensalt = lambda rounds=4: _original_gensalt(rounds=rounds)  # noqa: E73
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy import NullPool
+from sqlalchemy import NullPool, text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 
 from src.data.entities._base import Base
-from src.data.entities.refresh_token import RefreshTokenEntity
-from src.data.entities.token_blacklist import TokenBlacklistEntity
 from src.data.entities.user import UserEntity, UserRole
-from src.data.repositories.refresh_token_repo import RefreshTokenRepo
-from src.data.repositories.token_blacklist_repo import TokenBlacklistRepo
 from src.main import create_app
 
 app = create_app(api_prefix="")
@@ -29,12 +26,22 @@ from src.platform.dependencies import get_db, get_email_service
 from src.platform.email import EmailService
 from src.platform.security import create_jwt
 
+_XDIST_WORKER = os.environ.get("PYTEST_XDIST_WORKER", "")
+_XDIST_DB = ""
+if _XDIST_WORKER:
+    _XDIST_DB = f"biglands_test_{_XDIST_WORKER}"
+    settings.test_database_url = (
+        f"postgresql+asyncpg://postgres:postgres@localhost:5445/{_XDIST_DB}"
+    )
+
 ADMIN_UUID = uuid.UUID("00000000-0000-0000-0000-000000000001")
 AGENT_UUID = uuid.UUID("00000000-0000-0000-0000-000000000002")
 DEACTIVATED_UUID = uuid.UUID("00000000-0000-0000-0000-000000000003")
 APPROVER_UUID = uuid.UUID("00000000-0000-0000-0000-000000000004")
 ORG_MQ_LAND_ID = uuid.UUID("00000000-0000-0000-0000-000000000041")
 ORG_ID_LAND_ID = uuid.UUID("00000000-0000-0000-0000-000000000042")
+TX_TYPE_ID = uuid.UUID("00000000-0000-0000-0000-0000000000f1")
+PT_TYPE_ID = uuid.UUID("00000000-0000-0000-0000-0000000000f2")
 
 _ADMIN_PWH = _bcrypt.hashpw(b"admin123", _bcrypt.gensalt(rounds=4)).decode()
 _AGENT_PWH = _bcrypt.hashpw(b"agent123", _bcrypt.gensalt(rounds=4)).decode()
@@ -43,21 +50,15 @@ _APPROVER_PWH = _bcrypt.hashpw(b"approver123", _bcrypt.gensalt(rounds=4)).decode
 
 TEST_PG_CONTAINER = "biglands-test-pg"
 
-_engine = None
-
-
 def get_engine():
-    global _engine
-    if _engine is None:
-        _engine = create_async_engine(settings.test_database_url, echo=False, poolclass=NullPool)
-    return _engine
+    return create_async_engine(settings.test_database_url, echo=False, poolclass=NullPool)
 
 
 @pytest.fixture(scope="session", autouse=True)
 def docker_postgres():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
-        s.settimeout(2)
+        s.settimeout(0.5)
         s.connect(("localhost", 5445))
         s.close()
         yield
@@ -107,7 +108,25 @@ def docker_postgres():
 
 
 @pytest_asyncio.fixture(scope="session", autouse=True)
-async def setup_schema(docker_postgres):
+async def create_worker_db(docker_postgres):
+    if not _XDIST_WORKER:
+        yield
+        return
+    mgmt_engine = create_async_engine(
+        "postgresql+asyncpg://postgres:postgres@localhost:5445/postgres",
+        isolation_level="AUTOCOMMIT",
+    )
+    try:
+        async with mgmt_engine.connect() as conn:
+            await conn.execute(text(f"CREATE DATABASE {_XDIST_DB}"))
+    except Exception:
+        pass
+    await mgmt_engine.dispose()
+    yield
+
+
+@pytest_asyncio.fixture(scope="session", autouse=True)
+async def setup_schema(create_worker_db):
     async with get_engine().begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
@@ -163,6 +182,17 @@ async def seed_users(setup_schema):
         await session.commit()
 
 
+@pytest_asyncio.fixture(scope="session", autouse=True)
+async def seed_lookups(seed_users):
+    from src.data.entities.property_type import PropertyTypeEntity
+    from src.data.entities.transaction_type import TransactionTypeEntity
+    async with AsyncSession(get_engine()) as session:
+        tx = TransactionTypeEntity(id=TX_TYPE_ID, code="SELL", display_name="Sell")
+        pt = PropertyTypeEntity(id=PT_TYPE_ID, code="HOUSE", display_name="House")
+        session.add_all([tx, pt])
+        await session.commit()
+
+
 @pytest_asyncio.fixture
 async def db_session() -> AsyncSession:
     conn = await get_engine().connect()
@@ -191,18 +221,18 @@ async def client(override_get_db: None) -> AsyncClient:
         yield ac
 
 
-@pytest_asyncio.fixture
-async def admin_token() -> str:
+@pytest_asyncio.fixture(scope="session")
+def admin_token() -> str:
     return create_jwt(ADMIN_UUID, UserRole.ADMIN.value)
 
 
-@pytest_asyncio.fixture
-async def agent_token() -> str:
+@pytest_asyncio.fixture(scope="session")
+def agent_token() -> str:
     return create_jwt(AGENT_UUID, UserRole.SALE.value)
 
 
-@pytest_asyncio.fixture
-async def approver_token() -> str:
+@pytest_asyncio.fixture(scope="session")
+def approver_token() -> str:
     return create_jwt(APPROVER_UUID, UserRole.APPROVER.value)
 
 

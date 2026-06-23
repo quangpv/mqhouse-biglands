@@ -1,6 +1,4 @@
-import pytest
 
-pytestmark = pytest.mark.usefixtures("seed_lookups")
 
 
 class TestDeleteReview:

@@ -2,9 +2,6 @@ import pytest
 from httpx import AsyncClient
 
 
-pytestmark = pytest.mark.usefixtures("seed_lookups")
-
-
 @pytest.mark.asyncio
 async def test_admin_can_approve_post_pending(
     client: AsyncClient, admin_token: str, post_pending_approval: tuple,
@@ -90,7 +87,7 @@ async def test_approve_nonexistent_returns_404(
     client: AsyncClient, admin_token: str,
 ) -> None:
     response = await client.post(
-        f"/approvals/00000000-0000-0000-0000-000000009999/approve",
+        "/approvals/00000000-0000-0000-0000-000000009999/approve",
         json={},
         headers={"Authorization": f"Bearer {admin_token}"},
     )
