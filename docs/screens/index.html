@@ -68,7 +68,10 @@
 </head>
 <body class="h-full overflow-hidden text-body">
 
-    <div class="flex h-full w-full overflow-hidden">
+    <!-- ================= LOGIN VIEW ================= -->
+    <div id="login-view" class="hidden h-full overflow-y-auto bg-[#F8FAFC] flex flex-col"></div>
+
+    <div id="app-shell" class="hidden flex h-full w-full overflow-hidden">
 
         <!-- ================= SIDEBAR (DESKTOP) ================= -->
         <aside id="desktop-sidebar" class="hidden lg:flex flex-col w-64 bg-white border-r border-[#E2E8F0] h-full flex-shrink-0">
@@ -569,6 +572,8 @@
 
         // ==================== ROUTER ====================
         const routeTitles = {
+            'dang-nhap': 'Đăng nhập',
+            'quen-mat-khau': 'Quên mật khẩu',
             'trang-chu': 'Trang chủ',
             'gio-hang': 'Giỏ hàng',
             'thong-bao': 'Thông báo',
@@ -600,167 +605,86 @@
             navigate('chi-tiet-san-pham');
         }
 
+        async function loadPageContent(url, target) {
+            document.querySelectorAll('script[data-page-script]').forEach(s => s.remove());
+            try {
+                const res = await fetch(url);
+                const html = await res.text();
+                const temp = document.createElement('div');
+                temp.innerHTML = html;
+                const scripts = temp.querySelectorAll('script');
+                scripts.forEach(s => s.remove());
+                target.innerHTML = temp.innerHTML;
+                scripts.forEach(s => {
+                    const ns = document.createElement('script');
+                    ns.textContent = s.textContent;
+                    ns.setAttribute('data-page-script', '');
+                    document.body.appendChild(ns);
+                });
+                lucide.createIcons();
+            } catch (e) {
+                target.innerHTML = '<div class="flex items-center justify-center h-full text-textSecondary"><p>Không thể tải nội dung.</p></div>';
+            }
+        }
+
         async function navigate(route) {
             const title = routeTitles[route] || 'Trang chủ';
             document.getElementById('page-title').textContent = title;
             document.getElementById('page-title-mobile').textContent = title;
             updateSidebarActive(route);
 
+            const loginView = document.getElementById('login-view');
+            const appShell = document.getElementById('app-shell');
             const content = document.getElementById('page-content');
 
-            if (route === 'trang-chu') {
-                try {
-                    document.querySelectorAll('script[data-page-script]').forEach(s => s.remove());
-                    const res = await fetch('home/home_content.html');
-                    const html = await res.text();
-                    const temp = document.createElement('div');
-                    temp.innerHTML = html;
-                    const scripts = temp.querySelectorAll('script');
-                    scripts.forEach(s => s.remove());
-                    content.innerHTML = temp.innerHTML;
-                    scripts.forEach(s => {
-                        const ns = document.createElement('script');
-                        ns.textContent = s.textContent;
-                        ns.setAttribute('data-page-script', '');
-                        document.body.appendChild(ns);
-                    });
-                    lucide.createIcons();
-                } catch (e) {
-                    content.innerHTML = '<div class="text-center py-20 text-textSecondary"><p>Không thể tải nội dung.</p></div>';
-                }
-            } else if (route === 'gio-hang') {
-                try {
-                    document.querySelectorAll('script[data-page-script]').forEach(s => s.remove());
-                    const res = await fetch('my-cart/my-cart.html');
-                    const html = await res.text();
-                    const temp = document.createElement('div');
-                    temp.innerHTML = html;
-                    const scripts = temp.querySelectorAll('script');
-                    scripts.forEach(s => s.remove());
-                    content.innerHTML = temp.innerHTML;
-                    scripts.forEach(s => {
-                        const ns = document.createElement('script');
-                        ns.textContent = s.textContent;
-                        ns.setAttribute('data-page-script', '');
-                        document.body.appendChild(ns);
-                    });
-                    lucide.createIcons();
-                } catch (e) {
-                    content.innerHTML = '<div class="text-center py-20 text-textSecondary"><p>Không thể tải nội dung.</p></div>';
-                }
-            } else if (route === 'thong-bao') {
-                try {
-                    document.querySelectorAll('script[data-page-script]').forEach(s => s.remove());
-                    const res = await fetch('notification/notification-content.html');
-                    const html = await res.text();
-                    const temp = document.createElement('div');
-                    temp.innerHTML = html;
-                    const scripts = temp.querySelectorAll('script');
-                    scripts.forEach(s => s.remove());
-                    content.innerHTML = temp.innerHTML;
-                    scripts.forEach(s => {
-                        const ns = document.createElement('script');
-                        ns.textContent = s.textContent;
-                        ns.setAttribute('data-page-script', '');
-                        document.body.appendChild(ns);
-                    });
-                    lucide.createIcons();
-                } catch (e) {
-                    content.innerHTML = '<div class="text-center py-20 text-textSecondary"><p>Không thể tải nội dung.</p></div>';
-                }
-            } else if (route === 'quan-ly-nguoi-dung') {
-                try {
-                    document.querySelectorAll('script[data-page-script]').forEach(s => s.remove());
-                    const res = await fetch('user-management/user-management-content.html');
-                    const html = await res.text();
-                    const temp = document.createElement('div');
-                    temp.innerHTML = html;
-                    const scripts = temp.querySelectorAll('script');
-                    scripts.forEach(s => s.remove());
-                    content.innerHTML = temp.innerHTML;
-                    scripts.forEach(s => {
-                        const ns = document.createElement('script');
-                        ns.textContent = s.textContent;
-                        ns.setAttribute('data-page-script', '');
-                        document.body.appendChild(ns);
-                    });
-                    lucide.createIcons();
-                } catch (e) {
-                    content.innerHTML = '<div class="text-center py-20 text-textSecondary"><p>Không thể tải nội dung.</p></div>';
-                }
-            } else if (route === 'chi-tiet-san-pham') {
-                try {
-                    document.querySelectorAll('script[data-page-script]').forEach(s => s.remove());
-                    const res = await fetch('product-details/product-details-content.html');
-                    const html = await res.text();
-                    const temp = document.createElement('div');
-                    temp.innerHTML = html;
-                    const scripts = temp.querySelectorAll('script');
-                    scripts.forEach(s => s.remove());
-                    content.innerHTML = temp.innerHTML;
-                    scripts.forEach(s => {
-                        const ns = document.createElement('script');
-                        ns.textContent = s.textContent;
-                        ns.setAttribute('data-page-script', '');
-                        document.body.appendChild(ns);
-                    });
-                    if (typeof initApp === 'function') {
-                        initApp();
-                        if (selectedProductId) {
-                            selectProperty(selectedProductId);
-                        }
-                    }
-                    lucide.createIcons();
-                } catch (e) {
-                    content.innerHTML = '<div class="text-center py-20 text-textSecondary"><p>Không thể tải nội dung.</p></div>';
-                }
-            } else if (route === 'them-hang') {
-                try {
-                    document.querySelectorAll('script[data-page-script]').forEach(s => s.remove());
-                    const res = await fetch('create-product/create-product-content.html');
-                    const html = await res.text();
-                    const temp = document.createElement('div');
-                    temp.innerHTML = html;
-                    const scripts = temp.querySelectorAll('script');
-                    scripts.forEach(s => s.remove());
-                    content.innerHTML = temp.innerHTML;
-                    scripts.forEach(s => {
-                        const ns = document.createElement('script');
-                        ns.textContent = s.textContent;
-                        ns.setAttribute('data-page-script', '');
-                        document.body.appendChild(ns);
-                    });
-                    lucide.createIcons();
-                } catch (e) {
-                    content.innerHTML = '<div class="text-center py-20 text-textSecondary"><p>Không thể tải nội dung.</p></div>';
-                }
-            } else if (route.startsWith('ban-') || route.startsWith('thue-') || route.startsWith('sangnhuong-')) {
-                try {
-                    document.querySelectorAll('script[data-page-script]').forEach(s => s.remove());
-                    const res = await fetch('review-products/review-products-content.html');
-                    const html = await res.text();
-                    const temp = document.createElement('div');
-                    temp.innerHTML = html;
-                    const scripts = temp.querySelectorAll('script');
-                    scripts.forEach(s => s.remove());
-                    content.innerHTML = temp.innerHTML;
-                    scripts.forEach(s => {
-                        const ns = document.createElement('script');
-                        ns.textContent = s.textContent;
-                        ns.setAttribute('data-page-script', '');
-                        document.body.appendChild(ns);
-                    });
-                    lucide.createIcons();
-                } catch (e) {
-                    content.innerHTML = '<div class="text-center py-20 text-textSecondary"><p>Không thể tải nội dung.</p></div>';
-                }
-            } else {
-                document.querySelectorAll('script[data-page-script]').forEach(s => s.remove());
-                const placeholder = document.getElementById('template-placeholder');
-                content.innerHTML = placeholder.innerHTML;
-                document.getElementById('placeholder-title').textContent = routeTitles[route];
-                lucide.createIcons();
+            if (route === 'dang-nhap') {
+                loginView.classList.remove('hidden');
+                appShell.classList.add('hidden');
+                await loadPageContent('login/login_content.html', loginView);
+                return;
             }
+
+            if (route === 'quen-mat-khau') {
+                loginView.classList.remove('hidden');
+                appShell.classList.add('hidden');
+                await loadPageContent('forgot-password/forgot-password_content.html', loginView);
+                return;
+            }
+
+            loginView.classList.add('hidden');
+            appShell.classList.remove('hidden');
+
+            const routeMap = {
+                'trang-chu': 'home/home_content.html',
+                'gio-hang': 'my-cart/my-cart.html',
+                'thong-bao': 'notification/notification-content.html',
+                'quan-ly-nguoi-dung': 'user-management/user-management-content.html',
+                'chi-tiet-san-pham': 'product-details/product-details-content.html',
+                'them-hang': 'create-product/create-product-content.html',
+            };
+
+            const url = routeMap[route];
+            if (url) {
+                await loadPageContent(url, content);
+                if (route === 'chi-tiet-san-pham' && typeof initApp === 'function') {
+                    initApp();
+                    if (selectedProductId) {
+                        selectProperty(selectedProductId);
+                    }
+                }
+                return;
+            }
+
+            if (route.startsWith('ban-') || route.startsWith('thue-') || route.startsWith('sangnhuong-')) {
+                await loadPageContent('review-products/review-products-content.html', content);
+                return;
+            }
+
+            document.querySelectorAll('script[data-page-script]').forEach(s => s.remove());
+            const placeholder = document.getElementById('template-placeholder');
+            content.innerHTML = placeholder.innerHTML;
+            document.getElementById('placeholder-title').textContent = title;
+            lucide.createIcons();
         }
 
         function updateSidebarActive(route) {
@@ -789,7 +713,7 @@
         });
 
         window.addEventListener('DOMContentLoaded', () => {
-            navigate('trang-chu');
+            navigate('dang-nhap');
         });
 
         // ==================== UI INTERACTIVES (from index.html) ====================
@@ -890,24 +814,7 @@
 
         function confirmLogout() {
             closeLogoutModal();
-            const mainContent = document.querySelector('main');
-            if (mainContent) {
-                mainContent.innerHTML = `
-                    <div class="max-w-7xl mx-auto h-full flex flex-col items-center justify-center min-h-[450px]">
-                        <div class="bg-white border border-[#E2E8F0] p-8 rounded-card shadow-soft text-center max-w-sm w-full">
-                            <div class="w-12 h-12 rounded-full bg-green-50 text-success flex items-center justify-center mx-auto mb-4">
-                                <i data-lucide="check-circle" class="w-6 h-6"></i>
-                            </div>
-                            <h3 class="text-h3 font-semibold text-textPrimary mb-2">Đăng xuất thành công</h3>
-                            <p class="text-body text-textSecondary mb-4">Phiên làm việc của bạn đã được đóng an toàn. Hãy tải lại trang để đăng nhập lại.</p>
-                            <button onclick="window.location.reload()" class="w-full px-4 py-2 bg-primary text-white font-medium rounded-button hover:bg-blue-700 transition-all-custom">
-                                Tải lại trang
-                            </button>
-                        </div>
-                    </div>
-                `;
-                lucide.createIcons();
-            }
+            navigate('dang-nhap');
         }
     </script>
 </body>
