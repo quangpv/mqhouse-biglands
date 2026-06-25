@@ -1,0 +1,6 @@
+[submodule "backend"]
+	path = backend
+	url = git@github.com:quangpv/mqhouse-biglands-backend.git
+[submodule "frontend"]
+	path = frontend
+	url = git@github.com:quangpv/mqhouse-biglands-frontend.git
