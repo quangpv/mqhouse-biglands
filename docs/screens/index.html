@@ -92,7 +92,7 @@
                     <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white">
                         <i data-lucide="home" class="w-4 h-4"></i>
                     </div>
-                    <span class="text-h3 text-[#0F172A] font-semibold tracking-tight">VNDeal CRM</span>
+                    <span class="text-h3 text-[#0F172A] font-semibold tracking-tight">Biglands CRM</span>
                 </div>
             </div>
 
@@ -535,9 +535,9 @@
                         <div>
                             <label class="block text-[12px] font-medium text-textSecondary mb-1.5">Trạng thái rổ hàng *</label>
                             <select id="form-status" required class="w-full px-3 py-2 text-[14px] border border-border rounded-[10px] bg-white focus:outline-none focus:ring-1 focus:ring-primary">
-                                <option value="Trống">Còn trống</option>
-                                <option value="Đang thương lượng">Đang thương lượng</option>
-                                <option value="Đã bán/Đặt cọc">Đã bán/Đặt cọc</option>
+                                <option value="available">Còn hàng</option>
+                                <option value="deposited">Đã cọc</option>
+                                <option value="soldout">Đã bán</option>
                             </select>
                         </div>
 
@@ -839,5 +839,8 @@
             navigate('dang-nhap');
         }
     </script>
+    <script src="data/products-list.js"></script>
+    <script src="data/products-detail.js"></script>
+    <script src="../components/product-card.js"></script>
 </body>
 </html>
