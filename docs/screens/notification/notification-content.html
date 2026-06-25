@@ -1,0 +1,573 @@
+<!-- PAGE: Thông báo -->
+<style>
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #CBD5E1;
+    border-radius: 3px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #94A3B8;
+}
+</style>
+
+<div class="mx-auto h-full flex flex-col bg-white shadow-subtle overflow-hidden">
+
+    <!-- FILTER BAR (STICKY) -->
+    <div class="sticky top-0 bg-[#FFFFFF] z-10 border-b border-[#E2E8F0]">
+        <!-- Primary Filters Row -->
+        <div class="p-4 flex flex-col md:flex-row md:items-center gap-3">
+            
+            <!-- A. Status Toggle -->
+            <div class="flex bg-[#F1F5F9] p-1 rounded-[10px] self-start md:self-auto md:shrink-0">
+                <button id="status-all" class="px-4 py-1.5 text-[14px] font-medium rounded-[8px] bg-white text-[#0F172A] shadow-sm transition-all duration-150" onclick="setStatusFilter('all')">
+                    Tất cả
+                </button>
+                <button id="status-unread" class="px-4 py-1.5 text-[14px] font-medium rounded-[8px] text-[#64748B] hover:text-[#0F172A] transition-all duration-150" onclick="setStatusFilter('unread')">
+                    Chưa đọc
+                </button>
+            </div>
+
+            <!-- B. Search + Mark All Read (inline on mobile) -->
+            <div class="flex items-center gap-2 w-full md:flex-1">
+                <div class="relative flex-1 md:max-w-xs">
+                    <input type="text" id="search-input" placeholder="Tìm kiếm thông báo..." class="w-full pl-4 pr-10 py-2.5 text-[14px] placeholder-[#64748B] text-[#0F172A] bg-white border border-[#E2E8F0] rounded-[10px] focus:outline-none focus:border-[#2563EB] focus:ring-2 focus:ring-blue-50 transition-all duration-150">
+                    <i data-lucide="search" class="absolute right-3.5 top-3 h-4 w-4 text-[#64748B]"></i>
+                </div>
+                <button id="mark-all-read-btn" class="inline-flex items-center justify-center p-2.5 md:px-4 md:py-2.5 text-[14px] font-medium text-[#2563EB] bg-blue-50 hover:bg-blue-100 rounded-button transition-all duration-150 focus:ring-2 focus:ring-blue-100 md:ml-auto shrink-0">
+                    <i data-lucide="check-check" class="h-4 w-4"></i>
+                    <span class="hidden md:inline">Đánh dấu tất cả là đã đọc</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- D. Category Tabs & Counts -->
+        <div class="px-4 pb-3 flex gap-2 overflow-x-auto no-scrollbar border-t border-[#F1F5F9] pt-3">
+            <button id="cat-all" class="flex-shrink-0 px-4 py-2 text-[12px] font-medium rounded-full bg-blue-50 text-[#2563EB] border border-blue-100 transition-all duration-150" onclick="setCategoryFilter('all')">
+                Tất cả phân loại <span class="ml-1.5 bg-blue-100 px-1.5 py-0.5 rounded-full text-[10px]" id="count-all">0</span>
+            </button>
+            <button id="cat-sale" class="flex-shrink-0 px-4 py-2 text-[12px] font-medium rounded-full bg-white text-[#64748B] border border-[#E2E8F0] hover:bg-[#F8FAFC] transition-all duration-150" onclick="setCategoryFilter('SALE')">
+                MUA BÁN <span class="ml-1.5 bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-full text-[10px]" id="count-sale">0</span>
+            </button>
+            <button id="cat-rent" class="flex-shrink-0 px-4 py-2 text-[12px] font-medium rounded-full bg-white text-[#64748B] border border-[#E2E8F0] hover:bg-[#F8FAFC] transition-all duration-150" onclick="setCategoryFilter('RENT')">
+                CHO THUÊ <span class="ml-1.5 bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-full text-[10px]" id="count-rent">0</span>
+            </button>
+            <button id="cat-transfer" class="flex-shrink-0 px-4 py-2 text-[12px] font-medium rounded-full bg-white text-[#64748B] border border-[#E2E8F0] hover:bg-[#F8FAFC] transition-all duration-150" onclick="setCategoryFilter('TRANSFER')">
+                SANG NHƯỢNG <span class="ml-1.5 bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-full text-[10px]" id="count-transfer">0</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- NOTIFICATION LIST -->
+    <div class="flex-1 overflow-y-auto custom-scrollbar bg-[#F8FAFC]">
+        <ul id="notification-timeline" class="divide-y divide-[#E2E8F0]"></ul>
+
+        <!-- Empty State Panel -->
+        <div id="empty-state" class="hidden flex-col items-center justify-center py-20 px-4 text-center">
+            <div class="h-16 w-16 bg-slate-100 text-[#64748B] rounded-full flex items-center justify-center mb-4">
+                <i data-lucide="bell-off" class="h-8 w-8"></i>
+            </div>
+            <h3 class="text-[20px] font-medium text-[#0F172A]">Không tìm thấy thông báo nào</h3>
+            <p class="text-[14px] text-[#64748B] mt-2 max-w-sm">Hiện tại bạn không có thông báo nào khớp với cấu hình bộ lọc đang chọn.</p>
+        </div>
+    </div>
+
+    <!-- PAGINATION FOOTER -->
+    <div id="pagination-footer" class="p-4 border-t border-[#E2E8F0] bg-white flex flex-row items-center justify-between">
+        <span class="text-[12px] text-[#64748B] shrink-0 mr-2">
+            <span id="pagination-info-short" class="sm:hidden">1-4 / 8</span>
+            <span id="pagination-info-long" class="hidden sm:inline">Hiển thị 1-4 trong số 8 thông báo</span>
+        </span>
+        <div id="pagination-controls" class="flex items-center gap-1.5"></div>
+    </div>
+</div>
+
+<!-- DETAIL POPUP MODAL -->
+<div id="detail-modal" class="fixed inset-0 z-50 hidden bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-[20px] shadow-subtle border border-[#E2E8F0] max-w-lg w-full overflow-hidden animate-zoom-in">
+        <div class="p-6 border-b border-[#E2E8F0] flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <span id="modal-tag" class="px-2.5 py-1 text-[12px] font-semibold rounded-full bg-blue-100 text-[#2563EB]">BÁN</span>
+                <span id="modal-item-id" class="text-[14px] font-semibold text-[#0F172A]">BĐS-9921</span>
+            </div>
+            <button onclick="closeModal()" class="text-[#64748B] hover:bg-[#F8FAFC] p-1.5 rounded-button transition-colors">
+                <i data-lucide="x" class="h-5 w-5"></i>
+            </button>
+        </div>
+        <div class="p-6 space-y-4">
+            <div class="relative h-48 w-full overflow-hidden rounded-[16px]">
+                <img id="modal-image" src="" alt="Listing photo" class="w-full h-full object-cover">
+                <div class="absolute bottom-3 left-3 bg-slate-900/70 backdrop-blur-sm text-white text-[12px] px-3 py-1 rounded-full">
+                    Nguồn: <span id="modal-source" class="font-medium">Hệ thống</span>
+                </div>
+            </div>
+            <div>
+                <h2 id="modal-title" class="text-[20px] font-semibold text-[#0F172A] leading-snug">Căn hộ Vinhomes Grand Park 2PN</h2>
+                <p id="modal-address" class="text-[14px] text-[#64748B] mt-1 flex items-center gap-1.5">
+                    <i data-lucide="map-pin" class="h-4 w-4"></i> Quận 9, TP. Thủ Đức
+                </p>
+            </div>
+            <div class="flex items-center justify-between p-4 bg-slate-50 rounded-[12px]">
+                <div>
+                    <p class="text-[12px] text-[#64748B]">Mức giá đề xuất</p>
+                    <p id="modal-price" class="text-[20px] font-semibold text-[#2563EB]">2.8 tỷ</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-[12px] text-[#64748B]">Trạng thái phê duyệt</p>
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[12px] font-medium bg-amber-50 text-amber-700 border border-amber-100">
+                        Đang chờ duyệt
+                    </span>
+                </div>
+            </div>
+            <p id="modal-desc" class="text-[14px] text-[#64748B] leading-relaxed">
+                Tin đăng chi tiết của sản phẩm bất động sản đang chờ phòng nghiệp vụ kiểm tra và phê chuẩn hiển thị công khai trên ứng dụng sàn nội bộ.
+            </p>
+        </div>
+        <div class="p-6 border-t border-[#E2E8F0] bg-slate-50 flex items-center justify-end gap-3">
+            <button onclick="handleReject()" class="px-4 py-2.5 text-[14px] font-medium text-white bg-[#DC2626] hover:bg-red-700 rounded-[12px] transition-all duration-150">
+                Từ chối duyệt
+            </button>
+            <button onclick="handleApprove()" class="px-4 py-2.5 text-[14px] font-medium text-white bg-[#16A34A] hover:bg-green-700 rounded-[12px] transition-all duration-150">
+                Phê duyệt đăng tin
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- TOAST NOTIFICATION BOX -->
+<div id="toast-box" class="fixed bottom-5 right-5 z-50 transform translate-y-10 opacity-0 pointer-events-none transition-all duration-300">
+    <div class="flex items-center gap-3 bg-slate-900 text-white px-5 py-3.5 rounded-[12px] shadow-lg">
+        <i data-lucide="info" class="h-5 w-5 text-[#2563EB]" id="toast-icon"></i>
+        <span id="toast-message" class="text-[14px] font-medium">Hành động thành công!</span>
+    </div>
+</div>
+
+<script>
+var notifications = [
+    {
+        id: "notif-1",
+        type: "SALE",
+        source: "Hệ thống tự động",
+        itemId: "BĐS-9921",
+        title: "Căn hộ Vinhomes Grand Park 2PN",
+        price: "2.8 tỷ",
+        address: "Quận 9, TP. Thủ Đức",
+        image: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=600&q=80",
+        message: "vừa thêm một tin đăng mới BĐS-9921, đang chờ bạn duyệt",
+        createdAt: "10 phút trước",
+        read: false
+    },
+    {
+        id: "notif-2",
+        type: "RENT",
+        source: "Website Khách hàng",
+        itemId: "BĐS-4302",
+        title: "Nhà phố nguyên căn hẻm xe hơi Lê Văn Sỹ",
+        price: "18 triệu/tháng",
+        address: "Lê Văn Sỹ, Quận 3, TP. HCM",
+        image: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=600&q=80",
+        message: "vừa thêm một tin đăng mới BĐS-4302, đang chờ bạn duyệt",
+        createdAt: "1 giờ trước",
+        read: false
+    },
+    {
+        id: "notif-3",
+        type: "TRANSFER",
+        source: "Cộng tác viên Minh Tuấn",
+        itemId: "BĐS-8812",
+        title: "Sang nhượng quán Cafe mặt tiền đường Nguyễn Thị Minh Khai",
+        price: "350 triệu",
+        address: "Nguyễn Thị Minh Khai, Quận 1, TP. HCM",
+        image: "https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80",
+        message: "vừa thêm một tin đăng mới BĐS-8812, đang chờ bạn duyệt",
+        createdAt: "3 giờ trước",
+        read: true
+    },
+    {
+        id: "notif-4",
+        type: "SALE",
+        source: "Chi nhánh Quận 2",
+        itemId: "BĐS-7721",
+        title: "Biệt thự Thảo Điền view sông cực đẹp",
+        price: "45 tỷ",
+        address: "Thảo Điền, Quận 2, TP. HCM",
+        image: "https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=600&q=80",
+        message: "vừa thêm một tin đăng mới BĐS-7721, đang chờ bạn duyệt",
+        createdAt: "5 giờ trước",
+        read: false
+    },
+    {
+        id: "notif-5",
+        type: "RENT",
+        source: "Cộng tác viên Thuỳ Trang",
+        itemId: "BĐS-1209",
+        title: "Căn hộ Studio dịch vụ đầy đủ nội thất",
+        price: "7.5 triệu/tháng",
+        address: "Bạch Đằng, Bình Thạnh, TP. HCM",
+        image: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=600&q=80",
+        message: "vừa thêm một tin đăng mới BĐS-1209, đang chờ bạn duyệt",
+        createdAt: "1 ngày trước",
+        read: true
+    },
+    {
+        id: "notif-6",
+        type: "TRANSFER",
+        source: "Hệ thống tự động",
+        itemId: "BĐS-5521",
+        title: "Sang nhượng spa mini trung tâm Phú Nhuận",
+        price: "180 triệu",
+        address: "Phan Xích Long, Phú Nhuận, TP. HCM",
+        image: "https://images.unsplash.com/photo-1519699047748-de8e457a634e?auto=format&fit=crop&w=600&q=80",
+        message: "vừa thêm một tin đăng mới BĐS-5521, đang chờ bạn duyệt",
+        createdAt: "1 ngày trước",
+        read: true
+    },
+    {
+        id: "notif-7",
+        type: "SALE",
+        source: "Website Khách hàng",
+        itemId: "BĐS-3042",
+        title: "Đất nền dự án sổ hồng riêng Long An",
+        price: "1.6 tỷ",
+        address: "Bến Lức, Long An",
+        image: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=600&q=80",
+        message: "vừa thêm một tin đăng mới BĐS-3042, đang chờ bạn duyệt",
+        createdAt: "2 ngày trước",
+        read: true
+    },
+    {
+        id: "notif-8",
+        type: "RENT",
+        source: "Chi nhánh Quận 7",
+        itemId: "BĐS-6610",
+        title: "Căn hộ Scenic Valley Phú Mỹ Hưng 3PN",
+        price: "22 triệu/tháng",
+        address: "Phú Mỹ Hưng, Quận 7, TP. HCM",
+        image: "https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=600&q=80",
+        message: "vừa thêm một tin đăng mới BĐS-6610, đang chờ bạn duyệt",
+        createdAt: "3 ngày trước",
+        read: true
+    }
+];
+
+var activeStatus = "all";
+var activeCategory = "all";
+var searchQuery = "";
+var selectedNotificationId = null;
+var currentPage = 1;
+var itemsPerPage = 4;
+
+function setupEventListeners() {
+    var searchInput = document.getElementById('search-input');
+    var debounceTimer;
+    searchInput.addEventListener('input', function(e) {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(function() {
+            searchQuery = e.target.value.toLowerCase().trim();
+            currentPage = 1;
+            renderNotifications();
+        }, 200);
+    });
+
+    var markAllBtn = document.getElementById('mark-all-read-btn');
+    markAllBtn.addEventListener('click', function() {
+        var updatedCount = 0;
+        notifications.forEach(function(notif) {
+            var matchCategory = activeCategory === "all" || notif.type === activeCategory;
+            var matchSearch = notif.title.toLowerCase().includes(searchQuery) || 
+                                notif.itemId.toLowerCase().includes(searchQuery) ||
+                                notif.source.toLowerCase().includes(searchQuery);
+            
+            if (matchCategory && matchSearch && !notif.read) {
+                notif.read = true;
+                updatedCount++;
+            }
+        });
+        
+        if (updatedCount > 0) {
+            renderNotifications();
+            updateStats();
+            showToast("Đã đánh dấu " + updatedCount + " thông báo hiển thị là đã đọc", "success");
+        } else {
+            showToast("Không có thông báo mới nào để xử lý", "info");
+        }
+    });
+}
+
+function renderNotifications() {
+    var listContainer = document.getElementById('notification-timeline');
+    var emptyState = document.getElementById('empty-state');
+    var paginationFooter = document.getElementById('pagination-footer');
+    listContainer.innerHTML = '';
+
+    var filtered = notifications.filter(function(notif) {
+        if (activeStatus === "unread" && notif.read) return false;
+        if (activeCategory !== "all" && notif.type !== activeCategory) return false;
+        if (searchQuery !== "") {
+            var matchTitle = notif.title.toLowerCase().includes(searchQuery);
+            var matchId = notif.itemId.toLowerCase().includes(searchQuery);
+            var matchSource = notif.source.toLowerCase().includes(searchQuery);
+            if (!matchTitle && !matchId && !matchSource) return false;
+        }
+        return true;
+    });
+
+    var totalItems = filtered.length;
+
+    if (totalItems === 0) {
+        emptyState.classList.remove('hidden');
+        emptyState.classList.add('flex');
+        paginationFooter.classList.add('hidden');
+    } else {
+        emptyState.classList.add('hidden');
+        emptyState.classList.remove('flex');
+        paginationFooter.classList.remove('hidden');
+
+        var totalPages = Math.ceil(totalItems / itemsPerPage);
+        if (currentPage > totalPages) {
+            currentPage = Math.max(1, totalPages);
+        }
+
+        var startIndex = (currentPage - 1) * itemsPerPage;
+        var endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+        var paginatedItems = filtered.slice(startIndex, endIndex);
+
+        paginatedItems.forEach(function(notif) {
+            var li = document.createElement('li');
+            li.className = 'p-4 transition-all duration-150 cursor-pointer hover:bg-slate-50 flex items-start gap-4 ' + (!notif.read ? 'bg-blue-50/20' : '');
+            li.setAttribute('onclick', "openNotificationDetail('" + notif.id + "')");
+
+            var typeTag = "";
+            var typeBadgeClass = "";
+            if (notif.type === "SALE") {
+                typeTag = "MUA BÁN";
+                typeBadgeClass = "bg-emerald-50 text-emerald-700 border border-emerald-100";
+            } else if (notif.type === "RENT") {
+                typeTag = "CHO THUÊ";
+                typeBadgeClass = "bg-blue-50 text-blue-700 border border-blue-100";
+            } else {
+                typeTag = "SANG NHƯỢNG";
+                typeBadgeClass = "bg-amber-50 text-amber-700 border border-amber-100";
+            }
+
+            var unreadDot = '';
+            if (!notif.read) {
+                unreadDot = '<div class="flex-shrink-0 self-center"><div class="h-2.5 w-2.5 rounded-full bg-blue-600"></div></div>';
+            }
+
+            li.innerHTML = '\
+                <div class="flex-shrink-0">\
+                    <div class="h-10 w-10 rounded-full flex items-center justify-center ' + (!notif.read ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-400') + '">\
+                        <i data-lucide="bell" class="h-5 w-5"></i>\
+                    </div>\
+                </div>\
+                <div class="flex-1 min-w-0">\
+                    <div class="flex flex-wrap items-center gap-2 mb-1">\
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold tracking-wide uppercase ' + typeBadgeClass + '">\
+                            ' + typeTag + '\
+                        </span>\
+                        <span class="text-[12px] text-[#64748B] font-medium">• Nguồn: ' + notif.source + '</span>\
+                    </div>\
+                    <p class="text-[14px] leading-snug ' + (!notif.read ? 'font-bold text-[#0F172A]' : 'font-normal text-[#64748B]') + '" id="title-' + notif.id + '">\
+                        [' + notif.type + '][' + notif.source + '] ' + notif.message + '\
+                    </p>\
+                    <span class="text-[12px] text-[#64748B] mt-2 block flex items-center gap-1">\
+                        <i data-lucide="clock" class="h-3 w-3"></i> ' + notif.createdAt + '\
+                    </span>\
+                </div>\
+                ' + unreadDot + '\
+            ';
+            listContainer.appendChild(li);
+        });
+
+        renderPaginationControls(totalItems, totalPages, startIndex + 1, endIndex);
+    }
+
+    lucide.createIcons();
+}
+
+function renderPaginationControls(totalItems, totalPages, startNum, endNum) {
+    var controlsContainer = document.getElementById('pagination-controls');
+
+    document.getElementById('pagination-info-short').innerText = startNum + "-" + endNum + " / " + totalItems;
+    document.getElementById('pagination-info-long').innerText = "Hiển thị " + startNum + "-" + endNum + " trong số " + totalItems + " thông báo";
+
+    controlsContainer.innerHTML = '';
+
+    var prevBtn = document.createElement('button');
+    prevBtn.className = 'p-2 border border-[#E2E8F0] rounded-[10px] text-[#64748B] hover:bg-slate-50 transition-colors disabled:opacity-40 disabled:pointer-events-none';
+    prevBtn.disabled = currentPage === 1;
+    prevBtn.onclick = function() { changePage(currentPage - 1); };
+    prevBtn.innerHTML = '<i data-lucide="chevron-left" class="h-4 w-4"></i>';
+    controlsContainer.appendChild(prevBtn);
+
+    for (var i = 1; i <= totalPages; i++) {
+        var pageBtn = document.createElement('button');
+        var isActive = i === currentPage;
+        pageBtn.className = 'px-3 py-1.5 text-[12px] font-semibold rounded-[10px] border transition-all duration-150 ' + (
+            isActive 
+            ? 'bg-blue-50 border-blue-200 text-[#2563EB]' 
+            : 'bg-white border-[#E2E8F0] text-[#64748B] hover:bg-slate-50'
+        );
+        pageBtn.innerText = i;
+        pageBtn.onclick = function(p) { return function() { changePage(p); }; }(i);
+        controlsContainer.appendChild(pageBtn);
+    }
+
+    var nextBtn = document.createElement('button');
+    nextBtn.className = 'p-2 border border-[#E2E8F0] rounded-[10px] text-[#64748B] hover:bg-slate-50 transition-colors disabled:opacity-40 disabled:pointer-events-none';
+    nextBtn.disabled = currentPage === totalPages;
+    nextBtn.onclick = function() { changePage(currentPage + 1); };
+    nextBtn.innerHTML = '<i data-lucide="chevron-right" class="h-4 w-4"></i>';
+    controlsContainer.appendChild(nextBtn);
+}
+
+function changePage(page) {
+    currentPage = page;
+    renderNotifications();
+    var listScrollParent = document.getElementById('notification-timeline').parentElement;
+    listScrollParent.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function setStatusFilter(status) {
+    activeStatus = status;
+    currentPage = 1;
+    
+    var btnAll = document.getElementById('status-all');
+    var btnUnread = document.getElementById('status-unread');
+
+    if (status === 'all') {
+        btnAll.className = "px-4 py-1.5 text-[14px] font-medium rounded-[8px] bg-white text-[#0F172A] shadow-sm transition-all duration-150";
+        btnUnread.className = "px-4 py-1.5 text-[14px] font-medium rounded-[8px] text-[#64748B] hover:text-[#0F172A] transition-all duration-150";
+    } else {
+        btnUnread.className = "px-4 py-1.5 text-[14px] font-medium rounded-[8px] bg-white text-[#0F172A] shadow-sm transition-all duration-150";
+        btnAll.className = "px-4 py-1.5 text-[14px] font-medium rounded-[8px] text-[#64748B] hover:text-[#0F172A] transition-all duration-150";
+    }
+    renderNotifications();
+}
+
+function setCategoryFilter(category) {
+    activeCategory = category;
+    currentPage = 1;
+    
+    var categories = ['all', 'sale', 'rent', 'transfer'];
+    categories.forEach(function(cat) {
+        var element = document.getElementById('cat-' + cat);
+        if (cat === category.toLowerCase()) {
+            element.className = "flex-shrink-0 px-4 py-2 text-[12px] font-medium rounded-full bg-blue-50 text-[#2563EB] border border-blue-100 transition-all duration-150";
+            var span = element.querySelector('span');
+            if (span) span.className = "ml-1.5 bg-blue-100 px-1.5 py-0.5 rounded-full text-[10px]";
+        } else {
+            element.className = "flex-shrink-0 px-4 py-2 text-[12px] font-medium rounded-full bg-white text-[#64748B] border border-[#E2E8F0] hover:bg-[#F8FAFC] transition-all duration-150";
+            var span = element.querySelector('span');
+            if (span) span.className = "ml-1.5 bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-full text-[10px]";
+        }
+    });
+
+    renderNotifications();
+}
+
+function updateStats() {
+    var countAll = notifications.length;
+    var countSale = notifications.filter(function(n) { return n.type === "SALE"; }).length;
+    var countRent = notifications.filter(function(n) { return n.type === "RENT"; }).length;
+    var countTransfer = notifications.filter(function(n) { return n.type === "TRANSFER"; }).length;
+
+    document.getElementById('count-all').innerText = countAll;
+    document.getElementById('count-sale').innerText = countSale;
+    document.getElementById('count-rent').innerText = countRent;
+    document.getElementById('count-transfer').innerText = countTransfer;
+}
+
+function openNotificationDetail(id) {
+    var notif = notifications.find(function(n) { return n.id === id; });
+    if (!notif) return;
+
+    selectedNotificationId = id;
+
+    if (!notif.read) {
+        notif.read = true;
+        renderNotifications();
+        updateStats();
+    }
+
+    document.getElementById('modal-item-id').innerText = notif.itemId;
+    document.getElementById('modal-title').innerText = notif.title;
+    document.getElementById('modal-address').innerHTML = '<i data-lucide="map-pin" class="h-4 w-4"></i> ' + notif.address;
+    document.getElementById('modal-price').innerText = notif.price;
+    document.getElementById('modal-source').innerText = notif.source;
+    document.getElementById('modal-image').src = notif.image;
+
+    var modalTag = document.getElementById('modal-tag');
+    modalTag.innerText = notif.type === "SALE" ? "MUA BÁN" : (notif.type === "RENT" ? "CHO THUÊ" : "SANG NHƯỢNG");
+    
+    if (notif.type === "SALE") {
+        modalTag.className = "px-2.5 py-1 text-[12px] font-semibold rounded-full bg-emerald-100 text-emerald-700";
+    } else if (notif.type === "RENT") {
+        modalTag.className = "px-2.5 py-1 text-[12px] font-semibold rounded-full bg-blue-100 text-blue-700";
+    } else {
+        modalTag.className = "px-2.5 py-1 text-[12px] font-semibold rounded-full bg-amber-100 text-amber-700";
+    }
+
+    document.getElementById('detail-modal').classList.remove('hidden');
+    lucide.createIcons();
+}
+
+function closeModal() {
+    document.getElementById('detail-modal').classList.add('hidden');
+    selectedNotificationId = null;
+}
+
+function handleApprove() {
+    if (!selectedNotificationId) return;
+    showToast("Đã PHÊ DUYỆT thành công tin đăng của " + selectedNotificationId + "!", "success");
+    closeModal();
+}
+
+function handleReject() {
+    if (!selectedNotificationId) return;
+    showToast("Đã TỪ CHỐI phê duyệt tin đăng của " + selectedNotificationId + "!", "error");
+    closeModal();
+}
+
+function showToast(message, type) {
+    if (!type) type = "success";
+    var toast = document.getElementById('toast-box');
+    var toastMsg = document.getElementById('toast-message');
+    var toastIcon = document.getElementById('toast-icon');
+
+    toastMsg.innerText = message;
+
+    if (type === "success") {
+        toastIcon.setAttribute('data-lucide', 'check-circle-2');
+        toastIcon.className = "h-5 w-5 text-emerald-500";
+    } else if (type === "error") {
+        toastIcon.setAttribute('data-lucide', 'alert-triangle');
+        toastIcon.className = "h-5 w-5 text-red-500";
+    } else {
+        toastIcon.setAttribute('data-lucide', 'info');
+        toastIcon.className = "h-5 w-5 text-blue-500";
+    }
+    
+    lucide.createIcons();
+
+    toast.classList.remove('translate-y-10', 'opacity-0', 'pointer-events-none');
+    toast.classList.add('translate-y-0', 'opacity-100');
+
+    setTimeout(function() {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-10', 'opacity-0', 'pointer-events-none');
+    }, 3000);
+}
+
+;(function init() {
+    renderNotifications();
+    setupEventListeners();
+    updateStats();
+    lucide.createIcons();
+})();
+</script>

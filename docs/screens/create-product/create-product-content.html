@@ -1,0 +1,1162 @@
+<!-- PAGE: Thêm hàng mới -->
+<style>
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #F1F5F9; }
+::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+.text-h3 { font-size: 20px; font-weight: 500; line-height: 26px; }
+.text-h2 { font-size: 24px; font-weight: 600; line-height: 30px; }
+</style>
+
+<div class="max-w-7xl mx-auto px-4 py-4 lg:py-6">
+
+    <form id="re-listing-form" class="pb-24 lg:pb-28" onsubmit="event.preventDefault();" novalidate>
+        <div id="form-container-panel" class="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-5">
+
+            <!-- 1. BASIC INFORMATION -->
+            <div id="sec-basic" class="lg:col-span-4 bg-surface rounded-card p-4 lg:p-5 border border-border shadow-soft scroll-mt-24">
+                <div class="flex items-center space-x-3 mb-4 pb-3 border-b border-border">
+                    <span class="w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-body text-[13px]">1</span>
+                    <h2 class="text-h3 text-textPrimary">Thông Tin Cơ Bản</h2>
+                </div>
+
+                <div class="space-y-4">
+                    <!-- Product Title -->
+                    <div>
+                        <label class="block text-body font-semibold text-textPrimary mb-1.5">
+                            Tiêu đề tin đăng <span class="text-error">*</span>
+                        </label>
+                        <input type="text" id="listing-title" name="title" placeholder="VD: Bán căn hộ chung cư cao cấp Vinhomes Golden River 2PN giá cực tốt"
+                               class="w-full px-4 py-2.5 rounded-input border border-border text-body text-textPrimary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-150"
+                               oninput="updatePreview(); validateField(this);">
+                        <p class="error-msg text-small text-error mt-1 hidden"></p>
+                        <p class="text-small text-textSecondary mt-1">Độ dài tối ưu 30 - 100 ký tự. Tránh viết hoa toàn bộ ký tự.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-4">
+                        <!-- Listing Type -->
+                        <div>
+                            <label class="block text-body font-semibold text-textPrimary mb-1.5">
+                                Hình thức giao dịch <span class="text-error">*</span>
+                            </label>
+                            <select id="listing-type" name="type" class="w-full px-4 py-2.5 rounded-input border border-border text-body text-textPrimary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white transition-all duration-150"
+                                    onchange="updatePreview(); validateField(this); updatePricePlaceholder();">
+                                <option value="" disabled selected>Chọn hình thức</option>
+                                <option value="SALE">Bán bất động sản</option>
+                                <option value="RENT">Cho thuê</option>
+                                <option value="TRANSFER">Nhượng quyền / Chuyển nhượng</option>
+                            </select>
+                            <p class="error-msg text-small text-error mt-1 hidden"></p>
+                        </div>
+
+                        <!-- Property Type -->
+                        <div>
+                            <label class="block text-body font-semibold text-textPrimary mb-1.5">
+                                Loại bất động sản <span class="text-error">*</span>
+                            </label>
+                            <select id="property-type" name="property_type" class="w-full px-4 py-2.5 rounded-input border border-border text-body text-textPrimary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white transition-all duration-150"
+                                    onchange="updatePreview(); validateField(this);">
+                                <option value="" disabled selected>Chọn loại nhà đất</option>
+                                <option value="Townhouse">Nhà phố thương mại (Townhouse)</option>
+                                <option value="Apartment">Căn hộ chung cư</option>
+                                <option value="Land">Đất nền dự án / Đất thổ cư</option>
+                                <option value="Villa">Biệt thự biệt lập (Villa)</option>
+                                <option value="Shophouse">Nhà phố mặt tiền (Shophouse)</option>
+                                <option value="Office">Văn phòng / Mặt bằng thương mại</option>
+                            </select>
+                            <p class="error-msg text-small text-error mt-1 hidden"></p>
+                        </div>
+                    </div>
+
+                    <!-- Commission -->
+                    <div>
+                        <label class="block text-body font-semibold text-textPrimary mb-1.5">
+                            Mức hoa hồng môi giới <span class="text-error">*</span>
+                        </label>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-3">
+                            <div class="flex rounded-input border border-border overflow-hidden bg-white sm:col-span-1">
+                                <button type="button" id="comm-type-pct" onclick="setCommissionType('percent')" class="flex-1 py-2.5 text-body font-medium bg-primary text-white transition-all">Phần trăm (%)</button>
+                                <button type="button" id="comm-type-fixed" onclick="setCommissionType('fixed')" class="flex-1 py-2.5 text-body font-medium hover:bg-slate-50 text-textSecondary transition-all border-l border-border">Cố định (VND)</button>
+                            </div>
+                            <div class="relative sm:col-span-2">
+                                <input type="number" id="commission-value" name="commission" placeholder="Nhập phần trăm hoa hồng (Ví dụ: 1)"
+                                       class="w-full pl-4 pr-12 py-2.5 rounded-input border border-border text-body text-textPrimary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-150"
+                                       oninput="updatePreview(); validateField(this);">
+                                <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-textSecondary text-body font-semibold" id="commission-unit-label">
+                                    %
+                                </div>
+                            </div>
+                        </div>
+                        <p class="error-msg text-small text-error mt-1 hidden" id="commission-error"></p>
+                        <p class="text-small text-textSecondary mt-1">Khoản phí trích xuất cho môi giới khi khớp giao dịch thành công.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. LOCATION INFORMATION -->
+            <div id="sec-location" class="lg:col-span-4 bg-surface rounded-card p-4 lg:p-5 border border-border shadow-soft scroll-mt-24">
+                <div class="flex items-center space-x-3 mb-4 pb-3 border-b border-border">
+                    <span class="w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-body text-[13px]">2</span>
+                    <h2 class="text-h3 text-textPrimary">Thông Tin Vị Trí</h2>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-4">
+                        <div>
+                            <label class="block text-body font-semibold text-textPrimary mb-1.5">
+                                Tỉnh / Thành phố <span class="text-error">*</span>
+                            </label>
+                            <select id="location-province" name="province" class="w-full px-4 py-2.5 rounded-input border border-border text-body text-textPrimary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white transition-all duration-150"
+                                    onchange="handleProvinceChange(); updatePreview(); validateField(this);">
+                                <option value="" disabled selected>Chọn Tỉnh/Thành</option>
+                            </select>
+                            <p class="error-msg text-small text-error mt-1 hidden"></p>
+                        </div>
+
+                        <div>
+                            <label class="block text-body font-semibold text-textPrimary mb-1.5">
+                                Quận / Huyện <span class="text-error">*</span>
+                            </label>
+                            <select id="location-district" name="district" disabled class="w-full px-4 py-2.5 rounded-input border border-border text-body text-textPrimary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white disabled:bg-slate-50 disabled:text-textSecondary transition-all duration-150"
+                                    onchange="handleDistrictChange(); updatePreview(); validateField(this);">
+                                <option value="" disabled selected>Chọn Quận/Huyện</option>
+                            </select>
+                            <p class="error-msg text-small text-error mt-1 hidden"></p>
+                        </div>
+
+                        <div>
+                            <label class="block text-body font-semibold text-textPrimary mb-1.5">
+                                Phường / Xã <span class="text-error">*</span>
+                            </label>
+                            <select id="location-ward" name="ward" disabled class="w-full px-4 py-2.5 rounded-input border border-border text-body text-textPrimary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white disabled:bg-slate-50 disabled:text-textSecondary transition-all duration-150"
+                                    onchange="updatePreview(); validateField(this);">
+                                <option value="" disabled selected>Chọn Phường/Xã</option>
+                            </select>
+                            <p class="error-msg text-small text-error mt-1 hidden"></p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-4">
+                        <div class="sm:col-span-2 lg:col-span-1">
+                            <label class="block text-body font-semibold text-textPrimary mb-1.5">
+                                Tên đường <span class="text-error">*</span>
+                            </label>
+                            <input type="text" id="location-street" name="street" placeholder="VD: Nguyễn Hữu Cảnh"
+                                   class="w-full px-4 py-2.5 rounded-input border border-border text-body text-textPrimary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-150"
+                                   oninput="updatePreview(); validateField(this);">
+                            <p class="error-msg text-small text-error mt-1 hidden"></p>
+                        </div>
+
+                        <div>
+                            <label class="block text-body font-semibold text-textPrimary mb-1.5">
+                                Số nhà <span class="text-error">*</span>
+                            </label>
+                            <input type="text" id="location-house-no" name="house_number" placeholder="VD: 208/B2"
+                                   class="w-full px-4 py-2.5 rounded-input border border-border text-body text-textPrimary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-150"
+                                   oninput="updatePreview(); validateField(this);">
+                            <p class="error-msg text-small text-error mt-1 hidden"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. PRICING & CONTACT INFORMATION -->
+            <div id="sec-pricing" class="lg:col-span-4 bg-surface rounded-card p-4 lg:p-5 border border-border shadow-soft scroll-mt-24">
+                <div class="flex items-center space-x-3 mb-4 pb-3 border-b border-border">
+                    <span class="w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-body text-[13px]">3</span>
+                    <h2 class="text-h3 text-textPrimary">Giá & Thông Tin Liên Hệ</h2>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-4 lg:gap-5">
+                    <div>
+                        <label class="block text-body font-semibold text-textPrimary mb-1.5">
+                            Mức giá trị giao dịch <span class="text-error">*</span>
+                        </label>
+                        <div class="relative">
+                            <input type="number" id="property-price" name="price" placeholder="Nhập giá bất động sản"
+                                   class="w-full pl-4 pr-16 py-2.5 rounded-input border border-border text-body text-textPrimary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-150 font-semibold"
+                                   oninput="updatePreview(); validateField(this); formatCurrencyHelper();">
+                            <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-textSecondary text-body font-semibold">
+                                VNĐ
+                            </div>
+                        </div>
+                        <p class="error-msg text-small text-error mt-1 hidden"></p>
+                        <p id="price-text-helper" class="text-small text-primary font-semibold mt-1.5 min-h-[16px]"></p>
+                    </div>
+
+                    <div>
+                        <label class="block text-body font-semibold text-textPrimary mb-1.5">
+                            Số điện thoại chính chủ <span class="text-error">*</span>
+                        </label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-textSecondary text-body">
+                                <i data-lucide="phone" class="w-4 h-4"></i>
+                            </span>
+                            <input type="tel" id="owner-phone" name="phone" placeholder="VD: 0912345678"
+                                   class="w-full pl-10 pr-4 py-2.5 rounded-input border border-border text-body text-textPrimary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-150"
+                                   oninput="updatePreview(); validateField(this);">
+                        </div>
+                        <p class="error-msg text-small text-error mt-1 hidden"></p>
+                        <p class="text-small text-textSecondary mt-1">Thông tin liên hệ trực tiếp cho quá trình kiểm tra thực tế.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. PROPERTY DETAILS -->
+            <div id="sec-details" class="lg:col-span-5 bg-surface rounded-card p-4 lg:p-5 border border-border shadow-soft scroll-mt-24">
+                <div class="flex items-center space-x-3 mb-4 pb-3 border-b border-border">
+                    <span class="w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-body text-[13px]">4</span>
+                    <h2 class="text-h3 text-textPrimary">Thông Số Chi Tiết Bất Động Sản</h2>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-body font-semibold text-textPrimary mb-1.5">
+                                Chiều dài (m) <span class="text-error">*</span>
+                            </label>
+                            <input type="number" step="0.1" id="prop-length" name="length" placeholder="VD: 20"
+                                   class="w-full px-4 py-2.5 rounded-input border border-border text-body text-textPrimary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-150"
+                                   oninput="calculateArea(); validateField(this);">
+                            <p class="error-msg text-small text-error mt-1 hidden"></p>
+                        </div>
+
+                        <div>
+                            <label class="block text-body font-semibold text-textPrimary mb-1.5">
+                                Chiều rộng (m) <span class="text-error">*</span>
+                            </label>
+                            <input type="number" step="0.1" id="prop-width" name="width" placeholder="VD: 5"
+                                   class="w-full px-4 py-2.5 rounded-input border border-border text-body text-textPrimary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-150"
+                                   oninput="calculateArea(); validateField(this);">
+                            <p class="error-msg text-small text-error mt-1 hidden"></p>
+                        </div>
+
+                        <div>
+                            <label class="block text-body font-semibold text-textPrimary mb-1.5">
+                                Diện tích ước tính (m²)
+                            </label>
+                            <div class="relative">
+                                <input type="text" id="prop-area-display" placeholder="Tự động tính" readonly
+                                       class="w-full px-4 py-2.5 rounded-input border border-border bg-slate-50 text-body font-semibold text-textPrimary focus:outline-none pointer-events-none">
+                                <span class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-textSecondary text-body font-semibold">m²</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-body font-semibold text-textPrimary mb-1.5">
+                                Số lượng tầng <span class="text-error">*</span>
+                            </label>
+                            <input type="number" id="prop-floors" name="floors" placeholder="VD: 3"
+                                   class="w-full px-4 py-2.5 rounded-input border border-border text-body text-textPrimary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-150"
+                                   oninput="updatePreview(); validateField(this);">
+                            <p class="error-msg text-small text-error mt-1 hidden"></p>
+                        </div>
+
+                        <div>
+                            <label class="block text-body font-semibold text-textPrimary mb-1.5">
+                                Số phòng ngủ <span class="text-error">*</span>
+                            </label>
+                            <input type="number" id="prop-bedrooms" name="bedrooms" placeholder="VD: 4"
+                                   class="w-full px-4 py-2.5 rounded-input border border-border text-body text-textPrimary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-150"
+                                   oninput="updatePreview(); validateField(this);">
+                            <p class="error-msg text-small text-error mt-1 hidden"></p>
+                        </div>
+
+                        <div>
+                            <label class="block text-body font-semibold text-textPrimary mb-1.5">
+                                Số phòng tắm / vệ sinh <span class="text-error">*</span>
+                            </label>
+                            <input type="number" id="prop-bathrooms" name="bathrooms" placeholder="VD: 3"
+                                   class="w-full px-4 py-2.5 rounded-input border border-border text-body text-textPrimary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-150"
+                                   oninput="updatePreview(); validateField(this);">
+                            <p class="error-msg text-small text-error mt-1 hidden"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. EXTENDED & DESCRIPTION -->
+            <div id="sec-extended" class="lg:col-span-7 bg-surface rounded-card p-4 lg:p-5 border border-border shadow-soft scroll-mt-24">
+                <div class="flex items-center space-x-3 mb-4 pb-3 border-b border-border">
+                    <span class="w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-body text-[13px]">5</span>
+                    <h2 class="text-h3 text-textPrimary">Thông Tin Mở Rộng & Mô Tả</h2>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-body font-semibold text-textPrimary mb-1.5">Hướng bất động sản (Tùy chọn)</label>
+                            <select id="prop-direction" class="w-full px-4 py-2.5 rounded-input border border-border text-body text-textPrimary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white transition-all duration-150" onchange="updatePreview()">
+                                <option value="" selected>Không xác định</option>
+                                <option value="Đông">Đông</option>
+                                <option value="Tây">Tây</option>
+                                <option value="Nam">Nam</option>
+                                <option value="Bắc">Bắc</option>
+                                <option value="Đông Nam">Đông Nam</option>
+                                <option value="Tây Nam">Tây Nam</option>
+                                <option value="Đông Bắc">Đông Bắc</option>
+                                <option value="Tây Bắc">Tây Bắc</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-body font-semibold text-textPrimary mb-1.5">Mặt tiền / Loại ngõ hẻm (Tùy chọn)</label>
+                            <select id="prop-frontage" class="w-full px-4 py-2.5 rounded-input border border-border text-body text-textPrimary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white transition-all duration-150" onchange="updatePreview()">
+                                <option value="" selected>Chọn loại đường</option>
+                                <option value="Mặt tiền kinh doanh">Mặt tiền kinh doanh</option>
+                                <option value="Ngõ xe hơi tránh nhau">Ngõ ô tô tránh nhau</option>
+                                <option value="Ngõ xe máy">Ngõ xe máy</option>
+                                <option value="Trong khu compound biệt lập">Khu an ninh compound</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-body font-semibold text-textPrimary mb-1.5">Độ rộng đường vào (m) (Tùy chọn)</label>
+                            <input type="number" id="prop-road-width" placeholder="VD: 12"
+                                   class="w-full px-4 py-2.5 rounded-input border border-border text-body text-textPrimary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-150"
+                                   oninput="updatePreview()">
+                        </div>
+
+                        <div>
+                            <label class="block text-body font-semibold text-textPrimary mb-1.5">Tình trạng pháp lý (Tùy chọn)</label>
+                            <select id="prop-legal" class="w-full px-4 py-2.5 rounded-input border border-border text-body text-textPrimary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white transition-all duration-150" onchange="updatePreview()">
+                                <option value="" selected>Chưa rõ pháp lý</option>
+                                <option value="Sổ hồng riêng chính chủ">Sổ hồng riêng chính chủ</option>
+                                <option value="Sổ đỏ pháp lý hoàn chỉnh">Sổ đỏ hoàn chỉnh</option>
+                                <option value="Đang chờ bàn giao sổ">Hợp đồng mua bán (Đang chờ bàn giao sổ)</option>
+                                <option value="Giấy tờ viết tay hợp lệ">Giấy tờ viết tay</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-body font-semibold text-textPrimary mb-1.5">Tình trạng bàn giao nội thất (Tùy chọn)</label>
+                        <textarea id="prop-furnishing" rows="2" placeholder="Ví dụ: Đầy đủ nội thất cao cấp nhập khẩu châu Âu, điều hòa trung tâm..."
+                                  class="w-full px-4 py-2.5 rounded-input border border-border text-body text-textPrimary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-150"
+                                  oninput="updatePreview()"></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-body font-semibold text-textPrimary mb-1.5">Đặc điểm nổi bật (Tùy chọn)</label>
+                        <div class="flex flex-wrap gap-2" id="tags-container">
+                            <button type="button" onclick="toggleTag(this)" class="px-3 py-1.5 border border-border text-textSecondary hover:text-primary hover:border-primary rounded-btn text-small transition-all font-medium">Mặt tiền đẹp</button>
+                            <button type="button" onclick="toggleTag(this)" class="px-3 py-1.5 border border-border text-textSecondary hover:text-primary hover:border-primary rounded-btn text-small transition-all font-medium">Giá đầu tư cực tốt</button>
+                            <button type="button" onclick="toggleTag(this)" class="px-3 py-1.5 border border-border text-textSecondary hover:text-primary hover:border-primary rounded-btn text-small transition-all font-medium">Gần trường học lớn</button>
+                            <button type="button" onclick="toggleTag(this)" class="px-3 py-1.5 border border-border text-textSecondary hover:text-primary hover:border-primary rounded-btn text-small transition-all font-medium">Gần trung tâm thương mại</button>
+                            <button type="button" onclick="toggleTag(this)" class="px-3 py-1.5 border border-border text-textSecondary hover:text-primary hover:border-primary rounded-btn text-small transition-all font-medium">View sông lộng gió</button>
+                            <button type="button" onclick="toggleTag(this)" class="px-3 py-1.5 border border-border text-textSecondary hover:text-primary hover:border-primary rounded-btn text-small transition-all font-medium">An ninh compound 24/7</button>
+                        </div>
+                    </div>
+
+                    <div class="pt-4 border-t border-border">
+                        <label class="block text-body font-semibold text-textPrimary mb-1.5">
+                            Mô tả chi tiết <span class="text-error">*</span>
+                        </label>
+                        <textarea id="listing-desc" name="description" rows="5" placeholder="Mô tả ưu điểm vượt trội của bất động sản: Tiện ích nội khu, chất lượng xây dựng, mật độ dân cư, thuận tiện di chuyển giao thông, khoảng cách tới các cơ sở công cộng..."
+                                  class="w-full px-4 py-2.5 rounded-input border border-border text-body text-textPrimary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-150"
+                                  oninput="updatePreview(); validateField(this);"></textarea>
+                        <p class="error-msg text-small text-error mt-1 hidden"></p>
+                        <div class="flex items-center justify-between mt-1 text-small text-textSecondary">
+                            <span>Gợi ý: Mô tả nên có ít nhất 30 ký tự để người mua có đủ thông tin chi tiết.</span>
+                            <span id="desc-char-count">0 ký tự</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. MEDIA & GALLERY -->
+            <div id="sec-media" class="lg:col-span-12 bg-surface rounded-card p-4 lg:p-5 border border-border shadow-soft scroll-mt-24">
+                <div class="flex items-center justify-between mb-4 pb-3 border-b border-border">
+                    <div class="flex items-center space-x-3">
+                        <span class="w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-body text-[13px]">6</span>
+                        <h2 class="text-h3 text-textPrimary">Thư Viện Ảnh & Video</h2>
+                    </div>
+                    <button type="button" onclick="loadSampleImages()" class="text-small text-primary hover:text-blue-700 bg-primary/5 hover:bg-primary/10 px-3 py-1.5 rounded-lg transition-colors font-semibold flex items-center gap-1">
+                        <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+                        <span>Thêm 5 ảnh mẫu nhanh</span>
+                    </button>
+                </div>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-body font-semibold text-textPrimary mb-1.5">Hình ảnh nhà đất (Tối đa 20 hình ảnh) <span class="text-error">*</span></label>
+                        <div id="drop-zone" class="border-2 border-dashed border-border hover:border-primary/50 rounded-card p-8 text-center cursor-pointer transition-all duration-200 bg-slate-50/50">
+                            <input type="file" id="media-files" accept="image/png, image/jpeg, image/webp" multiple class="hidden" onchange="handleFileSelect(event)">
+                            <div class="flex flex-col items-center justify-center space-y-2">
+                                <div class="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-1">
+                                    <i data-lucide="cloud-upload" class="w-6 h-6"></i>
+                                </div>
+                                <p class="text-body font-semibold text-textPrimary">Kéo thả ảnh tại đây hoặc <span class="text-primary hover:underline">Nhấp để duyệt file</span></p>
+                                <p class="text-small text-textSecondary">Hỗ trợ định dạng: JPG, PNG, WEBP (Tối đa 5MB mỗi ảnh)</p>
+                            </div>
+                        </div>
+                        <p class="error-msg text-small text-error mt-1.5 hidden" id="images-error"></p>
+                    </div>
+
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center">
+                            <p class="text-small text-textPrimary font-semibold">Hình ảnh đã chọn (<span id="gallery-counter">0</span>/20)</p>
+                            <p class="text-small text-textSecondary">Bức ảnh đầu tiên sẽ được chọn làm ảnh bìa.</p>
+                        </div>
+                        <div id="image-previews-grid" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-3">
+                        </div>
+                    </div>
+
+                    <div class="pt-4 border-t border-border">
+                        <label class="block text-body font-semibold text-textPrimary mb-1.5">Liên kết Video (YouTube / Vimeo - Tùy chọn)</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-textSecondary text-body">
+                                <i data-lucide="youtube" class="w-4 h-4"></i>
+                            </span>
+                            <input type="url" id="media-video-url" placeholder="VD: https://www.youtube.com/watch?v=abcdefgh"
+                                   class="w-full pl-10 pr-4 py-2.5 rounded-input border border-border text-body text-textPrimary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-150"
+                                   oninput="updatePreview()">
+                        </div>
+                        <p class="text-small text-textSecondary mt-1">Đường dẫn video trực quan giúp tin đăng có khả năng tiếp cận cao hơn gấp 2 lần.</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </form>
+
+</div>
+
+<!-- Sticky Bottom Action Bar -->
+<div class="sticky bottom-0 z-20 bg-white/90 backdrop-blur-md border-t border-border shadow-[0_-2px_8px_rgba(0,0,0,0.04)]">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-end gap-3">
+        <button type="button" onclick="handleCancelBtn()" class="px-5 py-2.5 border border-border text-textSecondary hover:text-textPrimary hover:bg-slate-50 rounded-button transition-colors duration-200 text-body font-medium flex items-center gap-2">
+            Hủy bỏ dữ liệu
+        </button>
+        <button type="button" onclick="submitForm()" class="px-6 py-2.5 bg-primary hover:bg-blue-700 text-white rounded-button transition-colors duration-200 text-body font-semibold flex items-center gap-2 shadow-soft">
+            <i data-lucide="check-circle" class="w-4 h-4"></i>
+            <span>Công bố tin đăng</span>
+        </button>
+    </div>
+</div>
+
+<!-- Cancel Modal -->
+<div id="cancel-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden opacity-0 transition-opacity duration-200">
+    <div class="bg-surface rounded-modal max-w-md w-full p-6 shadow-xl border border-border scale-95 transition-transform duration-200" id="cancel-modal-content">
+        <div class="flex items-center space-x-3 text-warning mb-4">
+            <div class="w-12 h-12 rounded-full bg-warning/10 flex items-center justify-center shrink-0">
+                <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <h3 class="text-h3 text-textPrimary">Hủy bỏ tin đang nhập?</h3>
+                <p class="text-small text-textSecondary">Hành động này sẽ xóa toàn bộ nội dung bạn vừa nhập.</p>
+            </div>
+        </div>
+        <p class="text-body text-textSecondary mb-6 leading-relaxed">
+            Các chỉnh sửa của bạn chưa được lưu trữ vào hệ thống quản lý. Bạn có thực sự muốn quay lại màn hình danh sách và bỏ qua các thông tin đã điền?
+        </p>
+        <div class="flex justify-end space-x-3">
+            <button onclick="closeCancelModal()" class="px-4 py-2 text-textSecondary hover:bg-slate-100 rounded-btn text-body font-medium transition-colors">
+                Tiếp tục nhập liệu
+            </button>
+            <button onclick="confirmCancel()" class="px-5 py-2 bg-error hover:bg-red-700 text-white rounded-btn text-body font-medium transition-colors">
+                Hủy và xóa dữ liệu
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div id="success-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden opacity-0 transition-opacity duration-200">
+    <div class="bg-surface rounded-modal max-w-lg w-full p-6 shadow-xl border border-border scale-95 transition-transform duration-200 text-center" id="success-modal-content">
+        <div class="w-16 h-16 bg-success/10 text-success rounded-full flex items-center justify-center mx-auto mb-4">
+            <i data-lucide="badge-check" class="w-10 h-10"></i>
+        </div>
+        <h3 class="text-h2 text-textPrimary mb-2">Đăng Tin Thành Công!</h3>
+        <p class="text-body text-textSecondary mb-6 max-w-md mx-auto">
+            Bất động sản của bạn đã được xuất bản lên hệ thống CRM và đang được tối ưu hóa hiển thị. Mã số quản lý: <strong class="text-textPrimary text-primary" id="success-listing-id">RE-48902</strong>
+        </p>
+
+        <div class="bg-slate-50 border border-border rounded-card p-4 text-left mb-6 space-y-2">
+            <div class="flex justify-between text-body">
+                <span class="text-textSecondary">Sản phẩm:</span>
+                <span class="font-semibold text-textPrimary line-clamp-1" id="success-title">Vinhomes Central Park</span>
+            </div>
+            <div class="flex justify-between text-body">
+                <span class="text-textSecondary">Giá giao dịch:</span>
+                <span class="font-bold text-error" id="success-price">4.5 Tỷ VNĐ</span>
+            </div>
+            <div class="flex justify-between text-body">
+                <span class="text-textSecondary">Vị trí:</span>
+                <span class="text-textPrimary" id="success-location">Bình Thạnh, TP. HCM</span>
+            </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-3 justify-center">
+            <button onclick="resetFormToCleanState()" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-textPrimary font-semibold rounded-btn text-body transition-colors">
+                Đăng sản phẩm mới
+            </button>
+            <button onclick="closeSuccessModal()" class="px-6 py-2.5 bg-primary hover:bg-blue-700 text-white font-semibold rounded-btn text-body transition-colors shadow-soft">
+                Xem danh sách của tôi
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none flex items-center space-x-3 bg-slate-900 text-white px-5 py-3.5 rounded-btn shadow-xl max-w-sm">
+    <div id="toast-icon-holder" class="text-success shrink-0">
+        <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+    </div>
+    <p id="toast-message" class="text-small font-medium leading-relaxed"></p>
+</div>
+
+<script>
+    // Vietnam Location Database mockup
+    var vnLocations = {
+        "tphcm": {
+            name: "Thành phố Hồ Chí Minh",
+            districts: {
+                "q1": { name: "Quận 1", wards: ["Phường Bến Nghé", "Phường Bến Thành", "Phường Đa Kao", "Phường Tân Định"] },
+                "q7": { name: "Quận 7", wards: ["Phường Tân Phong", "Phường Tân Quy", "Phường Phú Mỹ", "Phường Bình Thuận"] },
+                "qbt": { name: "Quận Bình Thạnh", wards: ["Phường 15", "Phường 22", "Phường 25", "Phường 26", "Phường Trường Thọ"] }
+            }
+        },
+        "hn": {
+            name: "Thành phố Hà Nội",
+            districts: {
+                "hkiem": { name: "Quận Hoàn Kiếm", wards: ["Phường Hàng Bạc", "Phường Tràng Tiền", "Phường Hàng Đào", "Phường Hàng Trống"] },
+                "cgiay": { name: "Quận Cầu Giấy", wards: ["Phường Dịch Vọng", "Phường Yên Hòa", "Phường Trung Hòa", "Phường Nghĩa Đô"] },
+                "tho": { name: "Quận Tây Hồ", wards: ["Phường Quảng An", "Phường Yên Phụ", "Phường Xuân La", "Phường Bưởi"] }
+            }
+        },
+        "dn": {
+            name: "Thành phố Đà Nẵng",
+            districts: {
+                "hchau": { name: "Quận Hải Châu", wards: ["Phường Thạch Thang", "Phường Hòa Thuận Đông", "Phường Hải Châu I", "Phường Thuận Phước"] },
+                "stra": { name: "Quận Sơn Trà", wards: ["Phường An Hải Bắc", "Phường Phước Mỹ", "Phường Thọ Quang", "Phường Mân Thái"] }
+            }
+        }
+    };
+
+    var formDirty = false;
+    var selectedCommissionType = 'percent';
+    var uploadedImages = [];
+
+    // Note: init is called at the bottom of this script (not window.onload)
+    // because the script is injected dynamically after page load is complete.
+
+    function setupFieldTrackers() {
+        const inputs = document.querySelectorAll('input, select, textarea');
+        inputs.forEach(input => {
+            input.addEventListener('change', () => { formDirty = true; });
+            input.addEventListener('keyup', () => { formDirty = true; });
+        });
+    }
+
+    function populateProvinces() {
+        const pSel = document.getElementById('location-province');
+        pSel.innerHTML = '<option value="" disabled selected>Chọn Tỉnh/Thành</option>';
+        for (let key in vnLocations) {
+            pSel.innerHTML += '<option value="' + key + '">' + vnLocations[key].name + '</option>';
+        }
+    }
+
+    function handleProvinceChange() {
+        const pSel = document.getElementById('location-province');
+        const dSel = document.getElementById('location-district');
+        const wSel = document.getElementById('location-ward');
+        dSel.innerHTML = '<option value="" disabled selected>Chọn Quận/Huyện</option>';
+        wSel.innerHTML = '<option value="" disabled selected>Chọn Phường/Xã</option>';
+        wSel.disabled = true;
+        const provKey = pSel.value;
+        if (provKey && vnLocations[provKey]) {
+            dSel.disabled = false;
+            const districts = vnLocations[provKey].districts;
+            for (let distKey in districts) {
+                dSel.innerHTML += '<option value="' + distKey + '">' + districts[distKey].name + '</option>';
+            }
+        } else {
+            dSel.disabled = true;
+        }
+    }
+
+    function handleDistrictChange() {
+        const pSel = document.getElementById('location-province');
+        const dSel = document.getElementById('location-district');
+        const wSel = document.getElementById('location-ward');
+        wSel.innerHTML = '<option value="" disabled selected>Chọn Phường/Xã</option>';
+        const provKey = pSel.value;
+        const distKey = dSel.value;
+        if (provKey && distKey && vnLocations[provKey]?.districts[distKey]) {
+            wSel.disabled = false;
+            const wards = vnLocations[provKey].districts[distKey].wards;
+            wards.forEach(function(ward) {
+                wSel.innerHTML += '<option value="' + ward + '">' + ward + '</option>';
+            });
+        } else {
+            wSel.disabled = true;
+        }
+    }
+
+    function setCommissionType(type) {
+        selectedCommissionType = type;
+        const pctBtn = document.getElementById('comm-type-pct');
+        const fixedBtn = document.getElementById('comm-type-fixed');
+        const inputField = document.getElementById('commission-value');
+        const label = document.getElementById('commission-unit-label');
+        if (type === 'percent') {
+            pctBtn.classList.add('bg-primary', 'text-white');
+            pctBtn.classList.remove('hover:bg-slate-50', 'text-textSecondary');
+            fixedBtn.classList.remove('bg-primary', 'text-white');
+            fixedBtn.classList.add('hover:bg-slate-50', 'text-textSecondary');
+            label.textContent = '%';
+            inputField.placeholder = 'Nhập phần trăm hoa hồng (Ví dụ: 1)';
+        } else {
+            fixedBtn.classList.add('bg-primary', 'text-white');
+            fixedBtn.classList.remove('hover:bg-slate-50', 'text-textSecondary');
+            pctBtn.classList.remove('bg-primary', 'text-white');
+            pctBtn.classList.add('hover:bg-slate-50', 'text-textSecondary');
+            label.textContent = 'VND';
+            inputField.placeholder = 'Phí hoa hồng (Ví dụ: 50,000,000)';
+        }
+        updatePreview();
+    }
+
+    function updatePricePlaceholder() {
+        const listType = document.getElementById('listing-type').value;
+        const priceInput = document.getElementById('property-price');
+        if (listType === 'RENT') {
+            priceInput.placeholder = 'Giá thuê theo tháng (Ví dụ: 15,000,000)';
+        } else {
+            priceInput.placeholder = 'Giá chuyển nhượng toàn phần (Ví dụ: 3,500,000,000)';
+        }
+    }
+
+    function calculateArea() {
+        const length = parseFloat(document.getElementById('prop-length').value);
+        const width = parseFloat(document.getElementById('prop-width').value);
+        const display = document.getElementById('prop-area-display');
+        if (!isNaN(length) && !isNaN(width) && length > 0 && width > 0) {
+            display.value = (length * width).toFixed(1);
+        } else {
+            display.value = '';
+        }
+        updatePreview();
+    }
+
+    function formatCurrencyHelper() {
+        const priceInput = document.getElementById('property-price');
+        const helper = document.getElementById('price-text-helper');
+        const rawValue = parseFloat(priceInput.value);
+        if (isNaN(rawValue) || rawValue <= 0) {
+            helper.textContent = '';
+            return;
+        }
+        helper.textContent = 'Tương đương: ' + convertVndToText(rawValue);
+    }
+
+    function convertVndToText(amount) {
+        if (amount < 1000) return amount + ' đồng';
+        const billion = Math.floor(amount / 1000000000);
+        const million = Math.floor((amount % 1000000000) / 1000000);
+        const thousand = Math.floor((amount % 1000000) / 1000);
+        let result = '';
+        if (billion > 0) result += billion + ' tỷ ';
+        if (million > 0) result += million + ' triệu ';
+        if (thousand > 0 && billion === 0) result += thousand + ' nghìn ';
+        return result.trim() + ' VNĐ';
+    }
+
+    function validateField(element) {
+        const errBox = element.parentElement.querySelector('.error-msg') || document.getElementById(element.name + '-error');
+        let isValid = true;
+        let msg = "";
+        if (element.required || element.hasAttribute('name')) {
+            const val = element.value.trim();
+            if (!val) {
+                isValid = false;
+                msg = "Vui lòng nhập trường thông tin bắt buộc này.";
+            } else {
+                if (element.name === 'title' && val.length < 10) {
+                    isValid = false;
+                    msg = "Tiêu đề quá ngắn (Cần ít nhất 10 ký tự).";
+                } else if (element.name === 'phone' && !/^(0[3|5|7|8|9])([0-9]{8})$/.test(val)) {
+                    isValid = false;
+                    msg = "Số điện thoại di động Việt Nam không đúng cấu trúc (10 chữ số).";
+                } else if (element.name === 'price' && parseFloat(val) <= 0) {
+                    isValid = false;
+                    msg = "Mức giá yêu cầu phải là số nguyên dương.";
+                } else if (element.name === 'commission') {
+                    const numericVal = parseFloat(val);
+                    if (isNaN(numericVal) || numericVal <= 0) {
+                        isValid = false;
+                        msg = "Mức phí hoa hồng phải lớn hơn 0.";
+                    } else if (selectedCommissionType === 'percent' && numericVal > 100) {
+                        isValid = false;
+                        msg = "Phần trăm hoa hồng trích lập không vượt quá 100%.";
+                    }
+                } else if (element.name === 'description' && val.length < 30) {
+                    isValid = false;
+                    msg = "Vui lòng mô tả chi tiết hơn (Tối thiểu 30 ký tự).";
+                } else if (['length', 'width', 'floors', 'bedrooms', 'bathrooms'].includes(element.name) && parseFloat(val) <= 0) {
+                    isValid = false;
+                    msg = "Yêu cầu trị số lớn hơn 0.";
+                }
+            }
+        }
+        if (!isValid) {
+            element.classList.add('border-error', 'focus:ring-error/20', 'focus:border-error');
+            element.classList.remove('border-border', 'focus:ring-primary/20', 'focus:border-primary');
+            if (errBox) {
+                errBox.textContent = msg;
+                errBox.classList.remove('hidden');
+            }
+        } else {
+            element.classList.remove('border-error', 'focus:ring-error/20', 'focus:border-error');
+            element.classList.add('border-border', 'focus:ring-primary/20', 'focus:border-primary');
+            if (errBox) {
+                errBox.classList.add('hidden');
+            }
+        }
+        return isValid;
+    }
+
+    function updatePreview() {
+        const descText = document.getElementById('listing-desc').value;
+        const descChar = document.getElementById('desc-char-count');
+        if (descChar) descChar.textContent = descText.length + ' ký tự';
+    }
+
+    function toggleTag(btn) {
+        if (btn.classList.contains('bg-primary/10')) {
+            btn.classList.remove('bg-primary/10', 'border-primary', 'text-primary');
+            btn.classList.add('border-border', 'text-textSecondary');
+        } else {
+            btn.classList.add('bg-primary/10', 'border-primary', 'text-primary');
+            btn.classList.remove('border-border', 'text-textSecondary');
+        }
+        updatePreview();
+    }
+
+    var dropZone = document.getElementById('drop-zone');
+    ['dragenter', 'dragover'].forEach(function(eventName) {
+        dropZone.addEventListener(eventName, function(e) {
+            e.preventDefault();
+            dropZone.classList.add('border-primary', 'bg-primary/5');
+        }, false);
+    });
+    ['dragleave', 'drop'].forEach(function(eventName) {
+        dropZone.addEventListener(eventName, function(e) {
+            e.preventDefault();
+            dropZone.classList.remove('border-primary', 'bg-primary/5');
+        }, false);
+    });
+    dropZone.addEventListener('drop', function(e) {
+        const dt = e.dataTransfer;
+        handleImages(dt.files);
+    });
+    dropZone.addEventListener('click', function() {
+        document.getElementById('media-files').click();
+    });
+
+    function handleFileSelect(event) {
+        handleImages(event.target.files);
+    }
+
+    function handleImages(files) {
+        const errBox = document.getElementById('images-error');
+        errBox.classList.add('hidden');
+        if (uploadedImages.length + files.length > 20) {
+            errBox.textContent = "Bạn chỉ có thể tải lên tối đa 20 hình ảnh.";
+            errBox.classList.remove('hidden');
+            showToast("Vượt quá giới hạn 20 bức ảnh!", "error");
+            return;
+        }
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+                errBox.textContent = "Hệ thống chỉ chấp nhận định dạng ảnh JPG, PNG hoặc WEBP.";
+                errBox.classList.remove('hidden');
+                continue;
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                errBox.textContent = "Kích thước mỗi ảnh tải lên không vượt quá 5MB.";
+                errBox.classList.remove('hidden');
+                continue;
+            }
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                uploadedImages.push({ src: e.target.result, name: file.name });
+                renderGallery();
+                updatePreview();
+                formDirty = true;
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function renderGallery() {
+        const grid = document.getElementById('image-previews-grid');
+        grid.innerHTML = '';
+        uploadedImages.forEach(function(img, idx) {
+            const card = document.createElement('div');
+            card.className = 'group relative h-28 border border-border rounded-lg overflow-hidden bg-slate-100 shadow-sm';
+            card.innerHTML = '<img src="' + img.src + '" class="w-full h-full object-cover">' +
+                (idx === 0 ? '<div class="absolute bottom-1 left-1 bg-primary text-white text-[10px] px-1.5 py-0.5 rounded font-semibold shadow">Ảnh bìa</div>' : '') +
+                '<button type="button" onclick="removeImage(' + idx + ')" class="absolute top-1 right-1 w-6 h-6 rounded-full bg-slate-900/60 hover:bg-slate-900/80 text-white flex items-center justify-center transition-all duration-150 shadow"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>';
+            grid.appendChild(card);
+        });
+        const counter = document.getElementById('gallery-counter');
+        if (counter) counter.textContent = uploadedImages.length;
+        lucide.createIcons();
+    }
+
+    function removeImage(index) {
+        uploadedImages.splice(index, 1);
+        renderGallery();
+        updatePreview();
+    }
+
+    function loadSampleImages() {
+        const sampleUrls = [
+            "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80",
+            "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80",
+            "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=800&q=80",
+            "https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=800&q=80",
+            "https://images.unsplash.com/photo-1600566753376-12c8ab7fb75b?auto=format&fit=crop&w=800&q=80"
+        ];
+        sampleUrls.forEach(function(url) {
+            if (uploadedImages.length < 20) {
+                uploadedImages.push({ src: url, name: 'sample-real-estate-photo-' + (uploadedImages.length + 1) + '.jpg' });
+            }
+        });
+        renderGallery();
+        updatePreview();
+        showToast("Đã tải 5 hình ảnh bất động sản mẫu!", "success");
+    }
+
+    function triggerSubmit() {
+        document.getElementById('re-listing-form').dispatchEvent(new Event('submit'));
+    }
+
+    function submitForm() {
+        const form = document.getElementById('re-listing-form');
+        const elements = form.querySelectorAll('input[required], select[required], textarea[required]');
+        let formIsValid = true;
+        let firstInvalidEl = null;
+        elements.forEach(function(el) {
+            const valid = validateField(el);
+            if (!valid) {
+                formIsValid = false;
+                if (!firstInvalidEl) firstInvalidEl = el;
+            }
+        });
+        const commissionInput = document.getElementById('commission-value');
+        if (!validateField(commissionInput)) {
+            formIsValid = false;
+            if (!firstInvalidEl) firstInvalidEl = commissionInput;
+        }
+        const mediaErr = document.getElementById('images-error');
+        if (uploadedImages.length === 0) {
+            formIsValid = false;
+            mediaErr.textContent = "Bạn phải tải lên ít nhất 1 hình ảnh làm ảnh hiển thị chính.";
+            mediaErr.classList.remove('hidden');
+            if (!firstInvalidEl) firstInvalidEl = document.getElementById('drop-zone');
+        } else {
+            mediaErr.classList.add('hidden');
+        }
+        if (!formIsValid) {
+            showToast("Vui lòng điền đầy đủ và đúng định dạng các trường thông tin bắt buộc (*)", "error");
+            if (firstInvalidEl) {
+                firstInvalidEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                firstInvalidEl.focus();
+            }
+            return;
+        }
+        showToast("Đang tải dữ liệu lên máy chủ...", "info");
+        setTimeout(function() {
+            showSuccessModal();
+        }, 1000);
+    }
+
+    function showSuccessModal() {
+        const titleVal = document.getElementById('listing-title').value;
+        const priceVal = parseFloat(document.getElementById('property-price').value);
+        const provEl = document.getElementById('location-province');
+        const distEl = document.getElementById('location-district');
+        const provinceText = provEl.options[provEl.selectedIndex].text;
+        const districtText = distEl.options[distEl.selectedIndex].text;
+        document.getElementById('success-listing-id').textContent = 'RE-' + (Math.floor(Math.random() * 89999) + 10000);
+        document.getElementById('success-title').textContent = titleVal;
+        document.getElementById('success-price').textContent = convertVndToText(priceVal);
+        document.getElementById('success-location').textContent = districtText + ', ' + provinceText;
+        const modal = document.getElementById('success-modal');
+        const content = document.getElementById('success-modal-content');
+        modal.classList.remove('hidden');
+        setTimeout(function() {
+            modal.classList.remove('opacity-0');
+            content.classList.remove('scale-95');
+        }, 50);
+    }
+
+    function closeSuccessModal() {
+        const modal = document.getElementById('success-modal');
+        const content = document.getElementById('success-modal-content');
+        modal.classList.add('opacity-0');
+        content.classList.add('scale-95');
+        setTimeout(function() {
+            modal.classList.add('hidden');
+            showToast("Đã điều hướng về danh sách bất động sản của bạn.", "success");
+        }, 200);
+    }
+
+    function resetFormToCleanState() {
+        const modal = document.getElementById('success-modal');
+        modal.classList.add('hidden');
+        document.getElementById('re-listing-form').reset();
+        uploadedImages = [];
+        formDirty = false;
+        document.getElementById('location-district').disabled = true;
+        document.getElementById('location-ward').disabled = true;
+        renderGallery();
+        updatePreview();
+        setCommissionType('percent');
+        document.getElementById('price-text-helper').textContent = '';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        showToast("Mẫu nhập liệu đã được làm mới.", "success");
+    }
+
+    function handleCancelBtn() {
+        if (formDirty) {
+            const modal = document.getElementById('cancel-modal');
+            const content = document.getElementById('cancel-modal-content');
+            modal.classList.remove('hidden');
+            setTimeout(function() {
+                modal.classList.remove('opacity-0');
+                content.classList.remove('scale-95');
+            }, 50);
+        } else {
+            showToast("Quay lại màn hình danh sách tin đăng.", "info");
+        }
+    }
+
+    function closeCancelModal() {
+        const modal = document.getElementById('cancel-modal');
+        const content = document.getElementById('cancel-modal-content');
+        modal.classList.add('opacity-0');
+        content.classList.add('scale-95');
+        setTimeout(function() {
+            modal.classList.add('hidden');
+        }, 200);
+    }
+
+    function confirmCancel() {
+        closeCancelModal();
+        resetFormToCleanState();
+        showToast("Toàn bộ tiến trình chỉnh sửa đã được xóa sạch.", "info");
+    }
+
+    function showToast(message, type) {
+        if (!type) type = "success";
+        const toast = document.getElementById('toast');
+        const msgEl = document.getElementById('toast-message');
+        const iconHolder = document.getElementById('toast-icon-holder');
+        msgEl.textContent = message;
+        if (type === "success") {
+            iconHolder.innerHTML = '<i data-lucide="check-circle" class="w-5 h-5 text-success"></i>';
+        } else if (type === "error") {
+            iconHolder.innerHTML = '<i data-lucide="alert-circle" class="w-5 h-5 text-error"></i>';
+        } else if (type === "info") {
+            iconHolder.innerHTML = '<i data-lucide="info" class="w-5 h-5 text-primary"></i>';
+        }
+        lucide.createIcons();
+        toast.classList.remove('translate-y-24', 'opacity-0');
+        toast.classList.add('translate-y-0', 'opacity-100');
+        setTimeout(function() {
+            toast.classList.add('translate-y-24', 'opacity-0');
+            toast.classList.remove('translate-y-0', 'opacity-100');
+        }, 3000);
+    }
+
+    function prepopulateDemoData() {
+        document.getElementById('listing-title').value = "Biệt thự song lập Vinhomes Grand Park view công viên 36ha cực đẹp";
+        document.getElementById('listing-type').value = "SALE";
+        document.getElementById('property-type').value = "Villa";
+        setCommissionType('percent');
+        document.getElementById('commission-value').value = "1.5";
+        document.getElementById('location-province').value = "tphcm";
+        handleProvinceChange();
+        document.getElementById('location-district').value = "q7";
+        handleDistrictChange();
+        document.getElementById('location-ward').value = "Phường Tân Phong";
+        document.getElementById('location-street').value = "Nguyễn Văn Linh";
+        document.getElementById('location-house-no').value = "C2-4";
+        document.getElementById('property-price').value = "32000000000";
+        formatCurrencyHelper();
+        document.getElementById('prop-length').value = "20";
+        document.getElementById('prop-width').value = "10";
+        calculateArea();
+        document.getElementById('prop-floors').value = "3";
+        document.getElementById('prop-bedrooms').value = "4";
+        document.getElementById('prop-bathrooms').value = "5";
+        document.getElementById('prop-direction').value = "Đông Nam";
+        document.getElementById('prop-frontage').value = "Mặt tiền kinh doanh";
+        document.getElementById('prop-road-width').value = "16";
+        document.getElementById('prop-legal').value = "Sổ hồng riêng chính chủ";
+        document.getElementById('prop-furnishing').value = "Bàn giao nội thất bán hoàn thiện từ chủ đầu tư, kèm thiết bị thông minh thông gió và rèm cửa cao cấp nhập khẩu.";
+        document.getElementById('listing-desc').value = "Biệt thự song lập sang trọng bậc nhất dự án Vinhomes Grand Park nằm trong phân khu The Manhattan, trực diện mặt công viên bờ sông mát mẻ quanh năm. Thiết kế phong cách Địa Trung Hải quý phái quy mô 1 trệt 2 lầu rộng rãi, tối ưu công năng cho cả gia đình sinh hoạt lý tưởng. Sổ hồng riêng cất tủ sẵn sàng sang tên công chứng ngay trong ngày.";
+        loadSampleImages();
+        updatePreview();
+    }
+
+    function prefillFromProductData(data, mode) {
+        if (!data) return;
+
+        // Title
+        if (data.title) document.getElementById('listing-title').value = data.title;
+
+        // Type (Bán → SALE, Cho thuê → RENT, Chuyển nhượng → TRANSFER)
+        var typeMap = { 'Bán': 'SALE', 'Cho thuê': 'RENT', 'Chuyển nhượng': 'TRANSFER' };
+        if (data.type && typeMap[data.type]) {
+            document.getElementById('listing-type').value = typeMap[data.type];
+        }
+
+        // Property category (best-effort mapping)
+        var categoryMap = { 'Căn hộ': 'Apartment', 'Biệt thự': 'Villa', 'Nhà phố': 'Townhouse', 'Đất nền': 'Land', 'Shophouse': 'Shophouse', 'CHDV': 'Apartment' };
+        if (data.category && categoryMap[data.category]) {
+            document.getElementById('property-type').value = categoryMap[data.category];
+        }
+
+        // Description (strip HTML tags)
+        if (data.description) {
+            var temp = document.createElement('div');
+            temp.innerHTML = data.description;
+            document.getElementById('listing-desc').value = temp.textContent || temp.innerText || data.description;
+        }
+
+        // Bedrooms, bathrooms, floors
+        if (data.bedrooms) document.getElementById('prop-bedrooms').value = data.bedrooms;
+        if (data.bathrooms) document.getElementById('prop-bathrooms').value = data.bathrooms;
+        if (data.floors) document.getElementById('prop-floors').value = data.floors;
+
+        // Orientation
+        if (data.orientation) document.getElementById('prop-direction').value = data.orientation;
+
+        // Owner phone (strip dots)
+        if (data.ownerPhone) document.getElementById('owner-phone').value = data.ownerPhone.replace(/\./g, '');
+
+        // Price: parse "15.8 Tỷ" → 15800000000, "95 Tr/th" → 95000000, "32 Tỷ" → 32000000000
+        if (data.price) {
+            var priceStr = data.price.replace(/đ/g, '').trim();
+            var priceNum = 0;
+            var tyMatch = priceStr.match(/([\d,.]+)\s*Tỷ/i);
+            if (tyMatch) {
+                priceNum = parseFloat(tyMatch[1].replace(/,/g, '')) * 1000000000;
+            } else {
+                var trMatch = priceStr.match(/([\d,.]+)\s*Tr/i);
+                if (trMatch) {
+                    priceNum = parseFloat(trMatch[1].replace(/,/g, '')) * 1000000;
+                }
+            }
+            if (priceNum > 0) {
+                document.getElementById('property-price').value = priceNum;
+            }
+        }
+
+        // Commission: parse "1% (~158 triệu)" → value=1, type=percent
+        if (data.commission) {
+            var commStr = data.commission;
+            if (commStr.indexOf('%') !== -1) {
+                setCommissionType('percent');
+                var pctMatch = commStr.match(/([\d,.]+)\s*%/);
+                if (pctMatch) {
+                    document.getElementById('commission-value').value = parseFloat(pctMatch[1].replace(/,/g, ''));
+                }
+            } else {
+                setCommissionType('fixed');
+                var fixedMatch = commStr.match(/([\d,.]+)/);
+                if (fixedMatch) {
+                    document.getElementById('commission-value').value = parseFloat(fixedMatch[1].replace(/,/g, ''));
+                }
+            }
+        }
+
+        // Address: parse "482/12A Điện Biên Phủ, Phường 21, Quận Bình Thạnh, TP. Hồ Chí Minh"
+        if (data.address) {
+            var parts = data.address.split(',').map(function(s) { return s.trim(); });
+            // Province detection
+            for (var provKey in vnLocations) {
+                if (parts.some(function(p) { return vnLocations[provKey].name.indexOf(p) !== -1 || p.indexOf(vnLocations[provKey].name) !== -1; })) {
+                    document.getElementById('location-province').value = provKey;
+                    handleProvinceChange();
+                    break;
+                }
+            }
+            // District detection
+            var provVal = document.getElementById('location-province').value;
+            if (provVal && vnLocations[provVal]) {
+                for (var distKey in vnLocations[provVal].districts) {
+                    var distName = vnLocations[provVal].districts[distKey].name;
+                    if (parts.some(function(p) { return p.indexOf(distName) !== -1 || distName.indexOf(p) !== -1; })) {
+                        document.getElementById('location-district').value = distKey;
+                        handleDistrictChange();
+                        break;
+                    }
+                }
+            }
+            // Ward detection
+            var distVal = document.getElementById('location-district').value;
+            var provVal2 = document.getElementById('location-province').value;
+            if (provVal2 && distVal && vnLocations[provVal2] && vnLocations[provVal2].districts[distVal]) {
+                var wards = vnLocations[provVal2].districts[distVal].wards;
+                for (var w = 0; w < parts.length; w++) {
+                    if (wards.indexOf(parts[w]) !== -1) {
+                        document.getElementById('location-ward').value = parts[w];
+                        break;
+                    }
+                }
+            }
+            // Street and house number: use the first one or two parts
+            if (parts.length >= 2) {
+                var streetPart = parts[0];
+                // Check if first part has a number prefix (house number)
+                var hnMatch = streetPart.match(/^([\d\/A-Za-z]+\/?\s*)(.+)/);
+                if (hnMatch) {
+                    document.getElementById('location-house-no').value = hnMatch[1].trim();
+                    document.getElementById('location-street').value = hnMatch[2].trim();
+                } else {
+                    document.getElementById('location-street').value = streetPart;
+                }
+            }
+        }
+
+        // Price helper
+        formatCurrencyHelper();
+
+        // Pre-load images if available
+        if (data.images && data.images.length > 0) {
+            data.images.forEach(function(url) {
+                if (uploadedImages.length < 20) {
+                    uploadedImages.push({ src: url, name: 'product-image-' + (uploadedImages.length + 1) + '.jpg' });
+                }
+            });
+            renderGallery();
+        }
+
+        updatePreview();
+    }
+
+    // Initialize form after script injection (window.onload won't fire dynamically)
+    populateProvinces();
+    setupFieldTrackers();
+    prepopulateDemoData();
+
+    // Check for incoming product data from sessionStorage
+    var createMode = sessionStorage.getItem('createProductMode');
+    var createData = sessionStorage.getItem('createProductData');
+    if (createMode && createData) {
+        prefillFromProductData(JSON.parse(createData), createMode);
+        sessionStorage.removeItem('createProductMode');
+        sessionStorage.removeItem('createProductData');
+    }
+</script>

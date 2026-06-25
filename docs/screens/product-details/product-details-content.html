@@ -1,0 +1,886 @@
+<style>
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: #F8FAFC;
+        color: #0F172A;
+    }
+    .text-h1 { font-size: 26px; font-weight: 700; line-height: 1.2; }
+    .text-h2 { font-size: 20px; font-weight: 600; line-height: 1.25; }
+    .text-h3 { font-size: 16px; font-weight: 600; line-height: 1.3; }
+    .text-body { font-size: 13px; font-weight: 400; line-height: 1.45; }
+    .text-small { font-size: 11px; font-weight: 400; line-height: 1.4; }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #E2E8F0; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #CBD5E1; }
+    .premium-card {
+        border-radius: 16px;
+        border: 1px solid #E2E8F0;
+        background-color: #FFFFFF;
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+        transition: all 150ms ease-in-out;
+    }
+    .premium-card:hover { box-shadow: 0 4px 10px -2px rgba(0, 0, 0, 0.04); }
+    .btn-primary {
+        background-color: #2563EB;
+        color: #FFFFFF;
+        border-radius: 12px;
+        transition: all 150ms ease;
+    }
+    .btn-primary:hover { background-color: #1D4ED8; }
+    .btn-secondary {
+        background-color: #FFFFFF;
+        border: 1px solid #E2E8F0;
+        color: #0F172A;
+        border-radius: 12px;
+        transition: all 150ms ease;
+    }
+    .btn-secondary:hover { background-color: #F8FAFC; border-color: #CBD5E1; }
+    .input-premium {
+        border-radius: 10px;
+        border: 1px solid #E2E8F0;
+        outline: none;
+        transition: all 150ms ease;
+    }
+    .input-premium:focus { border-color: #2563EB; box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1); }
+    .modal-content { border-radius: 20px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.08); }
+</style>
+
+<main class="flex-1 overflow-y-auto flex flex-col focus:outline-none" id="mainContent">
+
+    <div id="propertyDetailContainer" class="p-3 md:p-5 space-y-4 max-w-7xl mx-auto w-full">
+
+        <!-- Highly Compact Detail Header -->
+        <div class="flex flex-col gap-2 md:gap-0 md:flex-row md:items-center md:justify-between pb-3 border-b border-[#E2E8F0]">
+            <div class="space-y-1">
+                <div class="flex flex-wrap items-center gap-1.5">
+                    <span id="detail-type-badge" class="px-2 py-0.5 text-[10px] font-bold rounded-md uppercase tracking-wider"></span>
+                    <span id="detail-status-badge" class="px-2 py-0.5 text-[10px] font-bold rounded-md flex items-center gap-1"></span>
+                    <span id="detail-code-badge" class="px-1.5 py-0.5 text-[10px] font-mono font-bold text-slate-700 bg-slate-100 border border-slate-200 rounded"></span>
+                </div>
+                <h1 id="detail-title" class="text-[#0F172A] text-lg md:text-xl font-bold tracking-tight leading-tight"></h1>
+                <div class="flex items-center gap-1 text-[#64748B] text-xs">
+                    <i data-lucide="map-pin" class="w-3.5 h-3.5 shrink-0 text-[#2563EB]"></i>
+                    <span id="detail-address" class="truncate max-w-full md:max-w-2xl"></span>
+                </div>
+            </div>
+
+            <!-- Top Compact Actions Row -->
+            <div class="flex items-center gap-1.5 self-start shrink-0">
+                <button onclick="navigateToCloneProduct()" class="btn-secondary px-3 py-1.5 text-xs font-semibold flex items-center gap-1.5 shadow-sm">
+                    <i data-lucide="copy" class="w-3.5 h-3.5 text-[#64748B]"></i>
+                    <span class="hidden sm:inline">Tin Đăng Mẫu</span>
+                </button>
+                <button onclick="navigateToEditProduct()" class="btn-primary bg-[#2563EB] px-3 py-1.5 text-xs font-semibold flex items-center gap-1.5 shadow-sm hover:bg-[#1D4ED8]">
+                    <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+                    <span>Cập nhật</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- HIGH DENSITY TOP ROW: Gallery and Financial/Owner Widget side-by-side -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+
+            <!-- Left: Compact Image Gallery (Column Span 7) -->
+            <div class="lg:col-span-7 premium-card overflow-hidden relative flex flex-col h-[230px] md:h-[280px]">
+                <div class="relative flex-1 bg-slate-900">
+                    <img id="active-gallery-image" src="" alt="Property View" class="w-full h-full object-cover">
+
+                    <button onclick="navigateGallery(-1)" class="absolute left-2.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center transition backdrop-blur-sm">
+                        <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                    </button>
+                    <button onclick="navigateGallery(1)" class="absolute right-2.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center transition backdrop-blur-sm">
+                        <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                    </button>
+
+                    <div class="absolute bottom-2.5 left-2.5 bg-black/60 text-white text-[10px] px-2 py-1 rounded-md backdrop-blur-sm flex items-center gap-1">
+                        <i data-lucide="image" class="w-3 h-3"></i>
+                        <span id="gallery-counter">1 / 3</span>
+                    </div>
+                </div>
+
+                <div class="h-14 bg-slate-100 border-t border-[#E2E8F0] p-1.5 flex gap-1.5 overflow-x-auto" id="gallery-thumbnails">
+                </div>
+            </div>
+
+            <!-- Right: Unified Financial and Source Owner Panel (Column Span 5) -->
+            <div class="lg:col-span-5 flex flex-col gap-3">
+
+                <!-- Financial Focus Box -->
+                <div class="premium-card p-3.5 bg-gradient-to-br from-blue-50/50 to-indigo-50/30 border-blue-100 flex-1 flex flex-col justify-between">
+                    <div class="space-y-1">
+                        <div class="flex justify-between items-center">
+                            <p class="text-[10px] uppercase tracking-wider text-[#2563EB] font-extrabold">Giá niêm yết</p>
+                            <span id="detail-unit-price" class="text-[10px] text-[#64748B] font-bold bg-white px-2 py-0.5 rounded-md border border-blue-100"></span>
+                        </div>
+                        <div class="flex items-baseline gap-2">
+                            <span id="detail-price" class="text-2xl font-bold text-[#2563EB]"></span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 my-2 py-2 border-t border-b border-blue-100/60 text-xs">
+                        <div class="space-y-0.5">
+                            <span class="block text-[10px] text-[#64748B]">Hoa hồng chi trả:</span>
+                            <span id="detail-commission" class="font-bold text-[#16A34A] block"></span>
+                        </div>
+                        <div class="space-y-0.5">
+                            <span class="block text-[10px] text-[#64748B]">Doanh thu vận hành:</span>
+                            <span id="detail-profit-note" class="font-semibold text-[#0F172A] block"></span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between gap-2 pt-1">
+                        <div class="flex items-center gap-2">
+                            <div class="w-7 h-7 rounded-md bg-blue-50 flex items-center justify-center text-[#2563EB] shrink-0 border border-blue-100">
+                                <i data-lucide="user" class="w-3.5 h-3.5"></i>
+                            </div>
+                            <div class="leading-tight">
+                                <p id="owner-name" class="font-bold text-[#0F172A] text-xs"></p>
+                                <p id="owner-phone" class="text-[10px] text-[#64748B] font-mono"></p>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-1">
+                            <a id="owner-call-link" href="#" class="h-7 px-2 bg-emerald-50 text-[#16A34A] hover:bg-[#16A34A] hover:text-white border border-[#16A34A]/20 rounded-md text-[11px] font-bold flex items-center gap-1 transition">
+                                <i data-lucide="phone" class="w-3 h-3"></i>
+                                <span>Gọi</span>
+                            </a>
+                            <button onclick="requestZaloVerify()" class="h-7 px-2 bg-blue-50 text-[#2563EB] hover:bg-[#2563EB] hover:text-white border border-[#2563EB]/20 rounded-md text-[11px] font-bold flex items-center gap-1 transition">
+                                <i data-lucide="shield-check" class="w-3 h-3"></i>
+                                <span>Xem Sổ</span>
+                            </button>
+                        </div>
+                    </div>
+                    </div>
+
+                <!-- Quick Status Actions -->
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="reportQuickAction('cọc')" class="premium-card p-2 flex items-center gap-2 hover:bg-amber-50 transition text-[11px] font-semibold text-slate-700">
+                        <span class="w-5 h-5 rounded-[5px] bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-200 shrink-0">
+                            <i data-lucide="hand-coins" class="w-2.5 h-2.5"></i>
+                        </span>
+                        Báo khách cọc
+                    </button>
+                    <button onclick="reportQuickAction('hết hàng')" class="premium-card p-2 flex items-center gap-2 hover:bg-rose-50 transition text-[11px] font-semibold text-slate-700">
+                        <span class="w-5 h-5 rounded-[5px] bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-200 shrink-0">
+                            <i data-lucide="package" class="w-2.5 h-2.5"></i>
+                        </span>
+                        Báo hết hàng
+                    </button>
+                    <button onclick="reportQuickAction('chốt')" class="premium-card p-2 flex items-center gap-2 hover:bg-emerald-50 transition text-[11px] font-semibold text-slate-700">
+                        <span class="w-5 h-5 rounded-[5px] bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-200 shrink-0">
+                            <i data-lucide="badge-check" class="w-2.5 h-2.5"></i>
+                        </span>
+                        Báo khách chốt hàng
+                    </button>
+                    <button onclick="reportQuickAction('huỷ cọc')" class="premium-card p-2 flex items-center gap-2 hover:bg-orange-50 transition text-[11px] font-semibold text-slate-700">
+                        <span class="w-5 h-5 rounded-[5px] bg-orange-50 text-orange-600 flex items-center justify-center border border-orange-200 shrink-0">
+                            <i data-lucide="ban" class="w-2.5 h-2.5"></i>
+                        </span>
+                        Báo khách huỷ cọc
+                    </button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- HIGH DENSITY RIBBON: Main facts summary in a single row -->
+        <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+            <div class="premium-card p-2 text-center bg-white flex items-center justify-center gap-2">
+                <i data-lucide="maximize-2" class="w-3.5 h-3.5 text-[#2563EB]"></i>
+                <div class="text-left leading-none">
+                    <span class="block text-[9px] text-[#64748B] font-medium uppercase">DT Đất</span>
+                    <span id="quick-area" class="text-xs font-bold text-[#0F172A]"></span>
+                </div>
+            </div>
+            <div class="premium-card p-2 text-center bg-white flex items-center justify-center gap-2">
+                <i data-lucide="bed-double" class="w-3.5 h-3.5 text-[#2563EB]"></i>
+                <div class="text-left leading-none">
+                    <span class="block text-[9px] text-[#64748B] font-medium uppercase">P. Ngủ</span>
+                    <span id="quick-beds" class="text-xs font-bold text-[#0F172A]"></span>
+                </div>
+            </div>
+            <div class="premium-card p-2 text-center bg-white flex items-center justify-center gap-2">
+                <i data-lucide="bath" class="w-3.5 h-3.5 text-[#2563EB]"></i>
+                <div class="text-left leading-none">
+                    <span class="block text-[9px] text-[#64748B] font-medium uppercase">WC</span>
+                    <span id="quick-baths" class="text-xs font-bold text-[#0F172A]"></span>
+                </div>
+            </div>
+            <div class="premium-card p-2 text-center bg-white flex items-center justify-center gap-2">
+                <i data-lucide="layers" class="w-3.5 h-3.5 text-[#2563EB]"></i>
+                <div class="text-left leading-none">
+                    <span class="block text-[9px] text-[#64748B] font-medium uppercase">Số lầu</span>
+                    <span id="quick-floors" class="text-xs font-bold text-[#0F172A]"></span>
+                </div>
+            </div>
+            <div class="premium-card p-2 text-center bg-white flex items-center justify-center gap-2">
+                <i data-lucide="compass" class="w-3.5 h-3.5 text-[#2563EB]"></i>
+                <div class="text-left leading-none">
+                    <span class="block text-[9px] text-[#64748B] font-medium uppercase">Hướng</span>
+                    <span id="quick-direction" class="text-xs font-bold text-[#0F172A]"></span>
+                </div>
+            </div>
+            <div class="premium-card p-2 text-center bg-white flex items-center justify-center gap-2">
+                <i data-lucide="navigation" class="w-3.5 h-3.5 text-[#2563EB]"></i>
+                <div class="text-left leading-none">
+                    <span class="block text-[9px] text-[#64748B] font-medium uppercase">Đường đi</span>
+                    <span id="quick-road" class="text-xs font-bold text-[#0F172A] truncate max-w-[80px]"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- FLAT WORKSPACE GRID: Displaying all details directly in 2 columns (No tabs) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+
+            <!-- LEFT COLUMN (Span 8): Overview and Activity Stream -->
+            <div class="lg:col-span-4">
+
+                <!-- Block 1: Tổng quan & Điểm nhấn -->
+                <div class="premium-card p-4 space-y-4 h-full">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-[#0F172A] flex items-center gap-2">
+                            <i data-lucide="file-text" class="w-4 h-4 text-[#2563EB]"></i>
+                            <span>Tổng quan & Mô tả nguồn hàng</span>
+                        </h3>
+                    </div>
+
+                    <div id="detail-description" class="text-xs text-[#0F172A] leading-relaxed space-y-2 font-normal">
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- RIGHT COLUMN (Span 4): Technical Attributes Table -->
+            <div class="lg:col-span-8">
+                <div class="premium-card p-4 space-y-3 h-full">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-[#0F172A] flex items-center gap-2">
+                            <i data-lucide="list-collapse" class="w-4 h-4 text-[#2563EB]"></i>
+                            <span>Thông số kỹ thuật đầy đủ</span>
+                        </h3>
+                    </div>
+
+                    <div class="text-xs grid grid-cols-1 lg:grid-cols-2 gap-2" id="detail-attributes-table">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Block 2: Lịch sử & Phản hồi -->
+            <div class="lg:col-span-12 premium-card p-4 space-y-3">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-[#0F172A] flex items-center gap-2">
+                        <i data-lucide="message-square-code" class="w-4 h-4 text-[#2563EB]"></i>
+                        <span>Lịch sử & Phản hồi nội bộ</span>
+                    </h3>
+                    <span id="comments-count-badge" class="bg-blue-100 text-[#2563EB] text-[10px] px-2 py-0.5 rounded-full font-bold"></span>
+                </div>
+
+                <div class="bg-[#F8FAFC] p-3 rounded-xl border border-[#E2E8F0] space-y-2">
+                    <div class="flex gap-2.5">
+                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80" alt="Current User" class="w-7 h-7 rounded-full object-cover border shadow-sm ring-1 ring-slate-200">
+                        <div class="flex-1">
+                            <textarea id="commentInput" rows="2" placeholder="Ghi chú kết quả dẫn khách xem nhà hoặc cập nhật hiện trạng..." class="w-full p-2 text-xs border border-[#E2E8F0] input-premium placeholder:text-[#64748B] text-[#0F172A] resize-none"></textarea>
+                        </div>
+                    </div>
+                    <div class="flex justify-end">
+                        <button onclick="addNewComment()" class="btn-primary px-3 py-1 text-xs font-semibold flex items-center gap-1">
+                            <i data-lucide="send" class="w-3 h-3"></i>
+                            <span>Gửi báo cáo</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="commentsStream" class="space-y-3 pt-1">
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</main>
+
+<!-- Edit Listing Modal -->
+<div id="editModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center hidden p-4 transition-opacity duration-200">
+    <div class="bg-white w-full max-w-lg modal-content p-5 space-y-4 relative transform scale-95 transition-transform duration-200">
+        <button onclick="closeEditModal()" class="absolute right-4 top-4 text-slate-400 hover:text-slate-600">
+            <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+
+        <div class="space-y-1">
+            <h3 class="text-h3 text-[#0F172A] font-bold">Cập nhật nhanh nguồn hàng</h3>
+            <p class="text-[11px] text-[#64748B]">Chỉnh sửa nhanh các thông số giá bán, hoa hồng đại lý và hiện trạng kiểm duyệt.</p>
+        </div>
+
+        <form id="editForm" onsubmit="savePropertyChanges(event)" class="space-y-3">
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-[11px] font-semibold text-[#0F172A] mb-1">Mức Giá Niêm Yết</label>
+                    <input type="text" id="modal-price" required class="w-full px-2.5 py-1.5 text-xs border border-[#E2E8F0] input-premium text-[#0F172A]">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-semibold text-[#0F172A] mb-1">Đơn Giá</label>
+                    <input type="text" id="modal-unitprice" required class="w-full px-2.5 py-1.5 text-xs border border-[#E2E8F0] input-premium text-[#0F172A]">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-[11px] font-semibold text-[#0F172A] mb-1">Hoa hồng đại lý</label>
+                    <input type="text" id="modal-commission" required class="w-full px-2.5 py-1.5 text-xs border border-[#E2E8F0] input-premium text-[#0F172A]">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-semibold text-[#0F172A] mb-1">Doanh thu hiện hữu</label>
+                    <input type="text" id="modal-profit" required class="w-full px-2.5 py-1.5 text-xs border border-[#E2E8F0] input-premium text-[#0F172A]">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-[11px] font-semibold text-[#0F172A] mb-1">Trạng thái kho hàng</label>
+                <select id="modal-status" class="w-full px-2.5 py-2 text-xs border border-[#E2E8F0] input-premium text-[#0F172A] bg-white">
+                    <option value="Còn hàng">Còn hàng (Sẵn sàng)</option>
+                    <option value="Đã cọc">Đã cọc (Khóa)</option>
+                    <option value="Ngưng nhận">Ngưng nhận khách (Tạm khóa)</option>
+                </select>
+            </div>
+
+            <div class="flex gap-2 justify-end pt-2">
+                <button type="button" onclick="closeEditModal()" class="btn-secondary px-3 py-1.5 text-xs font-semibold">Hủy</button>
+                <button type="submit" class="btn-primary bg-[#2563EB] px-4 py-1.5 text-xs font-semibold">Lưu thay đổi</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- UI Custom Notification Message Box -->
+<div id="toastNotification" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+    <div class="bg-slate-900 text-white rounded-xl px-4 py-2.5 shadow-lg flex items-center gap-2.5">
+        <div id="toastIcon" class="text-emerald-400">
+            <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+        </div>
+        <p id="toastMessage" class="text-xs font-semibold"></p>
+    </div>
+</div>
+
+<script data-page-script>
+var PROPERTIES_MOCK_DATA = [
+    {
+        id: "BDS-1001",
+        title: "Hạ Sang CHDV - 9P + 9WC Đang Khai Thác Ổn Định Quận Bình Thạnh",
+        type: "Bán",
+        category: "CHDV",
+        status: "Còn hàng",
+        price: "15.8 Tỷ",
+        unitPrice: "125.4 Tr/m²",
+        commission: "1% (~158 triệu)",
+        additionalPriceNotes: "85tr/tháng",
+        area: "126 m²",
+        bedrooms: 9,
+        bathrooms: 9,
+        floors: 4,
+        orientation: "Đông Nam",
+        roadInfo: "Hẻm nhựa 8m",
+        address: "482/12A Điện Biên Phủ, Phường 21, Quận Bình Thạnh, TP. Hồ Chí Minh",
+        images: [
+            "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=1200&q=80",
+            "https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=1200&q=80",
+            "https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=1200&q=80"
+        ],
+        description: '<p class="mb-2">🔥 <strong>CĂN HỘ DỊCH VỤ DÒNG TIỀN ĐỈNH CAO BÌNH THẠNH</strong>. Vị trí tiếp giáp khu du lịch Văn Thánh, chỉ 3 phút sang trung tâm Quận 1.</p><p class="mb-2">🏠 <strong>Kết cấu:</strong> 1 Trệt, 3 Lầu, Sân thượng. Tổng cộng 9 phòng Studio khép kín rộng rãi, thiết kế dạng Duplex tối ưu không gian sinh hoạt.</p><p class="mb-2">📈 <strong>Dòng tiền:</strong> Đã cho thuê kín phòng, trang bị đầy đủ nội thất từ điều hòa, tủ lạnh, camera an ninh độc lập. Doanh thu cho thuê ổn định đạt 85 triệu đồng/tháng.</p>',
+        highlights: [
+            "Dòng tiền thực tế ổn định đạt hiệu suất gần 7.5%/năm lý tưởng.",
+            "Hẻm ô tô 8m thông hai đầu, khu dân trí cao cực kỳ an ninh.",
+            "Sổ hồng hoàn công đầy đủ, sang tên nhanh gọn, pháp lý chuẩn chỉnh."
+        ],
+        attributes: [
+            { key: "Giá bán niêm yết", value: "15.8 Tỷ VNĐ" },
+            { key: "Diện tích sử dụng", value: "126 m² (6m x 21m)" },
+            { key: "Tổng diện tích sàn", value: "450 m²" },
+            { key: "Kết cấu phòng ngủ", value: "9 Phòng Studio khép kín" },
+            { key: "Nhà vệ sinh", value: "9 Toilet khép kín" },
+            { key: "Pháp lý", value: "Sổ hồng hoàn công đầy đủ" },
+            { key: "Hướng nhà", value: "Đông Nam" },
+            { key: "Hẻm xe hơi", value: "Hẻm nhựa rộng 8.2m" },
+            { key: "Trang bị nội thất", value: "Bàn giao đầy đủ cao cấp" },
+            { key: "Năm hoàn thành", value: "2023 (Còn rất mới)" }
+        ],
+        owner: "Anh Minh Triết (Chủ nhà)",
+        ownerPhone: "0909.555.123",
+        internalRef: "REF-BTH-9921",
+        comments: [
+            { id: 1, author: "Trần Anh Kiệt", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80", text: "Khách của mình vừa xem chiều qua, ưng hẻm rộng nhưng đang ép bớt 300 triệu.", date: "Hôm qua lúc 14:32" },
+            { id: 2, author: "Lê Hoài Nam", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&q=80", text: "Đã kiểm tra kỹ quy hoạch phòng tài nguyên, đất ở đô thị hiện hữu không dính lộ giới.", date: "3 ngày trước" }
+        ]
+    },
+    {
+        id: "BDS-1002",
+        title: "Biệt Thự Đơn Lập Compound Riviera Thảo Điền Quận 2",
+        type: "Bán",
+        category: "Biệt thự",
+        status: "Còn hàng",
+        price: "115 Tỷ",
+        unitPrice: "328.5 Tr/m²",
+        commission: "0.8% (~920 triệu)",
+        additionalPriceNotes: "Tặng gói nội thất 5 tỷ",
+        area: "350 m²",
+        bedrooms: 5,
+        bathrooms: 6,
+        floors: 3,
+        orientation: "Nam",
+        roadInfo: "Compound 12m",
+        address: "Số 10 Giang Văn Minh, Khu biệt thự Riviera, Thảo Điền, Quận 2, TP. Hồ Chí Minh",
+        images: [
+            "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80",
+            "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80"
+        ],
+        description: '<p class="mb-2">🌟 <strong>BIỆT THỰ RIVIERA THẢO ĐIỀN</strong> - Đỉnh cao sống thượng lưu biệt lập tuyệt đối tại Thảo Điền.</p><p class="mb-2">🏡 Sân vườn cảnh quan tươi mát bao quanh, sở hữu hồ bơi ngoài trời riêng biệt, bến du thuyền và khu tiện ích compound tiêu chuẩn quốc tế.</p>',
+        highlights: [
+            "Khu khép kín đắt giá và biệt lập nhất Thảo Điền.",
+            "View trực diện sông Sài Gòn, biệt thự bàn giao full nội thất cao cấp.",
+            "An ninh nghiêm ngặt tuần tra bảo vệ nghiêm ngặt 24/7."
+        ],
+        attributes: [
+            { key: "Giá bán niêm yết", value: "115 Tỷ VNĐ" },
+            { key: "Diện tích đất", value: "350 m²" },
+            { key: "Số phòng ngủ", value: "5 Phòng ngủ Master" },
+            { key: "Nhà vệ sinh", value: "6 WC cao cấp" },
+            { key: "Pháp lý", value: "Sổ hồng chủ quyền riêng" },
+            { key: "Hướng nhà", value: "Chính Nam" },
+            { key: "An ninh", value: "Compound khép kín 24/7" }
+        ],
+        owner: "Chị Thảo Nguyên",
+        ownerPhone: "0918.999.888",
+        internalRef: "REF-Q2-8812",
+        comments: [
+            { id: 1, author: "Đặng Hoàng Anh", avatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=120&q=80", text: "Giá cao nhưng Riviera vô cùng khan hiếm, hầu như không có căn bán.", date: "Hôm qua" }
+        ]
+    },
+    {
+        id: "BDS-1003",
+        title: "Căn Hộ Penthouse Estella Heights View Trọn Cảnh Sông",
+        type: "Bán",
+        category: "Căn hộ",
+        status: "Đã cọc",
+        price: "32 Tỷ",
+        unitPrice: "145.4 Tr/m²",
+        commission: "1.2% (~384 triệu)",
+        additionalPriceNotes: "Bớt lộc mua nhanh",
+        area: "220 m²",
+        bedrooms: 4,
+        bathrooms: 4,
+        floors: 1,
+        orientation: "Đông Bắc",
+        roadInfo: "Xa lộ Hà Nội",
+        address: "Tháp T3 - Tầng 34 Estella Heights, Song Hành Xa Lộ Hà Nội, An Phú, Quận 2, TP. Hồ Chí Minh",
+        images: [
+            "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1200&q=80"
+        ],
+        description: '<p class="mb-2">🏙️ <strong>PENTHOUSE ESTELLA HEIGHTS</strong>. Trần cao 5m sang trọng, ban công Panorama rộng trải dài view trọn vẹn cảnh sông.</p>',
+        highlights: [
+            "Bàn giao kèm chỗ đậu xe hơi định danh riêng biệt.",
+            "Đầy đủ tiện ích đẳng cấp chuẩn resort: Hồ bơi lười, sân tennis, phòng xông hơi."
+        ],
+        attributes: [
+            { key: "Giá bán niêm yết", value: "32 Tỷ VNĐ" },
+            { key: "Diện tích sử dụng", value: "220 m²" },
+            { key: "Số phòng ngủ", value: "4 Phòng ngủ" },
+            { key: "Vị trí tầng", value: "Tầng 34 (Penthouse đỉnh cao)" },
+            { key: "Pháp lý", value: "Sổ hồng sở hữu lâu dài" }
+        ],
+        owner: "Anh Hoàng Bách",
+        ownerPhone: "0902.111.456",
+        internalRef: "REF-EST-7651",
+        comments: []
+    },
+    {
+        id: "BDS-1004",
+        title: "Mặt Tiền Kinh Doanh Nguyễn Thị Minh Khai Quận 1",
+        type: "Cho thuê",
+        category: "Nhà phố",
+        status: "Còn hàng",
+        price: "95 Tr/th",
+        unitPrice: "950 K/m²",
+        commission: "1 tháng tiền thuê",
+        additionalPriceNotes: "HĐ tối thiểu 3 năm",
+        area: "100 m²",
+        bedrooms: 4,
+        bathrooms: 5,
+        floors: 5,
+        orientation: "Tây Bắc",
+        roadInfo: "Mặt tiền 30m",
+        address: "182 Nguyễn Thị Minh Khai, Phường Võ Thị Sáu, Quận 1, TP. Hồ Chí Minh",
+        images: [
+            "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=80"
+        ],
+        description: '<p class="mb-2">📍 <strong>MẶT TIỀN THƯƠNG MẠI ĐẮC ĐỊA QUẬN 1</strong>. Kinh doanh cực kỳ sầm uất, phù hợp làm showroom, chi nhánh ngân hàng hoặc chuỗi cà phê lớn.</p>',
+        highlights: [
+            "Vỉa hè cực rộng 6m để xe thoải mái.",
+            "Sẵn sàng bàn giao thô cho khách sửa chữa theo nhận diện."
+        ],
+        attributes: [
+            { key: "Giá thuê hàng tháng", value: "95 Triệu VNĐ" },
+            { key: "Diện tích đất", value: "100 m² (5.5m x 18m)" },
+            { key: "Số lầu", value: "5 lầu (Thang máy tốc độ cao)" },
+            { key: "Mặt tiền đường", value: "Đường rộng 30m vỉa hè rộng" },
+            { key: "Mục đích sử dụng", value: "Văn phòng, Showroom thương mại" }
+        ],
+        owner: "Bác Ngọc Hương",
+        ownerPhone: "0933.222.111",
+        internalRef: "REF-Q1-4521",
+        comments: []
+    },
+    {
+        id: "BDS-1005",
+        title: "Shophouse Góc 2 Mặt Tiền Khu Đô Thị Sala Thủ Thiêm",
+        type: "Chuyển nhượng",
+        category: "Shophouse",
+        status: "Còn hàng",
+        price: "72 Tỷ",
+        unitPrice: "428.5 Tr/m²",
+        commission: "1.5% (~1.08 Tỷ)",
+        additionalPriceNotes: "Bàn giao thô bên trong",
+        area: "168 m²",
+        bedrooms: 4,
+        bathrooms: 6,
+        floors: 4,
+        orientation: "Đông",
+        roadInfo: "Góc 2 mặt tiền",
+        address: "Khu Shophouse Nguyễn Cơ Thạch, KĐT Sala, Thủ Thiêm, Quận 2, TP. Hồ Chí Minh",
+        images: [
+            "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80"
+        ],
+        description: '<p class="mb-2">💎 <strong>SHOPHOUSE GÓC 2 MẶT TIỀN SALA THỦ THIÊM</strong>. Tâm điểm tài chính mới sầm uất hàng đầu.</p>',
+        highlights: [
+            "Trục chính Nguyễn Cơ Thạch, nhận diện thương hiệu tuyệt vời.",
+            "Đầy đủ giấy tờ sở hữu vĩnh viễn, thuận tiện giao dịch."
+        ],
+        attributes: [
+            { key: "Giá chuyển nhượng", value: "72 Tỷ VNĐ" },
+            { key: "Diện tích đất", value: "168 m² (8m x 21m)" },
+            { key: "Số tầng", value: "4 lầu" },
+            { key: "Hướng nhà", value: "Chính Đông" },
+            { key: "Pháp lý hoàn thiện", value: "Sổ hồng hoàn công đầy đủ" }
+        ],
+        owner: "Anh Quốc Bảo",
+        ownerPhone: "0909.888.222",
+        internalRef: "REF-SALA-3091",
+        comments: []
+    }
+];
+
+var properties = [];
+var activePropertyId = "BDS-1001";
+var activeImageIndex = 0;
+
+function createFallbackProperty(id) {
+    return {
+        id: id,
+        title: "Sản phẩm " + id,
+        type: "Bán",
+        category: "BĐS",
+        status: "Còn hàng",
+        price: "Liên hệ",
+        unitPrice: "\u2014",
+        commission: "\u2014",
+        additionalPriceNotes: "\u2014",
+        area: "\u2014",
+        bedrooms: "-",
+        bathrooms: "-",
+        floors: "-",
+        orientation: "-",
+        roadInfo: "-",
+        address: "\u2014",
+        images: ["https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=1200&q=80"],
+        description: "<p>Thông tin chi tiết sản phẩm đang được cập nhật.</p>",
+        highlights: ["Thông tin đang được cập nhật."],
+        attributes: [{ key: "Tr\u1ea1ng th\u00e1i", value: "\u0110ang c\u1eadp nh\u1eadt" }],
+        owner: "\u2014",
+        ownerPhone: "\u2014",
+        comments: []
+    };
+}
+
+function initApp() {
+    properties = JSON.parse(JSON.stringify(PROPERTIES_MOCK_DATA));
+    selectProperty(activePropertyId);
+}
+
+function selectProperty(id) {
+    activePropertyId = id;
+    activeImageIndex = 0;
+
+    var prop = properties.find(function(p) { return p.id === id; }) || createFallbackProperty(id);
+
+    document.getElementById("detail-title").innerText = prop.title;
+    document.getElementById("detail-address").innerText = prop.address;
+
+    document.getElementById("detail-price").innerText = prop.price;
+    document.getElementById("detail-unit-price").innerText = prop.unitPrice;
+    document.getElementById("detail-commission").innerText = prop.commission;
+    document.getElementById("detail-profit-note").innerText = prop.additionalPriceNotes;
+
+    document.getElementById("detail-description").innerHTML = prop.description;
+
+    document.getElementById("owner-name").innerText = prop.owner;
+    document.getElementById("owner-phone").innerText = prop.ownerPhone;
+    document.getElementById("owner-call-link").href = "tel:" + prop.ownerPhone.replace(/\./g, "");
+
+    var typeBadge = document.getElementById("detail-type-badge");
+    typeBadge.innerText = prop.type + (prop.category ? " " + prop.category : "");
+
+    if (prop.type === "Bán") {
+        typeBadge.className = "px-2 py-0.5 text-[10px] font-bold rounded-md uppercase tracking-wider bg-blue-50 text-[#2563EB] border border-blue-200/50";
+    } else if (prop.type === "Cho thuê") {
+        typeBadge.className = "px-2 py-0.5 text-[10px] font-bold rounded-md uppercase tracking-wider bg-purple-50 text-purple-700 border border-purple-200/50";
+    } else {
+        typeBadge.className = "px-2 py-0.5 text-[10px] font-bold rounded-md uppercase tracking-wider bg-pink-50 text-pink-700 border border-pink-200/50";
+    }
+
+    var statusBadge = document.getElementById("detail-status-badge");
+    statusBadge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full ' + (prop.status === 'Còn hàng' ? 'bg-[#16A34A]' : prop.status === 'Đã cọc' ? 'bg-[#F59E0B]' : 'bg-[#DC2626]') + '"></span> ' + prop.status;
+    if (prop.status === "Còn hàng") {
+        statusBadge.className = "px-2 py-0.5 text-[10px] font-bold rounded-md flex items-center gap-1 bg-emerald-50 text-[#16A34A] border border-emerald-200/50";
+    } else if (prop.status === "Đã cọc") {
+        statusBadge.className = "px-2 py-0.5 text-[10px] font-bold rounded-md flex items-center gap-1 bg-amber-50 text-[#F59E0B] border border-amber-200/50";
+    } else {
+        statusBadge.className = "px-2 py-0.5 text-[10px] font-bold rounded-md flex items-center gap-1 bg-rose-50 text-[#DC2626] border border-rose-200/50";
+    }
+
+    document.getElementById("detail-code-badge").innerText = prop.id;
+    if (document.getElementById("mobile-code-badge")) {
+        document.getElementById("mobile-code-badge").innerText = prop.id;
+    }
+
+    document.getElementById("quick-area").innerText = prop.area;
+    document.getElementById("quick-beds").innerText = prop.bedrooms || "-";
+    document.getElementById("quick-baths").innerText = prop.bathrooms || "-";
+    document.getElementById("quick-floors").innerText = prop.floors || "-";
+    document.getElementById("quick-direction").innerText = prop.orientation || "-";
+    document.getElementById("quick-road").innerText = prop.roadInfo || "-";
+
+    var attributesContainer = document.getElementById("detail-attributes-table");
+    if (prop.attributes && prop.attributes.length > 0) {
+        attributesContainer.innerHTML = prop.attributes.map(function(attr) {
+            return '<div class="flex justify-between py-1.5 px-2 bg-slate-50 rounded-md"><span class="text-[#64748B] font-medium">' + attr.key + ':</span><span class="font-bold text-[#0F172A] text-right ml-2">' + attr.value + '</span></div>';
+        }).join("");
+    } else {
+        attributesContainer.innerHTML = '<div class="flex justify-between py-1.5 px-2 bg-slate-50 rounded-md"><span class="text-[#64748B]">Mức giá niêm yết:</span><span class="font-bold text-[#0F172A]">' + prop.price + '</span></div><div class="flex justify-between py-1.5 px-2 bg-slate-50 rounded-md"><span class="text-[#64748B]">Tổng diện tích:</span><span class="font-bold text-[#0F172A]">' + prop.area + '</span></div>';
+    }
+
+    renderComments();
+    updateGalleryImage();
+
+    document.getElementById("mainContent").scrollTop = 0;
+
+    lucide.createIcons();
+}
+
+function updateGalleryImage() {
+    var prop = properties.find(function(p) { return p.id === activePropertyId; }) || createFallbackProperty(activePropertyId);
+    if (!prop || !prop.images || prop.images.length === 0) return;
+
+    var activeImg = document.getElementById("active-gallery-image");
+    activeImg.src = prop.images[activeImageIndex];
+
+    document.getElementById("gallery-counter").innerText = (activeImageIndex + 1) + " / " + prop.images.length;
+
+    var thumbContainer = document.getElementById("gallery-thumbnails");
+    thumbContainer.innerHTML = prop.images.map(function(img, idx) {
+        var isActive = idx === activeImageIndex;
+        return '<div onclick="selectGalleryIndex(' + idx + ')" class="w-14 h-10 rounded-md overflow-hidden shrink-0 border-2 cursor-pointer transition ' + (isActive ? 'border-[#2563EB] ring-1 ring-blue-100' : 'border-transparent opacity-60 hover:opacity-100') + '"><img src="' + img + '" alt="Thumb" class="w-full h-full object-cover"></div>';
+    }).join("");
+}
+
+function selectGalleryIndex(idx) {
+    activeImageIndex = idx;
+    updateGalleryImage();
+}
+
+function navigateGallery(direction) {
+    var prop = properties.find(function(p) { return p.id === activePropertyId; }) || createFallbackProperty(activePropertyId);
+    if (!prop || !prop.images || prop.images.length === 0) return;
+
+    activeImageIndex += direction;
+    if (activeImageIndex >= prop.images.length) activeImageIndex = 0;
+    if (activeImageIndex < 0) activeImageIndex = prop.images.length - 1;
+
+    updateGalleryImage();
+}
+
+function copyToClipboardText() {
+    var prop = properties.find(function(p) { return p.id === activePropertyId; }) || createFallbackProperty(activePropertyId);
+    if (!prop) return;
+
+    var textToCopy = "[MÃ SẢN PHẨM: " + prop.id + "] " + prop.title.toUpperCase() + "\n-------------------------------------------\n📍 Địa chỉ: " + prop.address + "\n💰 Giá bán niêm yết: " + prop.price + " (Đơn giá: " + prop.unitPrice + ")\n📐 Diện tích: " + prop.area + " - Thiết kế: " + prop.floors + " lầu, " + prop.bedrooms + " phòng ngủ, " + prop.bathrooms + " WC.\n🧭 Hướng: " + prop.orientation + " - Hẻm: " + prop.roadInfo + "\n💵 Doanh thu khai thác hiện trạng: " + prop.additionalPriceNotes + "\n🤝 Hoa hồng nhận diện: " + prop.commission + "\n\n💡 Đặc điểm nổi bật:\n" + (prop.highlights ? prop.highlights.map(function(h) { return "- " + h; }).join("\n") : "") + "\n\nLiên hệ Chuyên Viên Phụ Trách để giao dịch đưa khách xem nhà!";
+
+    var textarea = document.createElement("textarea");
+    textarea.value = textToCopy.trim();
+    textarea.style.position = "fixed";
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+
+    try {
+        document.execCommand('copy');
+        showToast("Đã sao chép tin đăng mẫu siêu tốc vào bộ nhớ!", "success");
+    } catch (err) {
+        showToast("Lỗi sao chép! Vui lòng thử lại.", "error");
+    }
+
+    document.body.removeChild(textarea);
+}
+
+function renderComments() {
+    var prop = properties.find(function(p) { return p.id === activePropertyId; }) || createFallbackProperty(activePropertyId);
+    if (!prop) return;
+
+    var commentsContainer = document.getElementById("commentsStream");
+    var badgeIndicator = document.getElementById("comments-count-badge");
+
+    var commentsCount = prop.comments ? prop.comments.length : 0;
+    badgeIndicator.innerText = commentsCount + " phản hồi";
+
+    if (commentsCount === 0) {
+        commentsContainer.innerHTML = '<div class="text-center py-6 text-slate-400"><p class="text-xs">Chưa có hoạt động hay phản hồi nội bộ nào.</p></div>';
+        return;
+    }
+
+    commentsContainer.innerHTML = prop.comments.map(function(c) {
+        return '<div class="flex gap-2.5 text-xs"><img src="' + c.avatar + '" alt="Agent avatar" class="w-6 h-6 rounded-full object-cover border shadow-sm ring-1 ring-slate-100"><div class="flex-1 bg-slate-50 p-2.5 rounded-xl border border-slate-100/80"><div class="flex justify-between items-center mb-0.5"><span class="font-bold text-[#0F172A] text-[10px]">' + c.author + '</span><span class="text-[9px] text-[#64748B]">' + c.date + '</span></div><p class="text-[#334155] leading-normal font-normal text-[11px]">' + c.text + '</p></div></div>';
+    }).join("");
+}
+
+function addNewComment() {
+    var input = document.getElementById("commentInput");
+    var text = input.value.trim();
+    if (!text) {
+        showToast("Vui lòng ghi nội dung phản hồi cụ thể!", "error");
+        return;
+    }
+
+    var propIndex = properties.findIndex(function(p) { return p.id === activePropertyId; });
+    if (propIndex === -1) {
+        showToast("Sản phẩm này chưa có dữ liệu chi tiết để phản hồi.", "error");
+        return;
+    }
+
+    if (!properties[propIndex].comments) {
+        properties[propIndex].comments = [];
+    }
+
+    properties[propIndex].comments.unshift({
+        id: Date.now(),
+        author: "Nguyễn Minh Quân (Bạn)",
+        avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80",
+        text: text,
+        date: "Vừa xong"
+    });
+
+    input.value = "";
+    renderComments();
+    showToast("Báo cáo dẫn khách mới được đồng bộ thành công!", "success");
+}
+
+function openEditModal() {
+    var prop = properties.find(function(p) { return p.id === activePropertyId; });
+    if (!prop) {
+        showToast("Sản phẩm này chưa có dữ liệu chi tiết để chỉnh sửa.", "error");
+        return;
+    }
+
+    document.getElementById("modal-price").value = prop.price;
+    document.getElementById("modal-unitprice").value = prop.unitPrice;
+    document.getElementById("modal-commission").value = prop.commission;
+    document.getElementById("modal-profit").value = prop.additionalPriceNotes;
+    document.getElementById("modal-status").value = prop.status;
+
+    var modal = document.getElementById("editModal");
+    modal.classList.remove("hidden");
+    setTimeout(function() {
+        modal.querySelector(".modal-content").classList.remove("scale-95");
+        modal.querySelector(".modal-content").classList.add("scale-100");
+    }, 10);
+}
+
+function closeEditModal() {
+    var modal = document.getElementById("editModal");
+    modal.querySelector(".modal-content").classList.remove("scale-100");
+    modal.querySelector(".modal-content").classList.add("scale-95");
+    setTimeout(function() {
+        modal.classList.add("hidden");
+    }, 100);
+}
+
+function savePropertyChanges(event) {
+    event.preventDefault();
+
+    var propIndex = properties.findIndex(function(p) { return p.id === activePropertyId; });
+    if (propIndex === -1) return;
+
+    properties[propIndex].price = document.getElementById("modal-price").value;
+    properties[propIndex].unitPrice = document.getElementById("modal-unitprice").value;
+    properties[propIndex].commission = document.getElementById("modal-commission").value;
+    properties[propIndex].additionalPriceNotes = document.getElementById("modal-profit").value;
+    properties[propIndex].status = document.getElementById("modal-status").value;
+
+    selectProperty(activePropertyId);
+    closeEditModal();
+    showToast("Đã lưu các điều chỉnh thông số sản phẩm!", "success");
+}
+
+function requestZaloVerify() {
+    showToast("Yêu cầu tải về sổ hoàn công đã được gửi tới Đầu Chủ phê duyệt.", "success");
+}
+
+function reportQuickAction(action) {
+    var messages = {
+        'cọc': 'Đã ghi nhận khách cọc thành công!',
+        'hết hàng': 'Đã chuyển trạng thái kho thành "Hết hàng".',
+        'chốt': 'Chúc mừng! Đã ghi nhận khách chốt hàng.',
+        'huỷ cọc': 'Đã ghi nhận huỷ cọc, cập nhật trạng thái kho.'
+    };
+    showToast(messages[action] || 'Thao tác đã được ghi nhận.', 'success');
+}
+
+function navigateToCloneProduct() {
+    var prop = properties.find(function(p) { return p.id === activePropertyId; }) || createFallbackProperty(activePropertyId);
+    if (!prop) return;
+    sessionStorage.setItem('createProductMode', 'clone');
+    sessionStorage.setItem('createProductData', JSON.stringify(prop));
+    navigate('them-hang');
+}
+
+function navigateToEditProduct() {
+    var prop = properties.find(function(p) { return p.id === activePropertyId; }) || createFallbackProperty(activePropertyId);
+    if (!prop) return;
+    sessionStorage.setItem('createProductMode', 'edit');
+    sessionStorage.setItem('createProductData', JSON.stringify(prop));
+    navigate('them-hang');
+}
+
+function showToast(message, type) {
+    if (!type) type = "success";
+    var toast = document.getElementById("toastNotification");
+    var toastMsg = document.getElementById("toastMessage");
+    var toastIcon = document.getElementById("toastIcon");
+
+    toastMsg.innerText = message;
+
+    if (type === "success") {
+        toastIcon.innerHTML = '<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>';
+    } else {
+        toastIcon.innerHTML = '<i data-lucide="alert-circle" class="w-4 h-4 text-rose-500"></i>';
+    }
+
+    lucide.createIcons();
+
+    toast.classList.remove("translate-y-20", "opacity-0");
+    toast.classList.add("translate-y-0", "opacity-100");
+
+    setTimeout(function() {
+        toast.classList.remove("translate-y-0", "opacity-100");
+        toast.classList.add("translate-y-20", "opacity-0");
+    }, 2500);
+}
+
+</script>

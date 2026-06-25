@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="vi" class="h-full bg-[#F8FAFC]">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRM Bất động sản - Hệ thống Quản trị</title>
+    <!-- Google Fonts Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#2563EB',
+                        background: '#F8FAFC',
+                        surface: '#FFFFFF',
+                        border: '#E2E8F0',
+                        textPrimary: '#0F172A',
+                        textSecondary: '#64748B',
+                        success: '#16A34A',
+                        warning: '#F59E0B',
+                        error: '#DC2626',
+                    },
+                    borderRadius: {
+                        'card': '16px',
+                        'button': '12px',
+                        'input': '10px',
+                        'modal': '20px',
+                    },
+                    boxShadow: {
+                        'soft': '0 2px 8px -1px rgba(15, 23, 42, 0.04), 0 4px 20px -2px rgba(15, 23, 42, 0.03)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            color: #0F172A;
+        }
+
+        .text-h1 { font-size: 24px; font-weight: 600; line-height: 38px; }
+        .text-h2 { font-size: 20px; font-weight: 600; line-height: 30px; }
+        .text-h3 { font-size: 16px; font-weight: 500; line-height: 26px; }
+        .text-body { font-size: 14px; font-weight: 400; line-height: 20px; }
+        .text-small { font-size: 12px; font-weight: 400; line-height: 16px; }
+
+        .transition-all-custom {
+            transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="h-full overflow-hidden text-body">
+
+    <div class="flex h-full w-full overflow-hidden">
+
+        <!-- ================= SIDEBAR (DESKTOP) ================= -->
+        <aside id="desktop-sidebar" class="hidden lg:flex flex-col w-64 bg-white border-r border-[#E2E8F0] h-full flex-shrink-0">
+            <div class="h-16 flex items-center px-6 border-b border-[#E2E8F0]">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white">
+                        <i data-lucide="home" class="w-4 h-4"></i>
+                    </div>
+                    <span class="text-h3 text-[#0F172A] font-semibold tracking-tight">VNDeal CRM</span>
+                </div>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-4 space-y-6 no-scrollbar">
+                
+                <div>
+                    <span class="px-3 text-small font-semibold text-textSecondary uppercase tracking-wider block mb-2">Hệ thống</span>
+                    <nav class="space-y-1">
+                        <a href="#" class="sidebar-item active flex items-center gap-3 px-3 py-2.5 rounded-[12px] text-primary bg-[#F0F5FF] font-medium transition-all-custom" data-route="trang-chu">
+                            <i data-lucide="layout-dashboard" class="w-5 h-5 flex-shrink-0"></i>
+                            <span>Trang chủ</span>
+                        </a>
+                        <a href="#" class="sidebar-item flex items-center justify-between px-3 py-2.5 rounded-[12px] text-textSecondary hover:text-textPrimary hover:bg-[#F8FAFC] transition-all-custom" data-route="gio-hang">
+                            <div class="flex items-center gap-3">
+                                <i data-lucide="shopping-cart" class="w-5 h-5 flex-shrink-0"></i>
+                                <span>Giỏ hàng</span>
+                            </div>
+                            <span class="bg-[#F1F5F9] text-textSecondary text-xs px-2 py-0.5 rounded-full font-semibold">12</span>
+                        </a>
+                        <a href="#" class="sidebar-item flex items-center justify-between px-3 py-2.5 rounded-[12px] text-textSecondary hover:text-textPrimary hover:bg-[#F8FAFC] transition-all-custom" data-route="thong-bao">
+                            <div class="flex items-center gap-3">
+                                <i data-lucide="bell" class="w-5 h-5 flex-shrink-0"></i>
+                                <span>Thông báo</span>
+                            </div>
+                            <span class="bg-[#EF4444] text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full font-bold">5</span>
+                        </a>
+
+                        <a href="#" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-[12px] text-textSecondary hover:text-textPrimary hover:bg-[#F8FAFC] transition-all-custom" data-route="quan-ly-nguoi-dung">
+                            <i data-lucide="users" class="w-5 h-5 flex-shrink-0"></i>
+                            <span>Quản lý người dùng</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <div class="space-y-2">
+                    <span class="px-3 text-small font-semibold text-textSecondary uppercase tracking-wider block">Duyệt sản phẩm</span>
+                    
+                    <!-- BÁN -->
+                    <div class="expandable-menu" id="menu-ban">
+                        <button onclick="toggleExpandable('menu-ban')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-[12px] text-textSecondary hover:text-textPrimary hover:bg-[#F8FAFC] transition-all-custom">
+                            <div class="flex items-center gap-3">
+                                <i data-lucide="badge-dollar-sign" class="w-5 h-5 flex-shrink-0"></i>
+                                <span class="font-medium text-textPrimary">Bán</span>
+                            </div>
+                            <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-200 arrow-icon"></i>
+                        </button>
+                        <div class="submenu hidden pl-9 pr-2 py-1 space-y-1">
+                            <a href="#" class="sidebar-item block py-2 px-3 text-textSecondary hover:text-primary rounded-[8px] text-[13px] hover:bg-[#F1F5F9] transition-all-custom" data-route="ban-duyet-bai-dang">Duyệt bài đăng</a>
+                            <a href="#" class="sidebar-item block py-2 px-3 text-textSecondary hover:text-primary rounded-[8px] text-[13px] hover:bg-[#F1F5F9] transition-all-custom" data-route="ban-bao-coc">Báo cọc</a>
+                            <a href="#" class="sidebar-item block py-2 px-3 text-textSecondary hover:text-primary rounded-[8px] text-[13px] hover:bg-[#F1F5F9] transition-all-custom" data-route="ban-huy-coc">Hủy cọc</a>
+                            <a href="#" class="sidebar-item block py-2 px-3 text-textSecondary hover:text-primary rounded-[8px] text-[13px] hover:bg-[#F1F5F9] transition-all-custom" data-route="ban-chot-hang">Chốt hàng</a>
+                            <a href="#" class="sidebar-item block py-2 px-3 text-textSecondary hover:text-primary rounded-[8px] text-[13px] hover:bg-[#F1F5F9] transition-all-custom" data-route="ban-het-hang">Hết hàng</a>
+                        </div>
+                    </div>
+
+                    <!-- CHO THUÊ -->
+                    <div class="expandable-menu" id="menu-thue">
+                        <button onclick="toggleExpandable('menu-thue')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-[12px] text-textSecondary hover:text-textPrimary hover:bg-[#F8FAFC] transition-all-custom">
+                            <div class="flex items-center gap-3">
+                                <i data-lucide="key-round" class="w-5 h-5 flex-shrink-0"></i>
+                                <span class="font-medium text-textPrimary">Cho thuê</span>
+                            </div>
+                            <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-200 arrow-icon"></i>
+                        </button>
+                        <div class="submenu hidden pl-9 pr-2 py-1 space-y-1">
+                            <a href="#" class="sidebar-item block py-2 px-3 text-textSecondary hover:text-primary rounded-[8px] text-[13px] hover:bg-[#F1F5F9] transition-all-custom" data-route="thue-duyet-bai-dang">Duyệt bài đăng</a>
+                            <a href="#" class="sidebar-item block py-2 px-3 text-textSecondary hover:text-primary rounded-[8px] text-[13px] hover:bg-[#F1F5F9] transition-all-custom" data-route="thue-bao-coc">Báo cọc</a>
+                            <a href="#" class="sidebar-item block py-2 px-3 text-textSecondary hover:text-primary rounded-[8px] text-[13px] hover:bg-[#F1F5F9] transition-all-custom" data-route="thue-huy-coc">Hủy cọc</a>
+                            <a href="#" class="sidebar-item block py-2 px-3 text-textSecondary hover:text-primary rounded-[8px] text-[13px] hover:bg-[#F1F5F9] transition-all-custom" data-route="thue-chot-hang">Chốt hàng</a>
+                            <a href="#" class="sidebar-item block py-2 px-3 text-textSecondary hover:text-primary rounded-[8px] text-[13px] hover:bg-[#F1F5F9] transition-all-custom" data-route="thue-het-hang">Hết hàng</a>
+                        </div>
+                    </div>
+
+                    <!-- SANG NHƯỢNG -->
+                    <div class="expandable-menu" id="menu-sangnhuong">
+                        <button onclick="toggleExpandable('menu-sangnhuong')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-[12px] text-textSecondary hover:text-textPrimary hover:bg-[#F8FAFC] transition-all-custom">
+                            <div class="flex items-center gap-3">
+                                <i data-lucide="git-compare" class="w-5 h-5 flex-shrink-0"></i>
+                                <span class="font-medium text-textPrimary">Sang nhượng</span>
+                            </div>
+                            <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-200 arrow-icon"></i>
+                        </button>
+                        <div class="submenu hidden pl-9 pr-2 py-1 space-y-1">
+                            <a href="#" class="sidebar-item block py-2 px-3 text-textSecondary hover:text-primary rounded-[8px] text-[13px] hover:bg-[#F1F5F9] transition-all-custom" data-route="sangnhuong-duyet-bai-dang">Duyệt bài đăng</a>
+                            <a href="#" class="sidebar-item block py-2 px-3 text-textSecondary hover:text-primary rounded-[8px] text-[13px] hover:bg-[#F1F5F9] transition-all-custom" data-route="sangnhuong-bao-coc">Báo cọc</a>
+                            <a href="#" class="sidebar-item block py-2 px-3 text-textSecondary hover:text-primary rounded-[8px] text-[13px] hover:bg-[#F1F5F9] transition-all-custom" data-route="sangnhuong-huy-coc">Hủy cọc</a>
+                            <a href="#" class="sidebar-item block py-2 px-3 text-textSecondary hover:text-primary rounded-[8px] text-[13px] hover:bg-[#F1F5F9] transition-all-custom" data-route="sangnhuong-chot-hang">Chốt hàng</a>
+                            <a href="#" class="sidebar-item block py-2 px-3 text-textSecondary hover:text-primary rounded-[8px] text-[13px] hover:bg-[#F1F5F9] transition-all-custom" data-route="sangnhuong-het-hang">Hết hàng</a>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+
+        </aside>
+
+        <!-- ================= SIDEBAR DI ĐỘNG (NAV DRAWER) ================= -->
+        <div id="mobile-sidebar-overlay" class="fixed inset-0 bg-[#0F172A]/40 backdrop-blur-sm z-50 hidden transition-all-custom" onclick="toggleMobileSidebar()"></div>
+        <aside id="mobile-sidebar" class="fixed top-0 left-0 bottom-0 w-72 bg-white z-50 transform -translate-x-full transition-transform duration-300 ease-in-out flex flex-col h-full border-r border-[#E2E8F0]">
+            <div class="h-16 flex items-center justify-between px-5 border-b border-[#E2E8F0]">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white">
+                        <i data-lucide="home" class="w-4 h-4"></i>
+                    </div>
+                    <span class="text-h3 text-[#0F172A] font-semibold tracking-tight">VNDeal CRM</span>
+                </div>
+                <button onclick="toggleMobileSidebar()" class="p-1.5 rounded-lg text-textSecondary hover:bg-[#F1F5F9] transition-all-custom">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-4 space-y-6 no-scrollbar">
+                <div>
+                    <span class="px-3 text-small font-semibold text-textSecondary uppercase tracking-wider block mb-2">Hệ thống</span>
+                    <nav class="space-y-1">
+                        <a href="#" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-[12px] text-primary bg-[#F0F5FF] font-medium transition-all-custom" data-route="trang-chu">
+                            <i data-lucide="layout-dashboard" class="w-5 h-5 flex-shrink-0"></i>
+                            <span>Trang chủ</span>
+                        </a>
+                        <a href="#" class="sidebar-item flex items-center justify-between px-3 py-2.5 rounded-[12px] text-textSecondary hover:text-textPrimary hover:bg-[#F8FAFC] transition-all-custom" data-route="gio-hang">
+                            <div class="flex items-center gap-3">
+                                <i data-lucide="shopping-cart" class="w-5 h-5 flex-shrink-0"></i>
+                                <span>Giỏ hàng</span>
+                            </div>
+                            <span class="bg-[#F1F5F9] text-textSecondary text-xs px-2 py-0.5 rounded-full font-semibold">12</span>
+                        </a>
+                        <a href="#" class="sidebar-item flex items-center justify-between px-3 py-2.5 rounded-[12px] text-textSecondary hover:text-textPrimary hover:bg-[#F8FAFC] transition-all-custom" data-route="thong-bao">
+                            <div class="flex items-center gap-3">
+                                <i data-lucide="bell" class="w-5 h-5 flex-shrink-0"></i>
+                                <span>Thông báo</span>
+                            </div>
+                            <span class="bg-[#EF4444] text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full font-bold">5</span>
+                        </a>
+
+                        <a href="#" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-[12px] text-textSecondary hover:text-textPrimary hover:bg-[#F8FAFC] transition-all-custom" data-route="quan-ly-nguoi-dung">
+                            <i data-lucide="users" class="w-5 h-5 flex-shrink-0"></i>
+                            <span>Quản lý người dùng</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <div class="space-y-2">
+                    <span class="px-3 text-small font-semibold text-textSecondary uppercase tracking-wider block">Duyệt sản phẩm</span>
+                    
+                    <!-- BÁN -->
+                    <div class="expandable-menu" id="m-menu-ban">
+                        <button onclick="toggleExpandable('m-menu-ban')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-[12px] text-textSecondary hover:text-textPrimary hover:bg-[#F8FAFC] transition-all-custom">
+                            <div class="flex items-center gap-3">
+                                <i data-lucide="badge-dollar-sign" class="w-5 h-5 flex-shrink-0"></i>
+                                <span class="font-medium text-textPrimary">Bán</span>
+                            </div>
+                            <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-200 arrow-icon"></i>
+                        </button>
+                        <div class="submenu hidden pl-9 pr-2 py-1 space-y-1">
+                            <a href="#" class="sidebar-item block py-2 px-3 text-textSecondary hover:text-primary rounded-[8px] text-[13px] hover:bg-[#F1F5F9] transition-all-custom" data-route="ban-duyet-bai-dang">Duyệt bài đăng</a>
+                            <a href="#" class="sidebar-item block py-2 px-3 text-textSecondary hover:text-primary rounded-[8px] text-[13px] hover:bg-[#F1F5F9] transition-all-custom" data-route="ban-bao-coc">Báo cọc</a>
+                            <a href="#" class="sidebar-item block py-2 px-3 text-textSecondary hover:text-primary rounded-[8px] text-[13px] hover:bg-[#F1F5F9] transition-all-custom" data-route="ban-huy-coc">Hủy cọc</a>
+                            <a href="#" class="sidebar-item block py-2 px-3 text-textSecondary hover:text-primary rounded-[8px] text-[13px] hover:bg-[#F1F5F9] transition-all-custom" data-route="ban-chot-hang">Chốt hàng</a>
+                            <a href="#" class="sidebar-item block py-2 px-3 text-textSecondary hover:text-primary rounded-[8px] text-[13px] hover:bg-[#F1F5F9] transition-all-custom" data-route="ban-het-hang">Hết hàng</a>
+                        </div>
+                    </div>
+
+                    <!-- CHO THUÊ -->
+                    <div class="expandable-menu" id="m-menu-thue">
+                        <button onclick="toggleExpandable('m-menu-thue')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-[12px] text-textSecondary hover:text-textPrimary hover:bg-[#F8FAFC] transition-all-custom">
+                            <div class="flex items-center gap-3">
+                                <i data-lucide="key-round" class="w-5 h-5 flex-shrink-0"></i>
+                                <span class="font-medium text-textPrimary">Cho thuê</span>
+                            </div>
+                            <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-200 arrow-icon"></i>
+                        </button>
+                        <div class="submenu hidden pl-9 pr-2 py-1 space-y-1">
+                            <a href="#" class="sidebar-item block py-2 px-3 text-textSecondary hover:text-primary rounded-[8px] text-[13px] hover:bg-[#F1F5F9] transition-all-custom" data-route="thue-duyet-bai-dang">Duyệt bài đăng</a>
+                            <a href="#" class="sidebar-item block py-2 px-3 text-textSecondary hover:text-primary rounded-[8px] text-[13px] hover:bg-[#F1F5F9] transition-all-custom" data-route="thue-bao-coc">Báo cọc</a>
+                            <a href="#" class="sidebar-item block py-2 px-3 text-textSecondary hover:text-primary rounded-[8px] text-[13px] hover:bg-[#F1F5F9] transition-all-custom" data-route="thue-huy-coc">Hủy cọc</a>
+                            <a href="#" class="sidebar-item block py-2 px-3 text-textSecondary hover:text-primary rounded-[8px] text-[13px] hover:bg-[#F1F5F9] transition-all-custom" data-route="thue-chot-hang">Chốt hàng</a>
+                            <a href="#" class="sidebar-item block py-2 px-3 text-textSecondary hover:text-primary rounded-[8px] text-[13px] hover:bg-[#F1F5F9] transition-all-custom" data-route="thue-het-hang">Hết hàng</a>
+                        </div>
+                    </div>
+
+                    <!-- SANG NHƯỢNG -->
+                    <div class="expandable-menu" id="m-menu-sangnhuong">
+                        <button onclick="toggleExpandable('m-menu-sangnhuong')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-[12px] text-textSecondary hover:text-textPrimary hover:bg-[#F8FAFC] transition-all-custom">
+                            <div class="flex items-center gap-3">
+                                <i data-lucide="git-compare" class="w-5 h-5 flex-shrink-0"></i>
+                                <span class="font-medium text-textPrimary">Sang nhượng</span>
+                            </div>
+                            <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-200 arrow-icon"></i>
+                        </button>
+                        <div class="submenu hidden pl-9 pr-2 py-1 space-y-1">
+                            <a href="#" class="sidebar-item block py-2 px-3 text-textSecondary hover:text-primary rounded-[8px] text-[13px] hover:bg-[#F1F5F9] transition-all-custom" data-route="sangnhuong-duyet-bai-dang">Duyệt bài đăng</a>
+                            <a href="#" class="sidebar-item block py-2 px-3 text-textSecondary hover:text-primary rounded-[8px] text-[13px] hover:bg-[#F1F5F9] transition-all-custom" data-route="sangnhuong-bao-coc">Báo cọc</a>
+                            <a href="#" class="sidebar-item block py-2 px-3 text-textSecondary hover:text-primary rounded-[8px] text-[13px] hover:bg-[#F1F5F9] transition-all-custom" data-route="sangnhuong-huy-coc">Hủy cọc</a>
+                            <a href="#" class="sidebar-item block py-2 px-3 text-textSecondary hover:text-primary rounded-[8px] text-[13px] hover:bg-[#F1F5F9] transition-all-custom" data-route="sangnhuong-chot-hang">Chốt hàng</a>
+                            <a href="#" class="sidebar-item block py-2 px-3 text-textSecondary hover:text-primary rounded-[8px] text-[13px] hover:bg-[#F1F5F9] transition-all-custom" data-route="sangnhuong-het-hang">Hết hàng</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+        </aside>
+
+        <!-- ================= MAIN CORE WRAPPER ================= -->
+        <div class="flex-1 flex flex-col h-full overflow-hidden">
+            
+            <!-- ================= TOPBAR ================= -->
+            <header class="h-16 border-b border-[#E2E8F0] bg-white flex items-center justify-between px-4 sm:px-6 md:px-8 flex-shrink-0 z-30">
+                
+                <div class="flex items-center gap-3 md:gap-4">
+                    <button onclick="toggleMobileSidebar()" class="lg:hidden p-2 rounded-[12px] text-textSecondary hover:text-textPrimary hover:bg-[#F1F5F9] transition-all-custom" aria-label="Toggle Menu">
+                        <i data-lucide="menu" class="w-6 h-6"></i>
+                    </button>
+                    <div>
+                        <h2 id="page-title" class="text-h3 font-semibold text-textPrimary md:block hidden">Trang chủ</h2>
+                        <h2 id="page-title-mobile" class="text-body font-semibold text-textPrimary md:hidden block">Trang chủ</h2>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3 sm:gap-4">
+                    
+                    <div class="relative">
+                        <button onclick="toggleNotificationDropdown()" class="p-2.5 rounded-[12px] text-textSecondary hover:text-textPrimary hover:bg-[#F1F5F9] transition-all-custom relative focus:outline-none" aria-label="Notifications">
+                            <i data-lucide="bell" class="w-[22px] h-[22px]"></i>
+                            <span class="absolute top-2 right-2 w-4 h-4 bg-error text-[10px] font-bold text-white rounded-full flex items-center justify-center border-2 border-white">5</span>
+                        </button>
+
+                        <div id="notification-dropdown" class="hidden absolute right-0 mt-2 w-80 sm:w-96 bg-white border border-[#E2E8F0] rounded-[16px] shadow-soft z-50 py-2 focus:outline-none">
+                            <div class="px-4 py-2 border-b border-[#E2E8F0] flex items-center justify-between">
+                                <span class="font-semibold text-textPrimary">Thông báo mới</span>
+                                <span class="text-small text-primary cursor-pointer hover:underline">Đánh dấu đã đọc</span>
+                            </div>
+                            <div class="max-h-80 overflow-y-auto divide-y divide-[#E2E8F0] no-scrollbar" id="notification-list">
+                                <div class="px-4 py-3 hover:bg-[#F8FAFC] transition-all-custom cursor-pointer">
+                                    <div class="flex gap-3">
+                                        <div class="w-2 h-2 rounded-full bg-primary mt-1.5 flex-shrink-0"></div>
+                                        <div>
+                                            <p class="text-body text-textPrimary font-medium">Khách hàng yêu cầu duyệt bài đăng mới</p>
+                                            <p class="text-small text-textSecondary mt-0.5">Biệt thự phố Thảo Điền - Quận 2</p>
+                                            <p class="text-small text-[#94A3B8] mt-1">2 phút trước</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="px-4 py-3 hover:bg-[#F8FAFC] transition-all-custom cursor-pointer">
+                                    <div class="flex gap-3">
+                                        <div class="w-2 h-2 rounded-full bg-primary mt-1.5 flex-shrink-0"></div>
+                                        <div>
+                                            <p class="text-body text-textPrimary font-medium">Báo cọc thành công</p>
+                                            <p class="text-small text-textSecondary mt-0.5">Căn hộ Landmark 81 - Tầng 45</p>
+                                            <p class="text-small text-[#94A3B8] mt-1">15 phút trước</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="px-4 py-3 hover:bg-[#F8FAFC] transition-all-custom cursor-pointer">
+                                    <div class="flex gap-3">
+                                        <div class="w-2 h-2 bg-transparent mt-1.5 flex-shrink-0"></div>
+                                        <div>
+                                            <p class="text-body text-textPrimary">Hệ thống đã cập nhật phiên bản v2.4.1</p>
+                                            <p class="text-small text-[#94A3B8] mt-1">1 giờ trước</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="px-4 py-2 text-center border-t border-[#E2E8F0] bg-[#FAFCFF] rounded-b-[16px]">
+                                <a href="#" class="text-small text-primary font-medium hover:underline block" onclick="event.stopPropagation(); navigate('thong-bao'); document.getElementById('notification-dropdown').classList.add('hidden');">Xem tất cả thông báo</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="h-6 w-px bg-[#E2E8F0]"></div>
+
+                    <div class="relative">
+                        <button onclick="toggleUserDropdown()" class="flex items-center gap-2 sm:gap-3 p-1.5 rounded-[12px] hover:bg-[#F1F5F9] transition-all-custom focus:outline-none" aria-label="User Profile">
+                            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" alt="Avatar" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover border border-[#E2E8F0] flex-shrink-0">
+                            <div class="hidden sm:block text-left">
+                                <p class="text-body font-semibold text-textPrimary leading-none">Minh Thảo</p>
+                                <p class="text-[11px] text-textSecondary leading-none mt-1">Quản trị viên</p>
+                            </div>
+                            <i data-lucide="chevron-down" class="w-4 h-4 text-textSecondary hidden sm:block"></i>
+                        </button>
+
+                        <div id="user-dropdown" class="hidden absolute right-0 mt-2 w-56 bg-white border border-[#E2E8F0] rounded-[16px] shadow-soft z-50 py-2 focus:outline-none">
+                            <div class="px-4 py-3 border-b border-[#E2E8F0] sm:hidden block">
+                                <p class="text-body font-semibold text-textPrimary">Nguyễn Minh Thảo</p>
+                                <p class="text-small text-textSecondary">Quản trị viên</p>
+                            </div>
+                            <div class="px-1 space-y-0.5">
+                                <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-[10px] text-textSecondary hover:text-textPrimary hover:bg-[#F8FAFC] transition-all-custom text-body">
+                                    <i data-lucide="user" class="w-4 h-4 text-textSecondary"></i>
+                                    <span>Thông tin cá nhân</span>
+                                </a>
+                                <div class="h-px bg-[#E2E8F0] my-1 mx-2"></div>
+                                <button onclick="triggerLogout()" class="w-full flex items-center gap-3 px-3 py-2 rounded-[10px] text-error hover:bg-red-50 transition-all-custom text-body text-left">
+                                    <i data-lucide="log-out" class="w-4 h-4 text-error"></i>
+                                    <span class="font-medium">Đăng xuất</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </header>
+
+            <!-- ================= MAIN CONTENT AREA ================= -->
+            <main id="page-content" class="flex-1 overflow-y-auto no-scrollbar bg-[#F8FAFC]">
+            </main>
+
+        </div>
+
+    </div>
+
+    <!-- Modal thông báo Đăng xuất (Custom không dùng alert) -->
+    <div id="logout-modal" class="fixed inset-0 bg-[#0F172A]/50 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4 transition-all-custom">
+        <div class="bg-white rounded-modal shadow-soft max-w-sm w-full p-6 text-center transform scale-95 transition-transform duration-200">
+            <div class="w-12 h-12 rounded-full bg-red-50 text-error flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="log-out" class="w-6 h-6"></i>
+            </div>
+            <h3 class="text-h3 font-semibold text-textPrimary mb-2">Xác nhận đăng xuất</h3>
+            <p class="text-body text-textSecondary mb-6">Bạn có chắc chắn muốn rời khỏi phiên làm việc hiện tại trên hệ thống CRM?</p>
+            <div class="flex gap-3">
+                <button onclick="closeLogoutModal()" class="flex-1 px-4 py-2.5 border border-[#E2E8F0] text-textPrimary font-medium rounded-button bg-white hover:bg-[#F8FAFC] transition-all-custom">
+                    Hủy bỏ
+                </button>
+                <button onclick="confirmLogout()" class="flex-1 px-4 py-2.5 bg-error text-white font-medium rounded-button hover:bg-red-700 transition-all-custom">
+                    Đăng xuất
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- PAGE TEMPLATE PLACEHOLDER (for other routes) -->
+    <div id="template-placeholder" class="hidden">
+        <div class="max-w-7xl mx-auto h-full flex flex-col items-center justify-center min-h-[450px]">
+            <div class="w-full max-w-md bg-white border border-[#E2E8F0] p-8 rounded-card shadow-soft text-center flex flex-col items-center justify-center">
+                <div class="w-20 h-20 rounded-full bg-blue-50 flex items-center justify-center text-primary mb-6">
+                    <svg class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-3l3 3 3-3M6 12h12" />
+                    </svg>
+                </div>
+                <h1 class="text-h2 text-textPrimary font-semibold mb-2" id="placeholder-title">Tính năng đang phát triển</h1>
+                <p class="text-body text-textSecondary max-w-xs mb-6" id="placeholder-desc">Tính năng này hiện đang được xây dựng và sẽ sớm ra mắt. Vui lòng quay lại sau.</p>
+            </div>
+            <p class="text-small text-textSecondary mt-6 text-center">Hệ thống VNDeal CRM v2.4.1 • Hoạt động tốt trên mọi thiết bị</p>
+        </div>
+    </div>
+
+    <!-- ADD PRODUCT MODAL -->
+    <div id="add-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+        <!-- Backdrop -->
+        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity"></div>
+        
+        <!-- Modal Content Wrapper -->
+        <div class="flex min-h-full items-center justify-center p-4 sm:p-6">
+            <div class="relative w-full max-w-2xl transform overflow-hidden rounded-[20px] bg-surface p-6 shadow-xl transition-all border border-border">
+                
+                <!-- Modal Header -->
+                <div class="flex items-center justify-between border-b border-border pb-4 mb-4">
+                    <h3 class="text-[20px] font-semibold text-textPrimary">Thêm Căn Mới Vào Giỏ Hàng</h3>
+                    <button onclick="closeAddModal()" class="text-textSecondary hover:text-textPrimary rounded-full p-1.5 hover:bg-slate-100 transition-all">
+                        <i data-lucide="x" class="h-5 w-5"></i>
+                    </button>
+                </div>
+
+                <!-- Form -->
+                <form id="add-product-form" onsubmit="saveNewProduct(event)" class="space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="sm:col-span-2">
+                            <label class="block text-[12px] font-medium text-textSecondary mb-1.5">Tên bất động sản / Tiêu đề tin đăng *</label>
+                            <input type="text" id="form-title" required placeholder="Ví dụ: Căn hộ Vinhomes Golden River Pearl 3 phòng ngủ" class="w-full px-3 py-2 text-[14px] border border-border rounded-[10px] focus:outline-none focus:ring-1 focus:ring-primary">
+                        </div>
+
+                        <div>
+                            <label class="block text-[12px] font-medium text-textSecondary mb-1.5">Loại giao dịch *</label>
+                            <select id="form-transaction" required class="w-full px-3 py-2 text-[14px] border border-border rounded-[10px] bg-white focus:outline-none focus:ring-1 focus:ring-primary">
+                                <option value="Bán">Bán (Chuyển nhượng)</option>
+                                <option value="Thuê">Cho thuê</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-[12px] font-medium text-textSecondary mb-1.5">Loại hình sản phẩm *</label>
+                            <select id="form-type" required class="w-full px-3 py-2 text-[14px] border border-border rounded-[10px] bg-white focus:outline-none focus:ring-1 focus:ring-primary">
+                                <option value="Căn hộ">Căn hộ chung cư</option>
+                                <option value="Biệt thự">Biệt thự</option>
+                                <option value="Nhà phố">Nhà phố / Shophouse</option>
+                                <option value="Đất nền">Đất nền</option>
+                            </select>
+                        </div>
+
+                        <div class="sm:col-span-2">
+                            <label class="block text-[12px] font-medium text-textSecondary mb-1.5">Địa chỉ chính xác *</label>
+                            <input type="text" id="form-address" required placeholder="Số nhà, Tên đường, Quận, Thành phố" class="w-full px-3 py-2 text-[14px] border border-border rounded-[10px] focus:outline-none focus:ring-1 focus:ring-primary">
+                        </div>
+
+                        <div>
+                            <label class="block text-[12px] font-medium text-textSecondary mb-1.5">Diện tích đất (m²) *</label>
+                            <input type="number" id="form-area" required placeholder="Ví dụ: 85" class="w-full px-3 py-2 text-[14px] border border-border rounded-[10px] focus:outline-none focus:ring-1 focus:ring-primary">
+                        </div>
+
+                        <div>
+                            <label class="block text-[12px] font-medium text-textSecondary mb-1.5">Đơn giá ước lượng (triệu/m²)</label>
+                            <input type="number" id="form-unit" placeholder="Tự động tính nếu bỏ trống" class="w-full px-3 py-2 text-[14px] border border-border rounded-[10px] focus:outline-none focus:ring-1 focus:ring-primary">
+                        </div>
+
+                        <div>
+                            <label class="block text-[12px] font-medium text-textSecondary mb-1.5">Giá thuê gốc (VNĐ/tháng)</label>
+                            <input type="text" id="form-rent-price" placeholder="Ví dụ: 15,000,000 hoặc Thỏa thuận" class="w-full px-3 py-2 text-[14px] border border-border rounded-[10px] focus:outline-none focus:ring-1 focus:ring-primary">
+                        </div>
+
+                        <div>
+                            <label class="block text-[12px] font-medium text-textSecondary mb-1.5">Giá bán/chuyển nhượng (VNĐ)</label>
+                            <input type="text" id="form-transfer-price" placeholder="Ví dụ: 6.8 Tỷ hoặc Thương lượng" class="w-full px-3 py-2 text-[14px] border border-border rounded-[10px] focus:outline-none focus:ring-1 focus:ring-primary">
+                        </div>
+
+                        <div>
+                            <label class="block text-[12px] font-medium text-textSecondary mb-1.5">Số phòng ngủ</label>
+                            <input type="number" id="form-beds" placeholder="Ví dụ: 2" class="w-full px-3 py-2 text-[14px] border border-border rounded-[10px] focus:outline-none focus:ring-1 focus:ring-primary">
+                        </div>
+
+                        <div>
+                            <label class="block text-[12px] font-medium text-textSecondary mb-1.5">Số phòng vệ sinh (WC)</label>
+                            <input type="number" id="form-baths" placeholder="Ví dụ: 2" class="w-full px-3 py-2 text-[14px] border border-border rounded-[10px] focus:outline-none focus:ring-1 focus:ring-primary">
+                        </div>
+
+                        <div>
+                            <label class="block text-[12px] font-medium text-textSecondary mb-1.5">Số tầng</label>
+                            <input type="number" id="form-floors" placeholder="Ví dụ: 1" class="w-full px-3 py-2 text-[14px] border border-border rounded-[10px] focus:outline-none focus:ring-1 focus:ring-primary">
+                        </div>
+
+                        <div>
+                            <label class="block text-[12px] font-medium text-textSecondary mb-1.5">Trạng thái rổ hàng *</label>
+                            <select id="form-status" required class="w-full px-3 py-2 text-[14px] border border-border rounded-[10px] bg-white focus:outline-none focus:ring-1 focus:ring-primary">
+                                <option value="Trống">Còn trống</option>
+                                <option value="Đang thương lượng">Đang thương lượng</option>
+                                <option value="Đã bán/Đặt cọc">Đã bán/Đặt cọc</option>
+                            </select>
+                        </div>
+
+                        <div class="sm:col-span-2">
+                            <label class="block text-[12px] font-medium text-textSecondary mb-1.5">Hình ảnh thực tế bất động sản (Unsplash URL) *</label>
+                            <select id="form-image-select" onchange="updateFormImagePreview()" class="w-full px-3 py-2 text-[14px] border border-border rounded-[10px] bg-white focus:outline-none focus:ring-1 focus:ring-primary">
+                                <option value="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80">Biệt thự ngoại ô vườn rộng cao cấp</option>
+                                <option value="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80">Căn hộ cao tầng đô thị hiện đại</option>
+                                <option value="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80">Biệt thự nghỉ dưỡng có hồ bơi</option>
+                                <option value="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=800&q=80">Căn hộ studio tối giản cực kỳ ấm cúng</option>
+                                <option value="https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=800&q=80">Penthouse cao cấp tầm nhìn panorama sông</option>
+                                <option value="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80">Nhà phố mặt tiền đường khu sầm uất</option>
+                            </select>
+                            <div class="mt-2 text-xs text-textSecondary">Chúng tôi cung cấp kho ảnh chuẩn sắc nét để đại lý dễ đăng tin ngay lập tức.</div>
+                        </div>
+
+                        <div class="sm:col-span-2">
+                            <label class="block text-[12px] font-medium text-textSecondary mb-1.5">Nhãn đặc thù bổ sung (phân tách bằng dấu phẩy)</label>
+                            <input type="text" id="form-tags" placeholder="Ví dụ: Giá ngộp, Sổ hồng sẵn, Có thương lượng" class="w-full px-3 py-2 text-[14px] border border-border rounded-[10px] focus:outline-none focus:ring-1 focus:ring-primary">
+                        </div>
+                    </div>
+
+                    <!-- Modal Actions -->
+                    <div class="flex items-center justify-end gap-2 border-t border-border pt-4 mt-6">
+                        <button type="button" onclick="closeAddModal()" class="px-4 py-2 border border-border text-[14px] font-medium rounded-[12px] hover:bg-slate-50 transition-all duration-150">Đóng</button>
+                        <button type="submit" class="px-5 py-2 bg-primary hover:bg-blue-700 text-white text-[14px] font-medium rounded-[12px] transition-all duration-150">Lưu thông tin</button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- UI Notification Dialog (Custom Alert Ersatz) -->
+    <div id="toast-notif" class="hidden fixed bottom-6 right-6 z-50 transform translate-y-10 opacity-0 transition-all duration-300 max-w-sm bg-white border border-border rounded-[16px] shadow-soft p-4 flex items-start gap-3">
+        <div class="h-8 w-8 rounded-full bg-blue-50 flex items-center justify-center text-primary shrink-0">
+            <i data-lucide="info" class="h-4 w-4"></i>
+        </div>
+        <div class="flex-1">
+            <p id="toast-title" class="text-sm font-semibold text-textPrimary">Thông báo hệ thống</p>
+            <p id="toast-desc" class="text-xs text-textSecondary mt-0.5">Thao tác của bạn đã được thực hiện thành công.</p>
+        </div>
+        <button onclick="hideToast()" class="text-textSecondary hover:text-textPrimary">
+            <i data-lucide="x" class="h-4 w-4"></i>
+        </button>
+    </div>
+
+    <!-- Lucide Icons Library Initialization -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script>
+        lucide.createIcons();
+
+        // ==================== ROUTER ====================
+        const routeTitles = {
+            'trang-chu': 'Trang chủ',
+            'gio-hang': 'Giỏ hàng',
+            'thong-bao': 'Thông báo',
+            'chi-tiet-san-pham': 'Chi tiết sản phẩm',
+            'them-hang': 'Thêm hàng mới',
+
+            'quan-ly-nguoi-dung': 'Quản lý người dùng',
+            'ban-duyet-bai-dang': 'Bán - Duyệt bài đăng',
+            'ban-bao-coc': 'Bán - Báo cọc',
+            'ban-huy-coc': 'Bán - Hủy cọc',
+            'ban-chot-hang': 'Bán - Chốt hàng',
+            'ban-het-hang': 'Bán - Hết hàng',
+            'thue-duyet-bai-dang': 'Cho thuê - Duyệt bài đăng',
+            'thue-bao-coc': 'Cho thuê - Báo cọc',
+            'thue-huy-coc': 'Cho thuê - Hủy cọc',
+            'thue-chot-hang': 'Cho thuê - Chốt hàng',
+            'thue-het-hang': 'Cho thuê - Hết hàng',
+            'sangnhuong-duyet-bai-dang': 'Sang nhượng - Duyệt bài đăng',
+            'sangnhuong-bao-coc': 'Sang nhượng - Báo cọc',
+            'sangnhuong-huy-coc': 'Sang nhượng - Hủy cọc',
+            'sangnhuong-chot-hang': 'Sang nhượng - Chốt hàng',
+            'sangnhuong-het-hang': 'Sang nhượng - Hết hàng',
+        };
+
+        var selectedProductId = null;
+
+        function selectProductAndNavigate(id) {
+            selectedProductId = id;
+            navigate('chi-tiet-san-pham');
+        }
+
+        async function navigate(route) {
+            const title = routeTitles[route] || 'Trang chủ';
+            document.getElementById('page-title').textContent = title;
+            document.getElementById('page-title-mobile').textContent = title;
+            updateSidebarActive(route);
+
+            const content = document.getElementById('page-content');
+
+            if (route === 'trang-chu') {
+                try {
+                    document.querySelectorAll('script[data-page-script]').forEach(s => s.remove());
+                    const res = await fetch('home/home_content.html');
+                    const html = await res.text();
+                    const temp = document.createElement('div');
+                    temp.innerHTML = html;
+                    const scripts = temp.querySelectorAll('script');
+                    scripts.forEach(s => s.remove());
+                    content.innerHTML = temp.innerHTML;
+                    scripts.forEach(s => {
+                        const ns = document.createElement('script');
+                        ns.textContent = s.textContent;
+                        ns.setAttribute('data-page-script', '');
+                        document.body.appendChild(ns);
+                    });
+                    lucide.createIcons();
+                } catch (e) {
+                    content.innerHTML = '<div class="text-center py-20 text-textSecondary"><p>Không thể tải nội dung.</p></div>';
+                }
+            } else if (route === 'gio-hang') {
+                try {
+                    document.querySelectorAll('script[data-page-script]').forEach(s => s.remove());
+                    const res = await fetch('my-cart/my-cart.html');
+                    const html = await res.text();
+                    const temp = document.createElement('div');
+                    temp.innerHTML = html;
+                    const scripts = temp.querySelectorAll('script');
+                    scripts.forEach(s => s.remove());
+                    content.innerHTML = temp.innerHTML;
+                    scripts.forEach(s => {
+                        const ns = document.createElement('script');
+                        ns.textContent = s.textContent;
+                        ns.setAttribute('data-page-script', '');
+                        document.body.appendChild(ns);
+                    });
+                    lucide.createIcons();
+                } catch (e) {
+                    content.innerHTML = '<div class="text-center py-20 text-textSecondary"><p>Không thể tải nội dung.</p></div>';
+                }
+            } else if (route === 'thong-bao') {
+                try {
+                    document.querySelectorAll('script[data-page-script]').forEach(s => s.remove());
+                    const res = await fetch('notification/notification-content.html');
+                    const html = await res.text();
+                    const temp = document.createElement('div');
+                    temp.innerHTML = html;
+                    const scripts = temp.querySelectorAll('script');
+                    scripts.forEach(s => s.remove());
+                    content.innerHTML = temp.innerHTML;
+                    scripts.forEach(s => {
+                        const ns = document.createElement('script');
+                        ns.textContent = s.textContent;
+                        ns.setAttribute('data-page-script', '');
+                        document.body.appendChild(ns);
+                    });
+                    lucide.createIcons();
+                } catch (e) {
+                    content.innerHTML = '<div class="text-center py-20 text-textSecondary"><p>Không thể tải nội dung.</p></div>';
+                }
+            } else if (route === 'quan-ly-nguoi-dung') {
+                try {
+                    document.querySelectorAll('script[data-page-script]').forEach(s => s.remove());
+                    const res = await fetch('user-management/user-management-content.html');
+                    const html = await res.text();
+                    const temp = document.createElement('div');
+                    temp.innerHTML = html;
+                    const scripts = temp.querySelectorAll('script');
+                    scripts.forEach(s => s.remove());
+                    content.innerHTML = temp.innerHTML;
+                    scripts.forEach(s => {
+                        const ns = document.createElement('script');
+                        ns.textContent = s.textContent;
+                        ns.setAttribute('data-page-script', '');
+                        document.body.appendChild(ns);
+                    });
+                    lucide.createIcons();
+                } catch (e) {
+                    content.innerHTML = '<div class="text-center py-20 text-textSecondary"><p>Không thể tải nội dung.</p></div>';
+                }
+            } else if (route === 'chi-tiet-san-pham') {
+                try {
+                    document.querySelectorAll('script[data-page-script]').forEach(s => s.remove());
+                    const res = await fetch('product-details/product-details-content.html');
+                    const html = await res.text();
+                    const temp = document.createElement('div');
+                    temp.innerHTML = html;
+                    const scripts = temp.querySelectorAll('script');
+                    scripts.forEach(s => s.remove());
+                    content.innerHTML = temp.innerHTML;
+                    scripts.forEach(s => {
+                        const ns = document.createElement('script');
+                        ns.textContent = s.textContent;
+                        ns.setAttribute('data-page-script', '');
+                        document.body.appendChild(ns);
+                    });
+                    if (typeof initApp === 'function') {
+                        initApp();
+                        if (selectedProductId) {
+                            selectProperty(selectedProductId);
+                        }
+                    }
+                    lucide.createIcons();
+                } catch (e) {
+                    content.innerHTML = '<div class="text-center py-20 text-textSecondary"><p>Không thể tải nội dung.</p></div>';
+                }
+            } else if (route === 'them-hang') {
+                try {
+                    document.querySelectorAll('script[data-page-script]').forEach(s => s.remove());
+                    const res = await fetch('create-product/create-product-content.html');
+                    const html = await res.text();
+                    const temp = document.createElement('div');
+                    temp.innerHTML = html;
+                    const scripts = temp.querySelectorAll('script');
+                    scripts.forEach(s => s.remove());
+                    content.innerHTML = temp.innerHTML;
+                    scripts.forEach(s => {
+                        const ns = document.createElement('script');
+                        ns.textContent = s.textContent;
+                        ns.setAttribute('data-page-script', '');
+                        document.body.appendChild(ns);
+                    });
+                    lucide.createIcons();
+                } catch (e) {
+                    content.innerHTML = '<div class="text-center py-20 text-textSecondary"><p>Không thể tải nội dung.</p></div>';
+                }
+            } else if (route.startsWith('ban-') || route.startsWith('thue-') || route.startsWith('sangnhuong-')) {
+                try {
+                    document.querySelectorAll('script[data-page-script]').forEach(s => s.remove());
+                    const res = await fetch('review-products/review-products-content.html');
+                    const html = await res.text();
+                    const temp = document.createElement('div');
+                    temp.innerHTML = html;
+                    const scripts = temp.querySelectorAll('script');
+                    scripts.forEach(s => s.remove());
+                    content.innerHTML = temp.innerHTML;
+                    scripts.forEach(s => {
+                        const ns = document.createElement('script');
+                        ns.textContent = s.textContent;
+                        ns.setAttribute('data-page-script', '');
+                        document.body.appendChild(ns);
+                    });
+                    lucide.createIcons();
+                } catch (e) {
+                    content.innerHTML = '<div class="text-center py-20 text-textSecondary"><p>Không thể tải nội dung.</p></div>';
+                }
+            } else {
+                document.querySelectorAll('script[data-page-script]').forEach(s => s.remove());
+                const placeholder = document.getElementById('template-placeholder');
+                content.innerHTML = placeholder.innerHTML;
+                document.getElementById('placeholder-title').textContent = routeTitles[route];
+                lucide.createIcons();
+            }
+        }
+
+        function updateSidebarActive(route) {
+            document.querySelectorAll('.sidebar-item').forEach(el => {
+                el.classList.remove('text-primary', 'bg-[#F0F5FF]', 'font-medium');
+                el.classList.add('text-textSecondary');
+                if (el.getAttribute('data-route') === route) {
+                    el.classList.remove('text-textSecondary');
+                    el.classList.add('text-primary', 'bg-[#F0F5FF]', 'font-medium');
+                }
+            });
+        }
+
+        document.querySelectorAll('.sidebar-item[data-route]').forEach(el => {
+            el.addEventListener('click', function(e) {
+                e.preventDefault();
+                const route = this.getAttribute('data-route');
+                navigate(route);
+                const mobileSidebar = document.getElementById('mobile-sidebar');
+                const mobileOverlay = document.getElementById('mobile-sidebar-overlay');
+                if (mobileSidebar && !mobileSidebar.classList.contains('-translate-x-full')) {
+                    mobileSidebar.classList.add('-translate-x-full');
+                    mobileOverlay.classList.add('hidden');
+                }
+            });
+        });
+
+        window.addEventListener('DOMContentLoaded', () => {
+            navigate('trang-chu');
+        });
+
+        // ==================== UI INTERACTIVES (from index.html) ====================
+
+        function toggleExpandable(menuId) {
+            const menuElement = document.getElementById(menuId);
+            if (!menuElement) return;
+
+            const submenu = menuElement.querySelector('.submenu');
+            const arrowIcon = menuElement.querySelector('.arrow-icon');
+
+            if (submenu.classList.contains('hidden')) {
+                submenu.classList.remove('hidden');
+                arrowIcon.style.transform = 'rotate(180deg)';
+                menuElement.classList.add('bg-slate-50/50', 'rounded-[12px]', 'pb-1');
+            } else {
+                submenu.classList.add('hidden');
+                arrowIcon.style.transform = 'rotate(0deg)';
+                menuElement.classList.remove('bg-slate-50/50', 'rounded-[12px]', 'pb-1');
+            }
+        }
+
+        function toggleMobileSidebar() {
+            const sidebar = document.getElementById('mobile-sidebar');
+            const overlay = document.getElementById('mobile-sidebar-overlay');
+            
+            if (sidebar.classList.contains('-translate-x-full')) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
+        }
+
+        function toggleNotificationDropdown() {
+            const dropdown = document.getElementById('notification-dropdown');
+            const userDropdown = document.getElementById('user-dropdown');
+            
+            if (userDropdown && !userDropdown.classList.contains('hidden')) {
+                userDropdown.classList.add('hidden');
+            }
+            
+            dropdown.classList.toggle('hidden');
+        }
+
+        function toggleUserDropdown() {
+            const dropdown = document.getElementById('user-dropdown');
+            const notificationDropdown = document.getElementById('notification-dropdown');
+
+            if (notificationDropdown && !notificationDropdown.classList.contains('hidden')) {
+                notificationDropdown.classList.add('hidden');
+            }
+
+            dropdown.classList.toggle('hidden');
+        }
+
+        window.addEventListener('click', function(e) {
+            const notifButton = document.querySelector('[aria-label="Notifications"]');
+            const notifDropdown = document.getElementById('notification-dropdown');
+            const userButton = document.querySelector('[aria-label="User Profile"]');
+            const userDropdown = document.getElementById('user-dropdown');
+
+            if (notifDropdown && !notifDropdown.classList.contains('hidden')) {
+                if (!notifButton.contains(e.target) && !notifDropdown.contains(e.target)) {
+                    notifDropdown.classList.add('hidden');
+                }
+            }
+
+            if (userDropdown && !userDropdown.classList.contains('hidden')) {
+                if (!userButton.contains(e.target) && !userDropdown.contains(e.target)) {
+                    userDropdown.classList.add('hidden');
+                }
+            }
+        });
+
+        function triggerLogout() {
+            const modal = document.getElementById('logout-modal');
+            const userDropdown = document.getElementById('user-dropdown');
+            
+            if (userDropdown) userDropdown.classList.add('hidden');
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.querySelector('.transform').classList.remove('scale-95');
+                modal.querySelector('.transform').classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeLogoutModal() {
+            const modal = document.getElementById('logout-modal');
+            modal.querySelector('.transform').classList.add('scale-95');
+            modal.querySelector('.transform').classList.remove('scale-100');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 150);
+        }
+
+        function confirmLogout() {
+            closeLogoutModal();
+            const mainContent = document.querySelector('main');
+            if (mainContent) {
+                mainContent.innerHTML = `
+                    <div class="max-w-7xl mx-auto h-full flex flex-col items-center justify-center min-h-[450px]">
+                        <div class="bg-white border border-[#E2E8F0] p-8 rounded-card shadow-soft text-center max-w-sm w-full">
+                            <div class="w-12 h-12 rounded-full bg-green-50 text-success flex items-center justify-center mx-auto mb-4">
+                                <i data-lucide="check-circle" class="w-6 h-6"></i>
+                            </div>
+                            <h3 class="text-h3 font-semibold text-textPrimary mb-2">Đăng xuất thành công</h3>
+                            <p class="text-body text-textSecondary mb-4">Phiên làm việc của bạn đã được đóng an toàn. Hãy tải lại trang để đăng nhập lại.</p>
+                            <button onclick="window.location.reload()" class="w-full px-4 py-2 bg-primary text-white font-medium rounded-button hover:bg-blue-700 transition-all-custom">
+                                Tải lại trang
+                            </button>
+                        </div>
+                    </div>
+                `;
+                lucide.createIcons();
+            }
+        }
+    </script>
+</body>
+</html>

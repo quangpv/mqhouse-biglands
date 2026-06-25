@@ -1,0 +1,1621 @@
+<!-- PAGE: Giỏ hàng -->
+<style>
+.custom-scrollbar::-webkit-scrollbar { width: 6px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: #F1F5F9; border-radius: 4px; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 4px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none; width: 18px; height: 18px;
+  border-radius: 50%; background: #2563EB; cursor: pointer;
+  border: 2px solid #FFFFFF; box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 18px; height: 18px; border-radius: 50%; background: #2563EB;
+  cursor: pointer; border: 2px solid #FFFFFF; box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+</style>
+<div class="flex flex-col pb-4">
+        
+        <!-- Filter and Search Section (sticky) -->
+        <div class="sticky top-0 z-20 bg-white border-b border-border px-4 sm:px-6 md:px-8 py-4 space-y-4">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <!-- Navigation Tabs -->
+                <div class="flex border-b border-border p-1 bg-slate-50 rounded-[12px] self-start lg:self-auto">
+                    <button onclick="switchTab('all')" id="tab-all" class="px-4 py-2 text-[14px] font-medium rounded-[10px] transition-all duration-150 text-primary bg-white shadow-sm">
+                        Tất cả (<span id="count-all">0</span>)
+                    </button>
+                    <button onclick="switchTab('pinned')" id="tab-pinned" class="px-4 py-2 text-[14px] font-medium rounded-[10px] transition-all duration-150 text-textSecondary hover:text-textPrimary">
+                        Đã ghim (<span id="count-pinned">0</span>)
+                    </button>
+                    <button onclick="switchTab('hot')" id="tab-hot" class="px-4 py-2 text-[14px] font-medium rounded-[10px] transition-all duration-150 text-textSecondary hover:text-textPrimary">
+                        Hàng hot (<span id="count-hot">0</span>)
+                    </button>
+                </div>
+
+                <!-- Action Tools -->
+                <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto">
+                    <div class="relative flex-1 sm:flex-initial min-w-[240px]">
+                        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-textSecondary"></i>
+                        <input id="search-input" oninput="handleSearch(this.value)" type="text" placeholder="Tìm kiếm địa chỉ, tên dự án, khu vực..." class="w-full pl-9 pr-4 py-2 text-[14px] bg-white border border-border rounded-[10px] text-textPrimary placeholder-textSecondary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-150">
+                    </div>
+                    <button onclick="toggleFilterPanel()" class="flex h-[40px] w-[40px] items-center justify-center border border-border rounded-[10px] text-textSecondary hover:text-textPrimary hover:bg-slate-50 transition-all duration-150" title="Bộ lọc nâng cao">
+                        <i data-lucide="sliders-horizontal" class="h-4 w-4"></i>
+                    </button>
+                    <button onclick="openAddModal()" class="flex items-center justify-center bg-primary hover:bg-blue-700 text-white p-2.5 sm:px-4 sm:py-2.5 rounded-[12px] text-[14px] font-medium shadow-sm transition-all duration-150 shrink-0">
+                        <i data-lucide="plus" class="h-4 w-4"></i>
+                        <span class="hidden sm:inline">Thêm hàng</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Expandable Advanced Filters (CRMFilter) -->
+            <div id="filter-panel" class="hidden border-t border-border pt-4 animate-fadeIn">
+                <div id="crm-filter-app-container"></div>
+            </div>
+        </div>
+
+        <!-- Product List Grid Section -->
+        <div id="product-grid" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 mt-4 mx-4 sm:mx-6 md:mx-8 mt-4 gap-6">
+            <!-- Product Cards Rendered Dynamically via JS -->
+        </div>
+
+        <!-- Pagination Section -->
+        <div id="pagination-container" class="mt-8 px-4 sm:px-6 md:px-8 mt-4 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-border pt-6">
+            <span class="text-[12px] text-textSecondary">
+                Hiển thị <span id="pagination-range" class="font-medium text-textPrimary">0 - 0</span> trong số <span id="pagination-total" class="font-medium text-textPrimary">0</span> sản phẩm
+            </span>
+            <div class="flex items-center gap-1.5" id="pagination-buttons">
+                <!-- Pagination buttons rendered dynamically -->
+            </div>
+        </div>
+
+        <!-- Empty State -->
+        <div id="empty-state" class="hidden flex-col items-center justify-center py-16 px-4 bg-surface border border-border rounded-[16px]">
+            <div class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center text-textSecondary mb-3">
+                <i data-lucide="search-code" class="h-6 w-6"></i>
+            </div>
+            <h4 class="text-[16px] font-medium text-textPrimary">Không tìm thấy bất động sản phù hợp</h4>
+            <p class="text-[14px] text-textSecondary text-center max-w-md mt-1">Hãy thử thay đổi từ khóa tìm kiếm hoặc làm mới bộ lọc để hiển thị nhiều kết quả hơn.</p>
+            <button onclick="resetFilters()" class="mt-4 px-4 py-2 border border-border text-[12px] font-medium rounded-[10px] hover:bg-slate-50 transition-all duration-150">Xóa bộ lọc</button>
+        </div>
+
+        <!-- Hot Date Modal -->
+        <div id="hot-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm">
+            <div class="bg-white rounded-[16px] shadow-xl w-full max-w-sm mx-4 p-6 space-y-5" onclick="event.stopPropagation()">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-[16px] font-bold text-textPrimary">Đẩy lên Hot 🔥</h3>
+                    <button onclick="closeHotModal()" class="p-1 hover:bg-slate-100 rounded-full transition-colors">
+                        <i data-lucide="x" class="w-5 h-5 text-textSecondary"></i>
+                    </button>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-[13px] font-semibold text-textSecondary block mb-1.5">Ngày bắt đầu</label>
+                        <input type="date" id="hot-start-date" class="w-full px-3 py-2.5 border border-border rounded-[10px] text-[14px] text-textPrimary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                    </div>
+                    <div>
+                        <label class="text-[13px] font-semibold text-textSecondary block mb-1.5">Ngày kết thúc</label>
+                        <input type="date" id="hot-end-date" class="w-full px-3 py-2.5 border border-border rounded-[10px] text-[14px] text-textPrimary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                    </div>
+                </div>
+                <div class="flex gap-3 pt-1">
+                    <button onclick="closeHotModal()" class="flex-1 py-2.5 border border-border text-[13px] font-semibold text-textSecondary rounded-[10px] hover:bg-slate-50 transition-all">Hủy</button>
+                    <button onclick="confirmHotProduct()" class="flex-1 py-2.5 bg-primary text-[13px] font-semibold text-white rounded-[10px] hover:bg-blue-700 transition-all">Xác nhận</button>
+                </div>
+            </div>
+        </div>
+
+</div>
+
+    <!-- Application Logic Script -->
+    <script>
+        // Real-world high-quality mock data conforming completely to real estate domain in VN
+        var initialProductsList = [
+            {
+                id: "BDS-1001",
+                title: "Căn hộ Vinhomes Golden River Golden City quận 1",
+                transactionType: "Bán",
+                propertyType: "Căn hộ",
+                status: "Trống",
+                thumbnail: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80",
+                highlightBadges: ["Sổ hồng sẵn", "Bán nhanh", "Hạ giá 500tr"],
+                roomCount: 2,
+                wcCount: 2,
+                transferPrice: "7.9 Tỷ",
+                address: "Khu Bason, Phường Bến Nghé, Quận 1, TP. HCM",
+                landArea: 78,
+                width: 8,
+                length: 10,
+                unitPrice: "101.2",
+                floorCount: 1,
+                isPinned: true,
+                isHot: true,
+                district: "Quận 1",
+                ward: "Phường Bến Nghé",
+                orientation: "Đông",
+                frontWidth: 8,
+                priceNum: 7.9,
+                postedUser: {
+                    name: "Nguyễn Thảo Mai",
+                    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80"
+                },
+                postedDate: "2026-06-20"
+            },
+            {
+                id: "BDS-1002",
+                title: "Biệt thự Đơn lập Chateau Thảo Điền Quận 2 view Sông",
+                transactionType: "Bán",
+                propertyType: "Biệt thự",
+                status: "Đang thương lượng",
+                thumbnail: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80",
+                highlightBadges: ["Full nội thất Âu", "Hồ bơi riêng", "VIP Chateau"],
+                roomCount: 5,
+                wcCount: 6,
+                transferPrice: "85 Tỷ",
+                address: "Nguyễn Văn Hưởng, Thảo Điền, TP. Thủ Đức, TP. HCM",
+                landArea: 420,
+                width: 15,
+                length: 28,
+                unitPrice: "202.3",
+                floorCount: 3,
+                isPinned: true,
+                isHot: true,
+                district: "TP. Thủ Đức",
+                ward: "Thảo Điền",
+                orientation: "Nam",
+                frontWidth: 15,
+                priceNum: 85,
+                postedUser: {
+                    name: "Trần Minh Quân",
+                    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80"
+                },
+                postedDate: "2026-06-22"
+            },
+            {
+                id: "BDS-1003",
+                title: "Nhà phố thương mại Shophouse Sala Nguyễn Cơ Thạch",
+                transactionType: "Thuê",
+                propertyType: "Nhà phố",
+                status: "Trống",
+                thumbnail: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80",
+                highlightBadges: ["Trung tâm Q2", "Thích hợp làm Bank", "HĐ dài hạn"],
+                roomCount: 4,
+                wcCount: 5,
+                transferPrice: "Thương lượng",
+                address: "Nguyễn Cơ Thạch, Khu Đô Thị Sala, Quận 2, TP. HCM",
+                landArea: 168,
+                width: 10,
+                length: 17,
+                unitPrice: "---",
+                floorCount: 4,
+                isPinned: false,
+                isHot: true,
+                district: "Quận 2",
+                ward: "Khu Đô Thị Sala",
+                orientation: "Tây",
+                frontWidth: 10,
+                priceNum: 0,
+                postedUser: {
+                    name: "Lê Hoàng Bảo",
+                    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80"
+                },
+                postedDate: "2026-06-23"
+            },
+            {
+                id: "BDS-1004",
+                title: "Căn hộ Studio Vinhomes Grand Park phân khu Origami",
+                transactionType: "Thuê",
+                propertyType: "Căn hộ",
+                status: "Đã bán/Đặt cọc",
+                thumbnail: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=800&q=80",
+                highlightBadges: ["Mới bàn giao", "Giá tốt nhất Origami"],
+                roomCount: 1,
+                wcCount: 1,
+                transferPrice: "1.45 Tỷ",
+                address: "Nguyễn Xiển, Long Thạnh Mỹ, TP. Thủ Đức, TP. HCM",
+                landArea: 32,
+                width: 5,
+                length: 6,
+                unitPrice: "45.3",
+                floorCount: 1,
+                isPinned: false,
+                isHot: false,
+                district: "TP. Thủ Đức",
+                ward: "Long Thạnh Mỹ",
+                orientation: "Bắc",
+                frontWidth: 5,
+                priceNum: 1.45,
+                postedUser: {
+                    name: "Phạm Mai Phương",
+                    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80"
+                },
+                postedDate: "2026-06-18"
+            },
+            {
+                id: "BDS-1005",
+                title: "Biệt thự Song Lập mặt hồ SwanBay Marina Villa",
+                transactionType: "Bán",
+                propertyType: "Biệt thự",
+                status: "Trống",
+                thumbnail: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80",
+                highlightBadges: ["Ven sông Đồng Nai", "Không gian xanh", "Sẵn nội thất thô"],
+                roomCount: 4,
+                wcCount: 4,
+                transferPrice: "12.5 Tỷ",
+                address: "SwanBay, Đảo Đại Phước, Nhơn Trạch, Đồng Nai",
+                landArea: 180,
+                width: 12,
+                length: 15,
+                unitPrice: "69.4",
+                floorCount: 2,
+                isPinned: false,
+                isHot: false,
+                district: "Nhơn Trạch",
+                ward: "Đảo Đại Phước",
+                orientation: "Đông",
+                frontWidth: 12,
+                priceNum: 12.5,
+                postedUser: {
+                    name: "Hoàng Nam Hải",
+                    avatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=200&q=80"
+                },
+                postedDate: "2026-06-19"
+            },
+            {
+                id: "BDS-1006",
+                title: "Căn hộ Penthouse Estella Heights An Phú lầu 34",
+                transactionType: "Bán",
+                propertyType: "Căn hộ",
+                status: "Trống",
+                thumbnail: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=800&q=80",
+                highlightBadges: ["Nội thất siêu sang", "Tầm nhìn bao quát Landmark81", "Giá chốt gấp"],
+                roomCount: 4,
+                wcCount: 4,
+                transferPrice: "24 Tỷ",
+                address: "Song Hành, Phường An Phú, Quận 2, TP. HCM",
+                landArea: 250,
+                width: 14,
+                length: 18,
+                unitPrice: "96",
+                floorCount: 2,
+                isPinned: true,
+                isHot: false,
+                district: "Quận 2",
+                ward: "Phường An Phú",
+                orientation: "Nam",
+                frontWidth: 14,
+                priceNum: 24,
+                postedUser: {
+                    name: "Nguyễn Thảo Mai",
+                    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80"
+                },
+                postedDate: "2026-06-24"
+            },
+            {
+                id: "BDS-1007",
+                title: "Căn hộ The Manhattan Vinhomes Grand Park Studio",
+                transactionType: "Thuê",
+                propertyType: "Căn hộ",
+                status: "Trống",
+                thumbnail: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=800&q=80",
+                highlightBadges: ["Nội thất cơ bản", "Cao tầng thoáng mát"],
+                roomCount: 1,
+                wcCount: 1,
+                transferPrice: "1.8 Tỷ",
+                address: "Nguyễn Xiển, Long Thạnh Mỹ, TP. Thủ Đức, TP. HCM",
+                landArea: 35,
+                width: 5,
+                length: 7,
+                unitPrice: "51.4",
+                floorCount: 1,
+                isPinned: false,
+                isHot: true,
+                district: "TP. Thủ Đức",
+                ward: "Long Thạnh Mỹ",
+                orientation: "Tây",
+                frontWidth: 5,
+                priceNum: 1.8,
+                postedUser: {
+                    name: "Võ Minh Tâm",
+                    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=200&q=80"
+                },
+                postedDate: "2026-06-21"
+            },
+            {
+                id: "BDS-1008",
+                title: "Nhà phố liền kề KDC Bình Hưng Bình Chánh",
+                transactionType: "Bán",
+                propertyType: "Nhà phố",
+                status: "Trống",
+                thumbnail: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80",
+                highlightBadges: ["Sổ hồng riêng", "Đường nhựa 12m"],
+                roomCount: 3,
+                wcCount: 3,
+                transferPrice: "4.5 Tỷ",
+                address: "Quốc Lộ 50, Bình Hưng, Bình Chánh, TP. HCM",
+                landArea: 90,
+                width: 7,
+                length: 13,
+                unitPrice: "50",
+                floorCount: 3,
+                isPinned: false,
+                isHot: false,
+                district: "Bình Chánh",
+                ward: "Bình Hưng",
+                orientation: "Bắc",
+                frontWidth: 7,
+                priceNum: 4.5,
+                postedUser: {
+                    name: "Đặng Hoàng Anh",
+                    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80"
+                },
+                postedDate: "2026-06-19"
+            },
+            {
+                id: "BDS-1009",
+                title: "Căn hộ Masteri Lumiere Riverside Quận 2",
+                transactionType: "Bán",
+                propertyType: "Căn hộ",
+                status: "Trống",
+                thumbnail: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=800&q=80",
+                highlightBadges: ["View sông", "Bàn giao cao cấp"],
+                roomCount: 3,
+                wcCount: 2,
+                transferPrice: "5.2 Tỷ",
+                address: "Võ Chí Công, Phường Thạnh Mỹ Lợi, TP. Thủ Đức",
+                landArea: 85,
+                width: 8,
+                length: 11,
+                unitPrice: "61.1",
+                floorCount: 1,
+                isPinned: true,
+                isHot: false,
+                district: "TP. Thủ Đức",
+                ward: "Phường Thạnh Mỹ Lợi",
+                orientation: "Đông",
+                frontWidth: 8,
+                priceNum: 5.2,
+                postedUser: {
+                    name: "Nguyễn Thảo Mai",
+                    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80"
+                },
+                postedDate: "2026-06-22"
+            },
+            {
+                id: "BDS-1010",
+                title: "Đất nền Biên Hòa City Khu TĐC Hóa An",
+                transactionType: "Bán",
+                propertyType: "Đất nền",
+                status: "Trống",
+                thumbnail: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=800&q=80",
+                highlightBadges: ["Giá rẻ nhất khu", "Sổ đỏ sẵn"],
+                roomCount: 0,
+                wcCount: 0,
+                transferPrice: "1.8 Tỷ",
+                address: "Phường Hóa An, Biên Hòa, Đồng Nai",
+                landArea: 120,
+                width: 10,
+                length: 12,
+                unitPrice: "15",
+                floorCount: 0,
+                isPinned: false,
+                isHot: true,
+                district: "Biên Hòa",
+                ward: "Phường Hóa An",
+                orientation: "Nam",
+                frontWidth: 10,
+                priceNum: 1.8,
+                postedUser: {
+                    name: "Lê Hoàng Bảo",
+                    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80"
+                },
+                postedDate: "2026-06-23"
+            },
+            {
+                id: "BDS-1011",
+                title: "Biệt thự song lập KDC Phú Mỹ Hưng Quận 7",
+                transactionType: "Thuê",
+                propertyType: "Biệt thự",
+                status: "Đang thương lượng",
+                thumbnail: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80",
+                highlightBadges: ["Khu đô thị kiểu mẫu", "Hồ bơi", "Vườn rộng"],
+                roomCount: 5,
+                wcCount: 5,
+                transferPrice: "Thương lượng",
+                address: "Nguyễn Đức Cảnh, Phú Mỹ Hưng, Quận 7, TP. HCM",
+                landArea: 300,
+                width: 16,
+                length: 19,
+                unitPrice: "---",
+                floorCount: 2,
+                isPinned: false,
+                isHot: false,
+                district: "Quận 7",
+                ward: "Phú Mỹ Hưng",
+                orientation: "Tây",
+                frontWidth: 16,
+                priceNum: 0,
+                postedUser: {
+                    name: "Trần Minh Quân",
+                    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80"
+                },
+                postedDate: "2026-06-20"
+            },
+            {
+                id: "BDS-1012",
+                title: "Căn hộ Officetel Saigon Pearl Quận Bình Thạnh",
+                transactionType: "Thuê",
+                propertyType: "Căn hộ",
+                status: "Trống",
+                thumbnail: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80",
+                highlightBadges: ["Kết hợp văn phòng", "Nội thất đầy đủ"],
+                roomCount: 1,
+                wcCount: 1,
+                transferPrice: "2.8 Tỷ",
+                address: "Nguyễn Hữu Cảnh, Phường 22, Bình Thạnh, TP. HCM",
+                landArea: 45,
+                width: 6,
+                length: 8,
+                unitPrice: "62.2",
+                floorCount: 1,
+                isPinned: false,
+                isHot: false,
+                district: "Bình Thạnh",
+                ward: "Phường 22",
+                orientation: "Bắc",
+                frontWidth: 6,
+                priceNum: 2.8,
+                postedUser: {
+                    name: "Phạm Mai Phương",
+                    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80"
+                },
+                postedDate: "2026-06-18"
+            },
+            {
+                id: "BDS-1013",
+                title: "Nhà phố shophouse MT Nguyễn Văn Linh Quận 7",
+                transactionType: "Bán",
+                propertyType: "Nhà phố",
+                status: "Trống",
+                thumbnail: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80",
+                highlightBadges: ["Mặt tiền kinh doanh", "Giá đầu tư"],
+                roomCount: 4,
+                wcCount: 4,
+                transferPrice: "15 Tỷ",
+                address: "Nguyễn Văn Linh, Tân Phong, Quận 7, TP. HCM",
+                landArea: 100,
+                width: 8,
+                length: 13,
+                unitPrice: "150",
+                floorCount: 4,
+                isPinned: false,
+                isHot: false,
+                district: "Quận 7",
+                ward: "Tân Phong",
+                orientation: "Đông",
+                frontWidth: 8,
+                priceNum: 15,
+                postedUser: {
+                    name: "Hoàng Nam Hải",
+                    avatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=200&q=80"
+                },
+                postedDate: "2026-06-17"
+            },
+            {
+                id: "BDS-1014",
+                title: "Đất nền KDC Long Hậu Cần Giuộc Long An",
+                transactionType: "Bán",
+                propertyType: "Đất nền",
+                status: "Trống",
+                thumbnail: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=800&q=80",
+                highlightBadges: ["Sổ hồng từng nền", "Hạ tầng hoàn thiện"],
+                roomCount: 0,
+                wcCount: 0,
+                transferPrice: "2.1 Tỷ",
+                address: "Long Hậu, Cần Giuộc, Long An",
+                landArea: 150,
+                width: 10,
+                length: 15,
+                unitPrice: "14",
+                floorCount: 0,
+                isPinned: false,
+                isHot: false,
+                district: "Cần Giuộc",
+                ward: "Long Hậu",
+                orientation: "Nam",
+                frontWidth: 10,
+                priceNum: 2.1,
+                postedUser: {
+                    name: "Võ Minh Tâm",
+                    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=200&q=80"
+                },
+                postedDate: "2026-06-16"
+            },
+            {
+                id: "BDS-1015",
+                title: "Căn hộ Rex Hotel Sài Gòn Quận 1 dịch vụ 5 sao",
+                transactionType: "Thuê",
+                propertyType: "Căn hộ",
+                status: "Đã bán/Đặt cọc",
+                thumbnail: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=800&q=80",
+                highlightBadges: ["Trung tâm Q1", "Full dịch vụ khách sạn"],
+                roomCount: 2,
+                wcCount: 2,
+                transferPrice: "8.5 Tỷ",
+                address: "Nguyễn Huệ, Phường Bến Nghé, Quận 1, TP. HCM",
+                landArea: 70,
+                width: 7,
+                length: 10,
+                unitPrice: "121.4",
+                floorCount: 1,
+                isPinned: false,
+                isHot: true,
+                district: "Quận 1",
+                ward: "Phường Bến Nghé",
+                orientation: "Bắc",
+                frontWidth: 7,
+                priceNum: 8.5,
+                postedUser: {
+                    name: "Đặng Hoàng Anh",
+                    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80"
+                },
+                postedDate: "2026-06-15"
+            },
+            {
+                id: "BDS-1016",
+                title: "Biệt thự mini KDC Đông Tăng Long Quận 9",
+                transactionType: "Bán",
+                propertyType: "Biệt thự",
+                status: "Trống",
+                thumbnail: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80",
+                highlightBadges: ["Giá mềm", "Khu dân trí cao"],
+                roomCount: 3,
+                wcCount: 3,
+                transferPrice: "6.8 Tỷ",
+                address: "Nguyễn Duy Trinh, Trường Thạnh, TP. Thủ Đức",
+                landArea: 140,
+                width: 10,
+                length: 14,
+                unitPrice: "48.5",
+                floorCount: 2,
+                isPinned: true,
+                isHot: false,
+                district: "TP. Thủ Đức",
+                ward: "Trường Thạnh",
+                orientation: "Tây",
+                frontWidth: 10,
+                priceNum: 6.8,
+                postedUser: {
+                    name: "Phạm Mai Phương",
+                    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80"
+                },
+                postedDate: "2026-06-14"
+            },
+            {
+                id: "BDS-1017",
+                title: "Căn hộ chung cư Palm Heights An Phú Quận 2",
+                transactionType: "Bán",
+                propertyType: "Căn hộ",
+                status: "Đang thương lượng",
+                thumbnail: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=800&q=80",
+                highlightBadges: ["View Landmark", "Thang máy riêng"],
+                roomCount: 4,
+                wcCount: 3,
+                transferPrice: "11.2 Tỷ",
+                address: "Đồng Văn Cống, An Phú, Quận 2, TP. HCM",
+                landArea: 150,
+                width: 12,
+                length: 13,
+                unitPrice: "74.6",
+                floorCount: 2,
+                isPinned: false,
+                isHot: false,
+                district: "Quận 2",
+                ward: "An Phú",
+                orientation: "Đông",
+                frontWidth: 12,
+                priceNum: 11.2,
+                postedUser: {
+                    name: "Trần Minh Quân",
+                    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80"
+                },
+                postedDate: "2026-06-13"
+            },
+            {
+                id: "BDS-1018",
+                title: "Đất thổ cư Xã Bình Mỹ Củ Chi 500m²",
+                transactionType: "Bán",
+                propertyType: "Đất nền",
+                status: "Trống",
+                thumbnail: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=800&q=80",
+                highlightBadges: ["Đất vườn nghỉ dưỡng", "Mặt tiền kênh"],
+                roomCount: 0,
+                wcCount: 0,
+                transferPrice: "3.2 Tỷ",
+                address: "Xã Bình Mỹ, Củ Chi, TP. HCM",
+                landArea: 500,
+                width: 20,
+                length: 25,
+                unitPrice: "6.4",
+                floorCount: 0,
+                isPinned: false,
+                isHot: false,
+                district: "Củ Chi",
+                ward: "Bình Mỹ",
+                orientation: "Nam",
+                frontWidth: 20,
+                priceNum: 3.2,
+                postedUser: {
+                    name: "Hoàng Nam Hải",
+                    avatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=200&q=80"
+                },
+                postedDate: "2026-06-12"
+            }
+        ];
+
+        var activeTab = 'all';
+        var searchQuery = '';
+
+        var currentPage = 1;
+        var itemsPerPage = 10;
+
+        // Toggle Expandable Filters
+        function toggleFilterPanel() {
+            const panel = document.getElementById('filter-panel');
+            panel.classList.toggle('hidden');
+        }
+
+        // ===================== CRMFilter Component =====================
+        var CRMFilter = class {
+            constructor(containerSelector, configFilters, options = {}) {
+                this.container = document.querySelector(containerSelector);
+                if (!this.container) {
+                    console.error('CRMFilter: Container not found');
+                    return;
+                }
+                this.stateFilters = JSON.parse(JSON.stringify(configFilters));
+                this.options = Object.assign({ onChange: null, onToast: null }, options);
+                this.openPopoverId = null;
+                this.instanceId = 'crm-filter-' + Math.random().toString(36).substr(2, 9);
+                this._initLayout();
+                this._bindGlobalEvents();
+                this.render();
+            }
+
+            _initLayout() {
+                this.container.className = 'block';
+                this.container.innerHTML = `
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" id="${this.instanceId}-grid"></div>
+                `;
+            }
+
+            _bindGlobalEvents() {
+                document.addEventListener('click', (e) => {
+                    if (!this.container.contains(e.target)) {
+                        if (this.openPopoverId !== null) {
+                            this.openPopoverId = null;
+                            this.render();
+                        }
+                    }
+                });
+            }
+
+            render() {
+                const gridContainer = document.getElementById(this.instanceId + '-grid');
+                if (!gridContainer) return;
+                gridContainer.innerHTML = '';
+
+                this.stateFilters.forEach((filter, index) => {
+                    const colDiv = document.createElement('div');
+                    colDiv.className = 'relative flex flex-col';
+
+                    const labelEl = document.createElement('label');
+                    labelEl.className = 'text-xs font-semibold text-textSecondary mb-2 flex items-center justify-between';
+                    labelEl.innerHTML = '<span>' + filter.label + '</span>';
+                    colDiv.appendChild(labelEl);
+
+                    const triggerBtn = document.createElement('button');
+                    triggerBtn.type = 'button';
+                    triggerBtn.className = 'w-full text-left bg-surface border border-border px-3 py-2.5 rounded-input text-sm flex items-center justify-between hover:border-primary transition-all duration-150 ' + (this.openPopoverId === index ? 'ring-2 ring-blue-100 border-primary' : '');
+
+                    var displayValue = this._getDisplayValue(filter);
+                    triggerBtn.innerHTML = '<span class="truncate block text-textPrimary font-medium pr-1">' + displayValue + '</span><i data-lucide="chevron-down" class="w-4 h-4 text-textSecondary flex-shrink-0 transition-transform duration-150 ' + (this.openPopoverId === index ? 'transform rotate-180 text-primary' : '') + '"></i>';
+
+                    triggerBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this._togglePopover(index);
+                    });
+                    colDiv.appendChild(triggerBtn);
+
+                    if (this.openPopoverId === index) {
+                        colDiv.appendChild(this._createPopoverContent(filter, index));
+                    }
+
+                    gridContainer.appendChild(colDiv);
+                });
+
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+
+                if (this.options.onChange) this.options.onChange(this.stateFilters);
+            }
+
+            _getDisplayValue(filter) {
+                if (filter.type === 'multi-select-dropdown') {
+                    const selected = filter.options.filter(o => o.selected).map(o => o.value);
+                    if (selected.length === 0) return filter.placeholder || 'Chọn tất cả';
+                    if (selected.length === filter.options.length) return 'Tất cả (' + selected.length + ')';
+                    return selected.join(', ');
+                } else if (filter.type === 'range-input') {
+                    const fields = Object.keys(filter.inputs);
+                    const min = filter.inputs[fields[0]].value;
+                    const max = filter.inputs[fields[1]].value;
+                    if (min === '0' && max === '0') return filter.defaultValue || 'Tất cả';
+                    return min + ' - ' + max + ' m';
+                } else if (filter.type === 'range-slider') {
+                    return 'Tỷ lệ: ' + filter.sliderRange.min + ' - ' + filter.sliderRange.max;
+                }
+                return '';
+            }
+
+            _togglePopover(index) {
+                this.openPopoverId = (this.openPopoverId === index) ? null : index;
+                this.render();
+            }
+
+            _createPopoverContent(filter, index) {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'absolute left-0 right-0 top-[72px] z-50 bg-surface border border-border rounded-card shadow-popover p-4 mt-1 flex flex-col gap-3 min-w-[260px]';
+                wrapper.addEventListener('click', (e) => { e.stopPropagation(); });
+
+                if (filter.type === 'multi-select-dropdown') {
+                    if (filter.hasSearch) {
+                        const searchContainer = document.createElement('div');
+                        searchContainer.className = 'relative mb-1';
+                        searchContainer.innerHTML = '<span class="absolute inset-y-0 left-0 flex items-center pl-2.5 text-textSecondary"><i data-lucide="search" class="w-3.5 h-3.5"></i></span><input type="text" placeholder="' + (filter.searchPlaceholder || 'Tìm kiếm...') + '" class="w-full pl-8 pr-3 py-1.5 bg-slate-50 text-xs border border-border rounded-input focus:outline-none focus:border-primary focus:bg-white" id="' + this.instanceId + '-popover-search-' + index + '">';
+                        searchContainer.querySelector('input').addEventListener('keyup', (e) => { this._filterPopoverList(index, e.target.value); });
+                        wrapper.appendChild(searchContainer);
+                    }
+
+                    if (filter.hasSelectAll) {
+                        const isAllChecked = filter.options.every(o => o.selected);
+                        const sac = document.createElement('div');
+                        sac.className = 'flex items-center justify-between pb-2 mb-1 border-b border-slate-100';
+                        sac.innerHTML = '<span class="text-xs text-textSecondary font-medium">' + (filter.selectAllLabel || 'Chọn tất cả') + '</span><button class="text-xs font-semibold text-primary hover:underline transition-all" type="button">' + (isAllChecked ? 'Bỏ chọn' : 'Chọn hết') + '</button>';
+                        sac.querySelector('button').addEventListener('click', () => { this._toggleSelectAllOptions(index, !isAllChecked); });
+                        wrapper.appendChild(sac);
+                    }
+
+                    const listDiv = document.createElement('div');
+                    listDiv.className = 'max-h-48 overflow-y-auto custom-scrollbar flex flex-col gap-1 pr-1';
+                    listDiv.id = this.instanceId + '-popover-list-' + index;
+
+                    filter.options.forEach((option, optIdx) => {
+                        const optionRow = document.createElement('label');
+                        optionRow.className = 'flex items-center gap-2.5 px-2 py-1.5 rounded-input cursor-pointer hover:bg-slate-50 transition-colors text-xs text-textPrimary ' + (option.selected ? 'bg-blue-50/50 text-blue-700 font-medium' : '');
+                        optionRow.innerHTML = '<input type="checkbox" ' + (option.selected ? 'checked' : '') + ' class="w-4 h-4 text-primary border-border rounded focus:ring-0"><span class="truncate">' + option.value + '</span>';
+                        optionRow.querySelector('input').addEventListener('click', () => { this._toggleOptionSelection(index, optIdx); });
+                        listDiv.appendChild(optionRow);
+                    });
+                    wrapper.appendChild(listDiv);
+
+                    const actionDiv = document.createElement('div');
+                    actionDiv.className = 'flex justify-end gap-2 pt-2 border-t border-slate-100';
+                    actionDiv.innerHTML = '<button type="button" class="px-3 py-1.5 text-xs font-semibold text-textSecondary hover:bg-slate-100 rounded-btn transition-colors">Hoàn tất</button>';
+                    actionDiv.querySelector('button').addEventListener('click', () => { this._togglePopover(null); });
+                    wrapper.appendChild(actionDiv);
+
+                } else if (filter.type === 'range-input') {
+                    const fields = Object.keys(filter.inputs);
+                    const minKey = fields[0];
+                    const maxKey = fields[1];
+                    const containerGrid = document.createElement('div');
+                    containerGrid.className = 'grid grid-cols-2 gap-3 mb-2';
+                    containerGrid.innerHTML = '<div><label class="text-[10px] uppercase font-bold tracking-wider text-textSecondary block mb-1">' + filter.inputs[minKey].label + '</label><input type="number" id="' + this.instanceId + '-range-min-' + index + '" value="' + filter.inputs[minKey].value + '" class="w-full p-2 bg-slate-50 text-xs text-textPrimary border border-border rounded-input focus:outline-none focus:border-primary focus:bg-white"></div><div><label class="text-[10px] uppercase font-bold tracking-wider text-textSecondary block mb-1">' + filter.inputs[maxKey].label + '</label><input type="number" id="' + this.instanceId + '-range-max-' + index + '" value="' + filter.inputs[maxKey].value + '" class="w-full p-2 bg-slate-50 text-xs text-textPrimary border border-border rounded-input focus:outline-none focus:border-primary focus:bg-white"></div>';
+                    wrapper.appendChild(containerGrid);
+
+                    const actionDiv2 = document.createElement('div');
+                    actionDiv2.className = 'flex justify-end gap-2 pt-1.5';
+                    actionDiv2.innerHTML = '<button type="button" class="btn-cancel px-2.5 py-1.5 text-xs font-semibold text-textSecondary hover:bg-slate-100 rounded-btn transition-colors">' + filter.actions.cancelLabel + '</button><button type="button" class="btn-confirm px-3 py-1.5 text-xs font-semibold text-white bg-primary hover:bg-blue-700 rounded-btn transition-colors">' + filter.actions.confirmLabel + '</button>';
+                    actionDiv2.querySelector('.btn-cancel').addEventListener('click', () => { this._togglePopover(null); });
+                    actionDiv2.querySelector('.btn-confirm').addEventListener('click', () => {
+                        const minVal = document.getElementById(this.instanceId + '-range-min-' + index).value || '0';
+                        const maxVal = document.getElementById(this.instanceId + '-range-max-' + index).value || '0';
+                        this._confirmRangeInput(index, minKey, maxKey, minVal, maxVal);
+                    });
+                    wrapper.appendChild(actionDiv2);
+
+                } else if (filter.type === 'range-slider') {
+                    const fields = Object.keys(filter.inputs);
+                    const minKey = fields[0];
+                    const maxKey = fields[1];
+                    const sliderBlock = document.createElement('div');
+                    sliderBlock.className = 'space-y-4 mb-2';
+                    sliderBlock.innerHTML = '<div><div class="flex justify-between items-center text-xs text-textSecondary mb-2"><span>Mức giá tối đa</span><span class="font-bold text-primary" id="' + this.instanceId + '-slider-label-val-' + index + '">30 tỷ đ</span></div><input type="range" min="0" max="100" value="100" step="0.5" class="w-full accent-primary h-1 bg-slate-200 rounded-lg cursor-pointer" id="' + this.instanceId + '-slider-range-bar-' + index + '"></div><div class="grid grid-cols-2 gap-2"><div><label class="text-[10px] text-textSecondary block mb-1">' + filter.inputs[minKey].label + '</label><input type="text" id="' + this.instanceId + '-price-min-val-' + index + '" readonly value="' + filter.inputs[minKey].value + '" class="w-full p-2 bg-slate-100 text-xs text-textSecondary border border-border rounded-input cursor-not-allowed"></div><div><label class="text-[10px] text-textSecondary block mb-1">' + filter.inputs[maxKey].label + '</label><input type="text" id="' + this.instanceId + '-price-max-val-' + index + '" readonly value="' + filter.inputs[maxKey].value + '" class="w-full p-2 bg-slate-100 text-xs text-textSecondary border border-border rounded-input cursor-not-allowed"></div></div>';
+                    const rangeInput = sliderBlock.querySelector('input[type="range"]');
+                    rangeInput.addEventListener('input', (e) => {
+                        const val = e.target.value;
+                        sliderBlock.querySelector('#' + this.instanceId + '-slider-label-val-' + index).innerText = val + ' tỷ đ';
+                        sliderBlock.querySelector('#' + this.instanceId + '-price-max-val-' + index).value = (val * 1000000000).toLocaleString('vi-VN') + ' đ';
+                    });
+                    wrapper.appendChild(sliderBlock);
+
+                    const actionDiv3 = document.createElement('div');
+                    actionDiv3.className = 'flex justify-end gap-2 pt-2 border-t border-slate-100';
+                    actionDiv3.innerHTML = '<button type="button" class="btn-cancel px-2.5 py-1.5 text-xs font-semibold text-textSecondary hover:bg-slate-100 rounded-btn transition-colors">' + filter.actions.cancelLabel + '</button><button type="button" class="btn-confirm px-3 py-1.5 text-xs font-semibold text-white bg-primary hover:bg-blue-700 rounded-btn transition-colors">' + filter.actions.confirmLabel + '</button>';
+                    actionDiv3.querySelector('.btn-cancel').addEventListener('click', () => { this._togglePopover(null); });
+                    actionDiv3.querySelector('.btn-confirm').addEventListener('click', () => {
+                        const finalVal = rangeInput.value;
+                        this._confirmSliderValue(index, minKey, maxKey, finalVal);
+                    });
+                    wrapper.appendChild(actionDiv3);
+                }
+
+                return wrapper;
+            }
+
+            _filterPopoverList(index, query) {
+                const listEl = document.getElementById(this.instanceId + '-popover-list-' + index);
+                if (!listEl) return;
+                const cleanQuery = query.toLowerCase().trim();
+                const labels = listEl.getElementsByTagName('label');
+                for (let i = 0; i < labels.length; i++) {
+                    labels[i].style.display = labels[i].innerText.toLowerCase().includes(cleanQuery) ? 'flex' : 'none';
+                }
+            }
+
+            _toggleOptionSelection(filterIdx, optionIdx) {
+                const opt = this.stateFilters[filterIdx].options[optionIdx];
+                opt.selected = !opt.selected;
+                this.stateFilters[filterIdx].selectedValues = this.stateFilters[filterIdx].options.filter(o => o.selected).map(o => o.value);
+                this.render();
+                if (this.options.onToast) this.options.onToast('Đã cập nhật: ' + opt.value);
+            }
+
+            _toggleSelectAllOptions(filterIdx, checkStatus) {
+                this.stateFilters[filterIdx].options.forEach(o => { o.selected = checkStatus; });
+                this.stateFilters[filterIdx].selectedValues = this.stateFilters[filterIdx].options.filter(o => o.selected).map(o => o.value);
+                this.render();
+                if (this.options.onToast) this.options.onToast(checkStatus ? 'Đã chọn tất cả' : 'Đã bỏ chọn tất cả');
+            }
+
+            _confirmRangeInput(index, minKey, maxKey, minVal, maxVal) {
+                this.stateFilters[index].inputs[minKey].value = minVal;
+                this.stateFilters[index].inputs[maxKey].value = maxVal;
+                this.openPopoverId = null;
+                this.render();
+                if (this.options.onToast) this.options.onToast('Đã lưu phạm vi');
+            }
+
+            _confirmSliderValue(index, minKey, maxKey, sliderVal) {
+                this.stateFilters[index].sliderRange.max = sliderVal + '.0 tỷ';
+                this.stateFilters[index].inputs[maxKey].value = (sliderVal * 1000000000).toLocaleString('vi-VN') + ' đ';
+                this.openPopoverId = null;
+                this.render();
+                if (this.options.onToast) this.options.onToast('Đã lưu khoảng giá tối đa: ' + sliderVal + ' tỷ');
+            }
+
+            removeFilterCriteria(filterIdx, optIdx) {
+                const filter = this.stateFilters[filterIdx];
+                if (filter.type === 'multi-select-dropdown' && optIdx !== null) {
+                    filter.options[optIdx].selected = false;
+                    filter.selectedValues = filter.options.filter(o => o.selected).map(o => o.value);
+                } else if (filter.type === 'range-input') {
+                    const fields = Object.keys(filter.inputs);
+                    filter.inputs[fields[0]].value = '0';
+                    filter.inputs[fields[1]].value = '0';
+                } else if (filter.type === 'range-slider') {
+                    const fields = Object.keys(filter.inputs);
+                    filter.sliderRange.max = '100.0 tỷ';
+                    filter.inputs[fields[1]].value = '100.000.000.000 đ';
+                }
+                this.render();
+                if (this.options.onToast) this.options.onToast('Đã gỡ tiêu chí');
+            }
+
+            reset(originalConfig) {
+                this.stateFilters = JSON.parse(JSON.stringify(originalConfig));
+                this.openPopoverId = null;
+                this.render();
+                if (this.options.onToast) this.options.onToast('Đã thiết lập lại');
+            }
+
+        }
+
+        // ===================== Filter Configuration =====================
+        var filterConfigJSON = {
+            filters: [
+                {
+                    label: "Hình thức",
+                    type: "multi-select-dropdown",
+                    hasSelectAll: true,
+                    selectAllLabel: "Chọn tất cả",
+                    selectedValues: ["Bán", "Thuê"],
+                    options: [
+                        { value: "Bán", selected: true },
+                        { value: "Thuê", selected: true },
+                        { value: "Sang nhượng", selected: false }
+                    ]
+                },
+                {
+                    label: "Loại hình",
+                    placeholder: "Chọn loại hình",
+                    type: "multi-select-dropdown",
+                    hasSearch: true,
+                    hasSelectAll: true,
+                    selectAllLabel: "Chọn tất cả",
+                    searchPlaceholder: "Tìm kiếm",
+                    options: [
+                        { value: "Căn hộ", selected: false },
+                        { value: "Biệt thự", selected: false },
+                        { value: "Nhà phố", selected: false },
+                        { value: "Đất nền", selected: false }
+                    ]
+                },
+                {
+                    label: "Nhãn",
+                    placeholder: "Chọn nhãn",
+                    type: "multi-select-dropdown",
+                    hasSearch: true,
+                    hasSelectAll: true,
+                    selectAllLabel: "Chọn tất cả",
+                    searchPlaceholder: "Tìm kiếm",
+                    options: [
+                        { value: "Sổ hồng sẵn", selected: false },
+                        { value: "Bán nhanh", selected: false },
+                        { value: "Hạ giá", selected: false },
+                        { value: "Nội thất", selected: false },
+                        { value: "Hồ bơi", selected: false },
+                        { value: "Sổ đỏ", selected: false },
+                        { value: "Mặt tiền", selected: false },
+                        { value: "Giá rẻ", selected: false },
+                        { value: "Sổ hồng riêng", selected: false },
+                        { value: "View sông", selected: false },
+                        { value: "Mới bàn giao", selected: false },
+                        { value: "Trung tâm", selected: false }
+                    ]
+                },
+                {
+                    label: "Quận",
+                    placeholder: "Chọn quận",
+                    type: "multi-select-dropdown",
+                    hasSearch: true,
+                    hasSelectAll: true,
+                    selectAllLabel: "Chọn tất cả",
+                    searchPlaceholder: "Tìm kiếm",
+                    options: [
+                        { value: "Quận 1", selected: false },
+                        { value: "Quận 2", selected: false },
+                        { value: "Quận 7", selected: false },
+                        { value: "TP. Thủ Đức", selected: false },
+                        { value: "Bình Chánh", selected: false },
+                        { value: "Bình Thạnh", selected: false },
+                        { value: "Nhơn Trạch", selected: false },
+                        { value: "Biên Hòa", selected: false },
+                        { value: "Cần Giuộc", selected: false },
+                        { value: "Củ Chi", selected: false }
+                    ]
+                },
+                {
+                    label: "Phường",
+                    placeholder: "Chọn phường",
+                    type: "multi-select-dropdown",
+                    hasSearch: true,
+                    hasSelectAll: true,
+                    selectAllLabel: "Chọn tất cả",
+                    searchPlaceholder: "Tìm kiếm",
+                    options: [
+                        { value: "Phường Bến Nghé", selected: false },
+                        { value: "Thảo Điền", selected: false },
+                        { value: "Khu Đô Thị Sala", selected: false },
+                        { value: "Long Thạnh Mỹ", selected: false },
+                        { value: "Đảo Đại Phước", selected: false },
+                        { value: "Phường An Phú", selected: false },
+                        { value: "Bình Hưng", selected: false },
+                        { value: "Phường Thạnh Mỹ Lợi", selected: false },
+                        { value: "Phường Hóa An", selected: false },
+                        { value: "Phú Mỹ Hưng", selected: false },
+                        { value: "Phường 22", selected: false },
+                        { value: "Tân Phong", selected: false },
+                        { value: "Long Hậu", selected: false },
+                        { value: "Trường Thạnh", selected: false },
+                        { value: "An Phú", selected: false },
+                        { value: "Bình Mỹ", selected: false }
+                    ]
+                },
+                {
+                    label: "Hướng",
+                    type: "multi-select-dropdown",
+                    hasSelectAll: true,
+                    selectAllLabel: "Chọn tất cả",
+                    options: [
+                        { value: "Đông", selected: false },
+                        { value: "Tây", selected: false },
+                        { value: "Nam", selected: false },
+                        { value: "Bắc", selected: false }
+                    ]
+                },
+                {
+                    label: "Số phòng",
+                    type: "multi-select-dropdown",
+                    hasSelectAll: true,
+                    selectAllLabel: "Chọn tất cả",
+                    options: [
+                        { value: "1", selected: false },
+                        { value: "2", selected: false },
+                        { value: "3", selected: false },
+                        { value: "4", selected: false },
+                        { value: "5", selected: false },
+                        { value: "6", selected: false },
+                        { value: "7", selected: false },
+                        { value: "8", selected: false },
+                        { value: "9", selected: false },
+                        { value: "10", selected: false }
+                    ]
+                },
+                {
+                    label: "Diện tích",
+                    defaultValue: "Tất cả",
+                    type: "range-input",
+                    inputs: {
+                        minArea: { label: "Diện tích tối thiểu", value: "0" },
+                        maxArea: { label: "Diện tích tối đa", value: "0" }
+                    },
+                    actions: { cancelLabel: "Huỷ", confirmLabel: "Xác nhận" }
+                },
+                {
+                    label: "Ngang mặt tiền",
+                    defaultValue: "Tất cả",
+                    type: "range-input",
+                    inputs: {
+                        minWidth: { label: "Ngang tối thiểu", value: "0" },
+                        maxWidth: { label: "Ngang tối đa", value: "0" }
+                    },
+                    actions: { cancelLabel: "Huỷ", confirmLabel: "Xác nhận" }
+                },
+                {
+                    label: "Trạng thái",
+                    type: "multi-select-dropdown",
+                    hasSelectAll: true,
+                    selectAllLabel: "Chọn tất cả",
+                    options: [
+                        { value: "Trống", selected: false },
+                        { value: "Đã bán/Đặt cọc", selected: false },
+                        { value: "Đang thương lượng", selected: false }
+                    ]
+                },
+                {
+                    label: "Khoảng giá",
+                    defaultValue: "Tất cả",
+                    type: "range-slider",
+                    sliderRange: { min: "0", max: "100.0 tỷ" },
+                    inputs: {
+                        minPrice: { label: "Giá tối thiểu", value: "0 đ" },
+                        maxPrice: { label: "Giá tối đa", value: "100.000.000.000 đ" }
+                    },
+                    actions: { cancelLabel: "Huỷ", confirmLabel: "Xác nhận" }
+                }
+            ]
+        };
+
+        var filterInstance = null;
+
+        // Tab selection logic
+        function switchTab(tab) {
+            activeTab = tab;
+            
+            const tabs = ['all', 'pinned', 'hot'];
+            tabs.forEach(t => {
+                const btn = document.getElementById(`tab-${t}`);
+                if (t === tab) {
+                    btn.classList.add('text-primary', 'bg-surface', 'shadow-sm');
+                    btn.classList.remove('text-textSecondary');
+                } else {
+                    btn.classList.remove('text-primary', 'bg-surface', 'shadow-sm');
+                    btn.classList.add('text-textSecondary');
+                }
+            });
+
+            applyFilters();
+        }
+
+        // Live search input handling
+        function handleSearch(query) {
+            searchQuery = query.toLowerCase().trim();
+            applyFilters();
+        }
+
+        // CRMFilter bridge - applies all filters to the product list
+        function applyFiltersToGrid(currentFilters) {
+            if (!currentFilters) {
+                if (filterInstance) currentFilters = filterInstance.stateFilters;
+                else currentFilters = filterConfigJSON.filters;
+            }
+
+            const searchVal = searchQuery;
+
+            const activeForms = currentFilters[0].options.filter(o => o.selected).map(o => o.value);
+            const activeTypes = currentFilters[1].options.filter(o => o.selected).map(o => o.value);
+            const activeLabels = currentFilters[2].options.filter(o => o.selected).map(o => o.value);
+            const activeDistricts = currentFilters[3].options.filter(o => o.selected).map(o => o.value);
+            const activeWards = currentFilters[4].options.filter(o => o.selected).map(o => o.value);
+            const activeOrientations = currentFilters[5].options.filter(o => o.selected).map(o => o.value);
+            const activeRooms = currentFilters[6].options.filter(o => o.selected).map(o => o.value);
+            const activeStatus = currentFilters[9].options.filter(o => o.selected).map(o => o.value);
+
+            const minAreaInput = parseInt(currentFilters[7].inputs.minArea.value) || 0;
+            const maxAreaInput = parseInt(currentFilters[7].inputs.maxArea.value) || 0;
+
+            const minWidthInput = parseFloat(currentFilters[8].inputs.minWidth.value) || 0;
+            const maxWidthInput = parseFloat(currentFilters[8].inputs.maxWidth.value) || 0;
+
+            const sliderMaxString = currentFilters[10].sliderRange.max;
+            const sliderLimitGia = parseFloat(sliderMaxString.replace(' tỷ', ''));
+
+            let filtered = initialProductsList.filter(prod => {
+                if (activeTab === 'pinned' && !prod.isPinned) return false;
+                if (activeTab === 'hot' && !prod.isHot) return false;
+
+                if (searchVal) {
+                    const matchText = (prod.title + ' ' + prod.id + ' ' + prod.address + ' ' + prod.postedUser.name).toLowerCase();
+                    if (!matchText.includes(searchVal)) return false;
+                }
+
+                if (activeForms.length > 0 && !activeForms.includes(prod.transactionType)) return false;
+                if (activeTypes.length > 0 && !activeTypes.includes(prod.propertyType)) return false;
+
+                if (activeLabels.length > 0) {
+                    const hasLabel = prod.highlightBadges.some(lbl => activeLabels.includes(lbl));
+                    if (!hasLabel) return false;
+                }
+
+                if (activeDistricts.length > 0 && !activeDistricts.includes(prod.district)) return false;
+                if (activeWards.length > 0 && !activeWards.includes(prod.ward)) return false;
+                if (activeOrientations.length > 0 && !activeOrientations.includes(prod.orientation)) return false;
+                if (activeRooms.length > 0 && !activeRooms.includes(String(prod.roomCount))) return false;
+                if (activeStatus.length > 0 && !activeStatus.includes(prod.status)) return false;
+
+                if (minAreaInput > 0 && prod.landArea < minAreaInput) return false;
+                if (maxAreaInput > 0 && prod.landArea > maxAreaInput) return false;
+
+                if (minWidthInput > 0 && prod.frontWidth < minWidthInput) return false;
+                if (maxWidthInput > 0 && prod.frontWidth > maxWidthInput) return false;
+
+                if (prod.priceNum > 0 && prod.priceNum > sliderLimitGia) return false;
+
+                return true;
+            });
+
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const paginatedProducts = filtered.slice(startIndex, endIndex);
+
+            renderGridProducts(paginatedProducts);
+            renderPagination(filtered.length, startIndex, endIndex);
+        }
+
+        function applyFilters(resetPage = true) {
+            if (resetPage) currentPage = 1;
+            if (filterInstance) {
+                applyFiltersToGrid(filterInstance.stateFilters);
+            } else {
+                const startIndex = (currentPage - 1) * itemsPerPage;
+                const endIndex = startIndex + itemsPerPage;
+                const paginated = initialProductsList.slice(startIndex, endIndex);
+                renderGridProducts(paginated);
+                renderPagination(initialProductsList.length, startIndex, endIndex);
+            }
+        }
+
+        function renderPagination(totalItems, startIndex, endIndex) {
+            const paginationContainer = document.getElementById('pagination-container');
+            const rangeText = document.getElementById('pagination-range');
+            const totalText = document.getElementById('pagination-total');
+            const buttonsContainer = document.getElementById('pagination-buttons');
+
+            if (totalItems === 0) {
+                paginationContainer.classList.add('hidden');
+                return;
+            }
+            paginationContainer.classList.remove('hidden');
+
+            const totalPages = Math.ceil(totalItems / itemsPerPage);
+            const displayStart = totalItems === 0 ? 0 : startIndex + 1;
+            const displayEnd = Math.min(endIndex, totalItems);
+
+            rangeText.innerText = `${displayStart} - ${displayEnd}`;
+            totalText.innerText = totalItems;
+
+            let buttonsHTML = '';
+
+            const prevDisabled = currentPage === 1 ? 'disabled opacity-50 cursor-not-allowed' : 'hover:bg-slate-50';
+            buttonsHTML += `
+                <button onclick="${currentPage > 1 ? `goToPage(${currentPage - 1})` : ''}" ${currentPage === 1 ? 'disabled' : ''} class="flex h-9 items-center justify-center gap-1 border border-border rounded-[10px] px-3 text-[12px] font-medium text-textSecondary transition-all duration-150 ${prevDisabled}">
+                    <i data-lucide="chevron-left" class="h-4 w-4"></i>
+                    Trước
+                </button>
+            `;
+
+            for (let i = 1; i <= totalPages; i++) {
+                const activeClass = currentPage === i 
+                    ? 'bg-primary text-white border-primary shadow-sm' 
+                    : 'bg-white border-border text-textSecondary hover:text-textPrimary hover:bg-slate-50';
+                buttonsHTML += `
+                    <button onclick="goToPage(${i})" class="flex h-9 w-9 items-center justify-center border rounded-[10px] text-[12px] font-semibold transition-all duration-150 ${activeClass}">
+                        ${i}
+                    </button>
+                `;
+            }
+
+            const nextDisabled = currentPage === totalPages ? 'disabled opacity-50 cursor-not-allowed' : 'hover:bg-slate-50';
+            buttonsHTML += `
+                <button onclick="${currentPage < totalPages ? `goToPage(${currentPage + 1})` : ''}" ${currentPage === totalPages ? 'disabled' : ''} class="flex h-9 items-center justify-center gap-1 border border-border rounded-[10px] px-3 text-[12px] font-medium text-textSecondary transition-all duration-150 ${nextDisabled}">
+                    Sau
+                    <i data-lucide="chevron-right" class="h-4 w-4"></i>
+                </button>
+            `;
+
+            buttonsContainer.innerHTML = buttonsHTML;
+            
+            if (window.lucide) {
+                lucide.createIcons();
+            }
+        }
+
+        function goToPage(page) {
+            currentPage = page;
+            applyFilters(false);
+            document.getElementById('product-grid').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function resetFilters() {
+            document.getElementById('search-input').value = '';
+            searchQuery = '';
+            if (filterInstance) {
+                filterInstance.reset(filterConfigJSON.filters);
+            }
+            switchTab('all');
+        }
+
+        function updateTabCounts() {
+            const total = initialProductsList.length;
+            const pinned = initialProductsList.filter(p => p.isPinned).length;
+            const hot = initialProductsList.filter(p => p.isHot).length;
+
+            document.getElementById('count-all').innerText = total;
+            document.getElementById('count-pinned').innerText = pinned;
+            document.getElementById('count-hot').innerText = hot;
+        }
+
+        function renderGridProducts(products) {
+            const grid = document.getElementById('product-grid');
+            
+            grid.innerHTML = products.map(prod => {
+                const statusBadge = getStatusBadge(prod.status);
+                const pinButtonClass = prod.isPinned ? 'text-warning fill-warning' : 'text-textSecondary hover:text-warning';
+                
+                return `
+                <div onclick="selectProductAndNavigate('${prod.id}')" class="bg-surface border border-border rounded-[16px] overflow-hidden shadow-soft flex flex-col group hover:shadow-md transition-all duration-150 relative cursor-pointer">
+                    <div class="relative h-[200px] overflow-hidden">
+                        <img src="${prod.thumbnail}" alt="${prod.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                        <div class="absolute top-3 left-3 flex flex-wrap gap-1.5 max-w-[80%]">
+                            <span class="px-2.5 py-1 text-[11px] font-semibold ${prod.transactionType === 'Bán' ? 'bg-primary' : 'bg-success'} text-white rounded-[8px] uppercase tracking-wider">${prod.transactionType}</span>
+                            ${prod.isHot ? '<span class="px-2.5 py-1 text-[11px] font-semibold bg-red-600 text-white rounded-[8px] uppercase tracking-wider">Hàng Hot 🔥</span>' : ''}
+                        </div>
+                        <div class="absolute top-3 right-3 flex gap-1.5">
+                            <button onclick="event.stopPropagation();togglePin('${prod.id}')" class="bg-white/90 hover:bg-white p-1.5 rounded-full shadow-soft transition-all" title="Ghim sản phẩm">
+                                <i data-lucide="pin" class="h-3.5 w-3.5 ${pinButtonClass}"></i>
+                            </button>
+                            <button onclick="event.stopPropagation();toggleCardMenu('${prod.id}')" class="bg-white/90 hover:bg-white p-1.5 rounded-full shadow-soft transition-all" title="Thao tác">
+                                <i data-lucide="more-vertical" class="h-3.5 w-3.5 text-textSecondary"></i>
+                            </button>
+                        </div>
+                        <div class="absolute bottom-3 right-3 flex items-center gap-1.5">
+                            ${statusBadge}
+                        </div>
+                    </div>
+                    <div id="card-menu-${prod.id}" class="hidden absolute top-12 right-3 w-44 bg-white border border-border rounded-[12px] shadow-soft z-50 py-1">
+                ${prod.isHot ? `
+                <button onclick="event.stopPropagation();unpromoteHot('${prod.id}')" class="w-full flex items-center gap-2 px-3 py-2 text-[13px] text-textPrimary hover:bg-slate-50 transition-all text-left">
+                    <i data-lucide="flame" class="h-3.5 w-3.5 text-orange-500"></i><span>Bỏ Hàng Hot</span>
+                </button>` : `
+                <button onclick="event.stopPropagation();openHotModal('${prod.id}')" class="w-full flex items-center gap-2 px-3 py-2 text-[13px] text-textPrimary hover:bg-slate-50 transition-all text-left">
+                    <i data-lucide="flame" class="h-3.5 w-3.5 text-orange-500"></i><span>Đẩy lên Hot</span>
+                </button>`}
+                        <button onclick="event.stopPropagation();showToast('Chỉnh sửa', 'Tính năng đang phát triển')" class="w-full flex items-center gap-2 px-3 py-2 text-[13px] text-textPrimary hover:bg-slate-50 transition-all text-left">
+                            <i data-lucide="pencil" class="h-3.5 w-3.5"></i><span>Chỉnh sửa</span>
+                        </button>
+                        <button onclick="event.stopPropagation();showToast('Duyệt', 'Đã duyệt sản phẩm')" class="w-full flex items-center gap-2 px-3 py-2 text-[13px] text-textPrimary hover:bg-slate-50 transition-all text-left">
+                            <i data-lucide="check-circle" class="h-3.5 w-3.5 text-success"></i><span>Duyệt</span>
+                        </button>
+                        <button onclick="event.stopPropagation();showToast('Từ chối', 'Đã từ chối sản phẩm')" class="w-full flex items-center gap-2 px-3 py-2 text-[13px] text-textPrimary hover:bg-slate-50 transition-all text-left">
+                            <i data-lucide="x-circle" class="h-3.5 w-3.5 text-error"></i><span>Từ chối</span>
+                        </button>
+                        <div class="h-px bg-border my-1 mx-2"></div>
+                        <button onclick="event.stopPropagation();showToast('Xóa', 'Đã xóa sản phẩm')" class="w-full flex items-center gap-2 px-3 py-2 text-[13px] text-error hover:bg-red-50 transition-all text-left">
+                            <i data-lucide="trash-2" class="h-3.5 w-3.5"></i><span>Xóa</span>
+                        </button>
+                    </div>
+
+                    <div class="p-4 flex-1 flex flex-col justify-between space-y-4">
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="text-[12px] font-medium text-textSecondary uppercase tracking-wide">${prod.propertyType}</span>
+                                <span class="text-[11px] font-semibold text-slate-400">#${prod.id}</span>
+                            </div>
+                            <h3 class="text-[16px] font-semibold text-textPrimary leading-snug line-clamp-2 hover:text-primary transition-all duration-150">
+                                <a href="#">${prod.title}</a>
+                            </h3>
+                            <p class="text-[13px] text-textSecondary flex items-start gap-1">
+                                <i data-lucide="map-pin" class="h-4 w-4 shrink-0 text-slate-400 mt-0.5"></i>
+                                <span class="line-clamp-2">${prod.address}</span>
+                            </p>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-2 bg-slate-50 p-2.5 rounded-[12px] text-center text-textPrimary">
+                            <div>
+                                <span class="text-[10px] text-textSecondary block">P. Ngủ</span>
+                                <span class="text-[13px] font-semibold">${prod.roomCount || '-'} PN</span>
+                            </div>
+                            <div>
+                                <span class="text-[10px] text-textSecondary block">Nhà VS</span>
+                                <span class="text-[13px] font-semibold">${prod.wcCount || '-'} WC</span>
+                            </div>
+                            <div>
+                                <span class="text-[10px] text-textSecondary block font-medium text-textSecondary">Số tầng</span>
+                                <span class="text-[13px] font-semibold">${prod.floorCount || '-'} T</span>
+                            </div>
+                        </div>
+
+                        ${prod.highlightBadges && prod.highlightBadges.length > 0 ? `
+                        <div class="flex flex-wrap gap-1">
+                            ${prod.highlightBadges.map(b => `<span class="px-2 py-0.5 bg-slate-100 text-textSecondary text-[11px] rounded-[6px] font-medium">${b}</span>`).join('')}
+                        </div>
+                        ` : ''}
+
+                        <div class="grid grid-cols-2 gap-3 pt-3 border-t border-border">
+                            <div>
+                                <span class="text-[10px] text-textSecondary block font-medium">Giá</span>
+                                <span class="text-[18px] font-bold text-error">${prod.transferPrice}</span>
+                                <span class="text-[11px] text-textSecondary block mt-0.5">${prod.unitPrice}tr/m²</span>
+                            </div>
+                            <div class="border-l border-border pl-3">
+                                <span class="text-[10px] text-textSecondary block font-medium">Diện tích</span>
+                                <span class="text-[18px] font-bold text-textPrimary">${prod.landArea} m²</span>
+                                <span class="text-[11px] text-textSecondary block mt-0.5">${prod.width}m × ${prod.length}m</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between pt-3 border-t border-slate-100">
+                            <div class="flex items-center gap-2">
+                                <img src="${prod.postedUser.avatar}" alt="${prod.postedUser.name}" class="h-6 w-6 rounded-full object-cover ring-1 ring-border">
+                                <span class="text-[12px] font-semibold text-textPrimary">${prod.postedUser.name}</span>
+                            </div>
+                            <span class="text-[11px] font-medium text-textPrimary">${formatDateVietnamese(prod.postedDate)}</span>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }).join('');
+
+            lucide.createIcons();
+        }
+
+        function getStatusBadge(status) {
+            if (status === 'Trống') {
+                return `<span class="px-2.5 py-1 text-[11px] font-semibold bg-success/90 text-white rounded-[8px] uppercase tracking-wider flex items-center gap-1 shadow-sm"><span class="h-1.5 w-1.5 bg-white rounded-full"></span>Sẵn sàng</span>`;
+            } else if (status === 'Đang thương lượng') {
+                return `<span class="px-2.5 py-1 text-[11px] font-semibold bg-warning/90 text-white rounded-[8px] uppercase tracking-wider flex items-center gap-1 shadow-sm"><span class="h-1.5 w-1.5 bg-white rounded-full"></span>Deal Đợi</span>`;
+            } else {
+                return `<span class="px-2.5 py-1 text-[11px] font-semibold bg-slate-500/95 text-white rounded-[8px] uppercase tracking-wider flex items-center gap-1 shadow-sm">Đã chốt</span>`;
+            }
+        }
+
+        function formatDateVietnamese(dateString) {
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return dateString;
+            return date.toLocaleDateString('vi-VN', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+        }
+
+        function togglePin(id) {
+            const product = initialProductsList.find(p => p.id === id);
+            if (product) {
+                product.isPinned = !product.isPinned;
+                showToast(
+                    product.isPinned ? "Đã ghim bất động sản" : "Đã bỏ ghim bất động sản",
+                    `Sản phẩm mã ${id} đã được cập nhật thành công.`
+                );
+                updateTabCounts();
+                applyFilters();
+            }
+        }
+
+        function toggleCardMenu(id) {
+            document.querySelectorAll('[id^="card-menu-"]').forEach(function(m) {
+                if (m.id !== 'card-menu-' + id) m.classList.add('hidden');
+            });
+            const menu = document.getElementById('card-menu-' + id);
+            if (menu) menu.classList.toggle('hidden');
+        }
+
+        document.addEventListener('click', function(e) {
+            document.querySelectorAll('[id^="card-menu-"]').forEach(function(m) {
+                if (!m.classList.contains('hidden') && !m.parentElement.contains(e.target)) {
+                    m.classList.add('hidden');
+                }
+            });
+        });
+
+        function openAddModal() {
+            if (typeof navigate === 'function') navigate('them-hang');
+        }
+
+        function closeAddModal() {
+            document.getElementById('add-modal').classList.add('hidden');
+            document.getElementById('add-product-form').reset();
+        }
+
+        function updateFormImagePreview() {
+        }
+
+        function saveNewProduct(e) {
+            e.preventDefault();
+
+            const title = document.getElementById('form-title').value;
+            const transaction = document.getElementById('form-transaction').value;
+            const type = document.getElementById('form-type').value;
+            const address = document.getElementById('form-address').value;
+            const area = parseFloat(document.getElementById('form-area').value);
+            const rawTransfer = document.getElementById('form-transfer-price').value;
+            const beds = parseInt(document.getElementById('form-beds').value) || 0;
+            const baths = parseInt(document.getElementById('form-baths').value) || 0;
+            const floors = parseInt(document.getElementById('form-floors').value) || 1;
+            const status = document.getElementById('form-status').value;
+            const image = document.getElementById('form-image-select').value;
+            
+            const tagsInput = document.getElementById('form-tags').value;
+            const highlightBadges = tagsInput ? tagsInput.split(',').map(tag => tag.trim()) : ["Mới cập nhật"];
+
+            let calculatedUnitPrice = "---";
+            if (transaction === 'Bán') {
+                const parseNum = parseFloat(rawTransfer);
+                if (!isNaN(parseNum) && area > 0) {
+                    calculatedUnitPrice = ((parseNum * 1000) / area).toFixed(1);
+                }
+            }
+
+            const newId = `BDS-${1000 + initialProductsList.length + 1}`;
+            
+            const newProduct = {
+                id: newId,
+                title: title,
+                transactionType: transaction,
+                propertyType: type,
+                status: status,
+                thumbnail: image,
+                highlightBadges: highlightBadges,
+                roomCount: beds,
+                wcCount: baths,
+                width: 0,
+                length: 0,
+                transferPrice: rawTransfer || "Thương lượng",
+                address: address,
+                landArea: area,
+                unitPrice: calculatedUnitPrice,
+                floorCount: floors,
+                isPinned: false,
+                isHot: false,
+                postedUser: {
+                    name: "Phạm Minh Khang",
+                    avatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=200&q=80"
+                },
+                postedDate: new Date().toISOString().split('T')[0]
+            };
+
+            initialProductsList.unshift(newProduct);
+
+            closeAddModal();
+            showToast("Thành công", `Bất động sản mới ${newId} đã được đưa lên rổ hàng.`);
+            updateTabCounts();
+            resetFilters();
+        }
+
+        var toastTimeout;
+        function showToast(title, desc) {
+            const toast = document.getElementById('toast-notif');
+            if (desc === undefined) { desc = title; title = 'Bộ lọc'; }
+            document.getElementById('toast-title').innerText = title;
+            document.getElementById('toast-desc').innerText = desc;
+
+            clearTimeout(toastTimeout);
+            toast.classList.remove('hidden');
+            
+            setTimeout(() => {
+                toast.classList.remove('translate-y-10', 'opacity-0');
+            }, 10);
+
+            toastTimeout = setTimeout(() => {
+                hideToast();
+            }, 4000);
+        }
+
+        function hideToast() {
+            const toast = document.getElementById('toast-notif');
+            toast.classList.add('translate-y-10', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 300);
+        }
+
+        // Init (replaces DOMContentLoaded)
+        updateTabCounts();
+
+        // Initialize CRMFilter
+        filterInstance = new CRMFilter('#crm-filter-app-container', filterConfigJSON.filters, {
+            onChange: function(activeFilters) {
+                currentPage = 1;
+                applyFiltersToGrid(activeFilters);
+            },
+            onToast: function(message) {
+                showToast('Bộ lọc', message);
+            }
+        });
+
+        window.resetAllFiltersFromGrid = function() {
+            if (filterInstance) {
+                filterInstance.reset(filterConfigJSON.filters);
+                document.getElementById('search-input').value = '';
+                searchQuery = '';
+            }
+        };
+
+        applyFilters();
+
+        var currentHotProductId = null;
+
+        function openHotModal(id) {
+            currentHotProductId = id;
+            var today = new Date();
+            var endDate = new Date(today);
+            endDate.setDate(endDate.getDate() + 7);
+            document.getElementById('hot-start-date').value = today.toISOString().split('T')[0];
+            document.getElementById('hot-end-date').value = endDate.toISOString().split('T')[0];
+            document.getElementById('hot-modal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeHotModal() {
+            document.getElementById('hot-modal').classList.add('hidden');
+            currentHotProductId = null;
+        }
+
+        function confirmHotProduct() {
+            var start = document.getElementById('hot-start-date').value;
+            var end = document.getElementById('hot-end-date').value;
+            if (!start || !end) { showToast('Lỗi', 'Vui lòng chọn ngày bắt đầu và kết thúc.'); return; }
+            if (end < start) { showToast('Lỗi', 'Ngày kết thúc phải sau ngày bắt đầu.'); return; }
+            var product = initialProductsList.find(function(p) { return p.id === currentHotProductId; });
+            if (product) {
+                product.isHot = true;
+                product.hotStartDate = start;
+                product.hotEndDate = end;
+                closeHotModal();
+                applyFilters();
+                showToast('Thành công', 'Sản phẩm đã được đẩy lên Hàng Hot 🔥');
+            }
+        }
+
+        function unpromoteHot(id) {
+            var product = initialProductsList.find(function(p) { return p.id === id; });
+            if (product) {
+                product.isHot = false;
+                delete product.hotStartDate;
+                delete product.hotEndDate;
+                applyFilters();
+                showToast('Đã bỏ Hàng Hot', 'Sản phẩm đã được gỡ khỏi Hàng Hot.');
+            }
+        }
+    </script>

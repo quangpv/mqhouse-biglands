@@ -1,0 +1,1482 @@
+<!-- PAGE: Quản lý người dùng -->
+<style>
+body {
+    font-family: 'Inter', sans-serif;
+    color: #0F172A;
+    -webkit-font-smoothing: antialiased;
+}
+.transition-all-custom {
+    transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+</style>
+
+<!-- Dynamic Screen Content Wrapper -->
+<div class="flex-1 overflow-y-auto">
+
+    <!-- Search, Filter & Quick Stats Container -->
+    <div class="sticky top-0 z-10 bg-white/95 backdrop-blur-xs border-b border-[#E2E8F0] shadow-soft p-4 md:p-6 space-y-3 md:space-y-4">
+
+        <!-- Search & Filters Grid -->
+        <div class="grid grid-cols-2 md:grid-cols-12 gap-3 items-center">
+
+            <!-- Search input column -->
+            <div class="col-span-2 md:col-span-6">
+                <div class="flex items-center gap-2">
+                    <div class="relative flex-1">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
+                            <i data-lucide="search" class="w-4.5 h-4.5"></i>
+                        </span>
+                        <input
+                            type="text"
+                            id="searchInput"
+                            placeholder="Họ tên, số điện thoại, email, username..."
+                            class="w-full bg-slate-50/50 border border-[#E2E8F0] rounded-input py-2.5 pl-10 pr-4 text-[14px] text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] transition-all-custom"
+                        >
+                    </div>
+                    <button
+                        onclick="openCreateModal()"
+                        class="md:hidden inline-flex items-center justify-center p-2.5 bg-[#2563EB] text-white rounded-button hover:bg-[#1D4ED8] active:scale-[0.98] transition-all-custom shadow-sm shrink-0"
+                    >
+                        <i data-lucide="user-plus" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Role Filter Dropdown column -->
+            <div class="md:col-span-3">
+                <div class="relative">
+                    <select
+                        id="roleFilter"
+                        class="w-full bg-slate-50/50 border border-[#E2E8F0] rounded-input py-2.5 pl-3 pr-10 text-[14px] text-slate-900 focus:outline-none focus:border-[#2563EB] transition-all-custom appearance-none cursor-pointer"
+                    >
+                        <option value="ALL">Tất cả vai trò</option>
+                        <option value="Admin">Admin (Quản trị)</option>
+                        <option value="Approver">Approver (Người duyệt)</option>
+                        <option value="Sale">Sale (Nhân viên kinh doanh)</option>
+                    </select>
+                    <span class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
+                        <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Organization Filter Dropdown column -->
+            <div class="md:col-span-3">
+                <div class="relative">
+                    <select
+                        id="orgFilter"
+                        class="w-full bg-slate-50/50 border border-[#E2E8F0] rounded-input py-2.5 pl-3 pr-10 text-[14px] text-slate-900 focus:outline-none focus:border-[#2563EB] transition-all-custom appearance-none cursor-pointer"
+                    >
+                        <option value="ALL">Tất cả tổ chức</option>
+                        <option value="MQhouse">MQhouse</option>
+                        <option value="MQLand">MQLand</option>
+                    </select>
+                    <span class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
+                        <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                    </span>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Divider -->
+        <div class="h-[1px] bg-slate-100"></div>
+
+        <!-- Total Count & Quick Actions Row -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div class="flex items-center gap-2">
+                <span class="text-slate-500 font-medium">Tổng số tài khoản:</span>
+                <span id="totalCounter" class="bg-[#2563EB]/10 text-[#2563EB] px-2.5 py-0.5 rounded-full text-[12px] font-bold">0</span>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button
+                    onclick="resetFilters()"
+                    id="resetFilterBtn"
+                    class="hidden items-center gap-1.5 px-3 py-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-button text-[13px] font-medium transition-all-custom"
+                >
+                    <i data-lucide="filter-x" class="w-4 h-4"></i>
+                    Xóa lọc nhanh
+                </button>
+                <button
+                    onclick="openCreateModal()"
+                    class="hidden md:inline-flex w-full sm:w-auto items-center justify-center gap-2 px-5 py-2.5 bg-[#2563EB] text-white font-medium rounded-button hover:bg-[#1D4ED8] active:scale-[0.98] transition-all-custom shadow-sm"
+                >
+                    <i data-lucide="user-plus" class="w-4.5 h-4.5"></i>
+                    Tạo người dùng
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- User Table Card -->
+
+        <!-- Loading State Skeleton Rows (Controlled via JS) -->
+        <div id="loadingState" class="hidden">
+            <div class="p-6 border-b border-[#E2E8F0] animate-pulse flex items-center justify-between">
+                <div class="h-4 w-1/4 bg-slate-200 rounded"></div>
+                <div class="h-4 w-1/6 bg-slate-200 rounded"></div>
+            </div>
+            <div class="divide-y divide-slate-100">
+                <div class="p-6 flex items-center gap-4 animate-pulse">
+                    <div class="w-8 h-4 bg-slate-200 rounded"></div>
+                    <div class="w-10 h-10 bg-slate-200 rounded-full"></div>
+                    <div class="flex-1 space-y-2">
+                        <div class="h-4 w-1/3 bg-slate-200 rounded"></div>
+                        <div class="h-3 w-1/4 bg-slate-100 rounded"></div>
+                    </div>
+                    <div class="w-24 h-4 bg-slate-200 rounded"></div>
+                    <div class="w-24 h-4 bg-slate-200 rounded"></div>
+                </div>
+                <div class="p-6 flex items-center gap-4 animate-pulse">
+                    <div class="w-8 h-4 bg-slate-200 rounded"></div>
+                    <div class="w-10 h-10 bg-slate-200 rounded-full"></div>
+                    <div class="flex-1 space-y-2">
+                        <div class="h-4 w-1/2 bg-slate-200 rounded"></div>
+                        <div class="h-3 w-1/3 bg-slate-100 rounded"></div>
+                    </div>
+                    <div class="w-24 h-4 bg-slate-200 rounded"></div>
+                    <div class="w-24 h-4 bg-slate-200 rounded"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Empty State (Controlled via JS) -->
+        <div id="emptyState" class="hidden p-12 text-center space-y-4">
+            <div class="mx-auto w-16 h-16 bg-slate-50 border border-slate-200 text-slate-400 rounded-2xl flex items-center justify-center">
+                <i data-lucide="users-round" class="w-8 h-8"></i>
+            </div>
+            <div class="max-w-md mx-auto space-y-1">
+                <h3 class="text-[16px] font-semibold text-slate-800">Không tìm thấy người dùng phù hợp</h3>
+                <p class="text-slate-500 text-[13px]">
+                    Hãy thử kiểm tra lại từ khóa tìm kiếm hoặc thay đổi tiêu chí bộ lọc (Vai trò, Tổ chức) đang áp dụng.
+                </p>
+            </div>
+            <button onclick="resetFilters()" class="px-4 py-2 text-[13px] font-medium text-[#2563EB] bg-[#2563EB]/5 hover:bg-[#2563EB]/10 rounded-button transition-all-custom">
+                Xóa tất cả bộ lọc
+            </button>
+        </div>
+
+        <!-- Real Content Table (Responsive Horizontal Scroll) -->
+        <div id="tableWrapper" class="overflow-x-auto w-full no-scrollbar">
+            <table class="w-full text-left border-collapse whitespace-nowrap">
+                <thead>
+                    <tr class="bg-slate-50 border-b border-[#E2E8F0] text-slate-500 font-medium text-[12px] uppercase tracking-wider">
+                        <th class="py-3 px-6 w-16 text-center">#</th>
+                        <th class="py-3 px-6">Họ tên & Tài khoản</th>
+                        <th class="py-3 px-6">Số điện thoại</th>
+                        <th class="py-3 px-6">Vai trò</th>
+                        <th class="py-3 px-6">Tổ chức</th>
+                        <th class="py-3 px-6 w-16 text-center">Tác vụ</th>
+                    </tr>
+                </thead>
+                <tbody id="userTableBody" class="divide-y divide-[#E2E8F0]">
+                    <!-- Rows injected dynamically via Javascript -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Table Footer / Pagination -->
+        <div id="tableFooter" class="sticky bottom-0 z-10 border-t border-[#E2E8F0] p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white">
+            <div class="text-[13px] text-slate-500">
+                Hiển thị <span id="paginationRange" class="font-medium text-slate-900">1 - 5</span> trong tổng số <span id="filteredCount" class="font-medium text-slate-900">10</span> bản ghi
+            </div>
+            <div class="flex items-center gap-1.5 justify-end">
+                <button onclick="prevPage()" id="prevBtn" class="p-2 border border-[#E2E8F0] text-slate-400 hover:text-slate-800 hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-transparent rounded-button transition-all-custom">
+                    <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                </button>
+                <div id="pageNumbers" class="flex items-center gap-1">
+                    <!-- Injected page numbers buttons -->
+                </div>
+                <button onclick="nextPage()" id="nextBtn" class="p-2 border border-[#E2E8F0] text-slate-400 hover:text-slate-800 hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-transparent rounded-button transition-all-custom">
+                    <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+
+</div>
+
+<!-- Custom Context Menu / Actions Dropdown Drop-in element -->
+<div id="actionsDropdown" class="hidden absolute bg-white border border-[#E2E8F0] rounded-card shadow-dropdown w-56 py-1.5 z-50 transition-all-custom scale-95 opacity-0">
+    <button onclick="triggerEditUser()" class="w-full text-left px-4 py-2.5 text-slate-700 hover:bg-slate-50 flex items-center gap-3 transition-all-custom">
+        <i data-lucide="edit-2" class="w-4 h-4 text-slate-400"></i>
+        <span>Chỉnh sửa người dùng</span>
+    </button>
+    <button onclick="triggerPasswordReset()" class="w-full text-left px-4 py-2.5 text-slate-700 hover:bg-slate-50 flex items-center gap-3 transition-all-custom">
+        <i data-lucide="key-round" class="w-4 h-4 text-slate-400"></i>
+        <span>Đổi mật khẩu</span>
+    </button>
+    <button onclick="triggerDeviceReset()" class="w-full text-left px-4 py-2.5 text-slate-700 hover:bg-slate-50 flex items-center gap-3 transition-all-custom">
+        <i data-lucide="smartphone" class="w-4 h-4 text-slate-400"></i>
+        <span>Reset thiết bị</span>
+    </button>
+    <div class="h-[1px] bg-slate-100 my-1"></div>
+    <button id="toggleLockActionBtn" onclick="triggerToggleLock()" class="w-full text-left px-4 py-2.5 text-slate-700 hover:bg-slate-50 flex items-center gap-3 transition-all-custom">
+        <i id="lockActionIcon" data-lucide="lock" class="w-4 h-4 text-slate-400"></i>
+        <span id="lockActionText">Khóa người dùng</span>
+    </button>
+    <button onclick="triggerDeleteUser()" class="w-full text-left px-4 py-2.5 text-[#DC2626] hover:bg-red-50 flex items-center gap-3 transition-all-custom">
+        <i data-lucide="trash-2" class="w-4 h-4 text-red-400"></i>
+        <span>Xóa người dùng</span>
+    </button>
+</div>
+
+<!-- Create & Edit User Modal System (Dynamic Dialog Overlay) -->
+<div id="userModalOverlay" class="hidden fixed inset-0 bg-slate-900/45 backdrop-blur-xs flex items-start justify-center overflow-y-auto px-4 py-8 z-50 transition-all duration-200 opacity-0">
+    <div id="userModalContent" class="bg-white rounded-modal shadow-xl w-full max-w-lg transform scale-95 transition-all duration-200">
+
+        <!-- Modal Header -->
+        <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center justify-between bg-slate-50">
+            <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                    <i id="modalTitleIcon" data-lucide="user-plus" class="w-4.5 h-4.5"></i>
+                </span>
+                <h2 id="modalTitle" class="text-[18px] font-semibold text-[#0F172A]">Tạo người dùng mới</h2>
+            </div>
+            <button onclick="closeModal()" class="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-all-custom">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <!-- Modal Form Body -->
+        <form id="userForm" onsubmit="handleFormSubmit(event)" class="p-6 space-y-4">
+            <input type="hidden" id="modalUserId">
+
+            <!-- Form fields -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- Avatar row -->
+                <div class="sm:col-span-2 flex items-center gap-4">
+                    <div class="relative shrink-0">
+                        <img id="avatar-preview" src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=150&auto=format&fit=crop" alt="Avatar" class="w-16 h-16 rounded-full object-cover ring-2 ring-slate-100">
+                        <button type="button" onclick="document.getElementById('avatarUpload').click()" class="absolute -bottom-0.5 -right-0.5 bg-white border border-slate-200 rounded-full p-1.5 shadow-sm hover:bg-slate-50 transition-all cursor-pointer">
+                            <i data-lucide="camera" class="w-3.5 h-3.5 text-slate-500"></i>
+                        </button>
+                        <input type="file" id="avatarUpload" accept="image/*" class="hidden" onchange="handleAvatarUpload(event)">
+                    </div>
+                    <div class="flex-1">
+                        <label class="text-[13px] font-semibold text-slate-700 block mb-1.5">Ảnh đại diện</label>
+                        <div class="relative">
+                            <select id="formAvatar" onchange="syncAvatarPreview(this.value)" class="w-full border border-[#E2E8F0] rounded-input py-2.5 pl-3 pr-10 text-[14px] text-slate-900 focus:outline-none focus:border-[#2563EB] transition-all-custom appearance-none cursor-pointer">
+                                <option value="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=150&auto=format&fit=crop">Ảnh Nam mẫu 1</option>
+                                <option value="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=150&auto=format&fit=crop">Ảnh Nữ mẫu 2</option>
+                                <option value="https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?q=80&w=150&auto=format&fit=crop">Ảnh Nam mẫu 3</option>
+                                <option value="https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=150&auto=format&fit=crop">Ảnh Nữ mẫu 4</option>
+                                <option value="https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=150&auto=format&fit=crop">Ảnh Nam mẫu 5</option>
+                            </select>
+                            <span class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
+                                <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Full Name -->
+                <div class="space-y-1.5 sm:col-span-2">
+                    <label for="formFullName" class="text-[13px] font-semibold text-slate-700 block">Họ và tên <span class="text-[#DC2626]">*</span></label>
+                    <input
+                        type="text"
+                        id="formFullName"
+                        required
+                        placeholder="Ví dụ: Nguyễn Văn Hải"
+                        class="w-full border border-[#E2E8F0] rounded-input py-2.5 px-3.5 text-[14px] text-slate-900 focus:outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] transition-all-custom"
+                    >
+                </div>
+
+                <!-- Email -->
+                <div class="space-y-1.5">
+                    <label for="formEmail" class="text-[13px] font-semibold text-slate-700 block">Email <span class="text-[#DC2626]">*</span></label>
+                    <input
+                        type="email"
+                        id="formEmail"
+                        required
+                        placeholder="ten@company.com"
+                        class="w-full border border-[#E2E8F0] rounded-input py-2.5 px-3.5 text-[14px] text-slate-900 focus:outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] transition-all-custom"
+                    >
+                </div>
+
+                <!-- Username -->
+                <div class="space-y-1.5">
+                    <label for="formUsername" class="text-[13px] font-semibold text-slate-700 block">Tên đăng nhập <span class="text-[#DC2626]">*</span></label>
+                    <input
+                        type="text"
+                        id="formUsername"
+                        required
+                        placeholder="Vd: hainv"
+                        class="w-full border border-[#E2E8F0] rounded-input py-2.5 px-3.5 text-[14px] text-slate-900 focus:outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] transition-all-custom"
+                    >
+                </div>
+
+                <!-- Phone Number -->
+                <div class="space-y-1.5">
+                    <label for="formPhone" class="text-[13px] font-semibold text-slate-700 block">Số điện thoại <span class="text-[#DC2626]">*</span></label>
+                    <input
+                        type="tel"
+                        id="formPhone"
+                        required
+                        placeholder="Số điện thoại di động"
+                        class="w-full border border-[#E2E8F0] rounded-input py-2.5 px-3.5 text-[14px] text-slate-900 focus:outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] transition-all-custom"
+                    >
+                </div>
+
+
+
+                <!-- Role -->
+                <div class="space-y-1.5">
+                    <label for="formRole" class="text-[13px] font-semibold text-slate-700 block">Vai trò <span class="text-[#DC2626]">*</span></label>
+                    <div class="relative">
+                        <select
+                            id="formRole"
+                            required
+                            class="w-full border border-[#E2E8F0] rounded-input py-2.5 pl-3 pr-10 text-[14px] text-slate-900 focus:outline-none focus:border-[#2563EB] transition-all-custom appearance-none cursor-pointer"
+                        >
+                            <option value="Admin">Admin (Quản trị)</option>
+                            <option value="Approver">Approver (Người duyệt)</option>
+                            <option value="Sale">Sale (Nhân viên kinh doanh)</option>
+                        </select>
+                        <span class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
+                            <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Organization -->
+                <div class="space-y-1.5">
+                    <label for="formOrg" class="text-[13px] font-semibold text-slate-700 block">Tổ chức trực thuộc <span class="text-[#DC2626]">*</span></label>
+                    <div class="relative">
+                        <select
+                            id="formOrg"
+                            required
+                            class="w-full border border-[#E2E8F0] rounded-input py-2.5 pl-3 pr-10 text-[14px] text-slate-900 focus:outline-none focus:border-[#2563EB] transition-all-custom appearance-none cursor-pointer"
+                        >
+                            <option value="MQhouse">MQhouse</option>
+                            <option value="MQLand">MQLand</option>
+                        </select>
+                        <span class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
+                            <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Hình thức Multi-Select -->
+                <div class="space-y-1.5">
+                    <label class="text-[13px] font-semibold text-slate-700 block">Hình thức <span class="text-[#DC2626]">*</span></label>
+                    <div class="relative">
+                        <button type="button" id="mselect-trigger-transaction" onclick="toggleMultiSelect('transaction')" class="w-full text-left bg-white border border-[#E2E8F0] rounded-input py-2.5 pl-3 pr-10 text-[14px] text-slate-900 focus:outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] transition-all-custom flex items-center justify-between">
+                            <span id="mselect-transaction-text" class="truncate">Chọn tất cả</span>
+                            <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 shrink-0 ml-2"></i>
+                        </button>
+                        <div id="mselect-transaction-popover" class="hidden absolute left-0 right-0 top-full mt-1 z-50 bg-white border border-[#E2E8F0] rounded-card shadow-dropdown p-3 flex flex-col gap-1">
+                            <div class="flex items-center justify-between pb-2 mb-1 border-b border-slate-100">
+                                <span class="text-[12px] text-slate-500 font-medium">Chọn tất cả</span>
+                                <button type="button" onclick="toggleMultiSelectAll('transaction')" class="text-[12px] font-semibold text-[#2563EB] hover:underline">Chọn hết</button>
+                            </div>
+                            <div id="mselect-transaction-options"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Loại hình Multi-Select -->
+                <div class="space-y-1.5">
+                    <label class="text-[13px] font-semibold text-slate-700 block">Loại hình <span class="text-[#DC2626]">*</span></label>
+                    <div class="relative">
+                        <button type="button" id="mselect-trigger-property" onclick="toggleMultiSelect('property')" class="w-full text-left bg-white border border-[#E2E8F0] rounded-input py-2.5 pl-3 pr-10 text-[14px] text-slate-900 focus:outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] transition-all-custom flex items-center justify-between">
+                            <span id="mselect-property-text" class="truncate">Chọn tất cả</span>
+                            <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 shrink-0 ml-2"></i>
+                        </button>
+                        <div id="mselect-property-popover" class="hidden absolute left-0 right-0 top-full mt-1 z-50 bg-white border border-[#E2E8F0] rounded-card shadow-dropdown p-3 flex flex-col gap-1">
+                            <div class="flex items-center justify-between pb-2 mb-1 border-b border-slate-100">
+                                <span class="text-[12px] text-slate-500 font-medium">Chọn tất cả</span>
+                                <button type="button" onclick="toggleMultiSelectAll('property')" class="text-[12px] font-semibold text-[#2563EB] hover:underline">Chọn hết</button>
+                            </div>
+                            <div id="mselect-property-options"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Device Lock Toggle -->
+                <div class="sm:col-span-2 border border-[#E2E8F0] rounded-[12px] p-4 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="smartphone" class="w-4 h-4 text-slate-500"></i>
+                            <span class="text-[14px] font-semibold text-slate-800">Giới hạn thiết bị</span>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="formDeviceLock" class="sr-only peer">
+                            <div class="w-9 h-5 bg-slate-200 rounded-full peer peer-checked:bg-[#2563EB] peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[0.5px] after:left-[0.5px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all after:shadow-sm"></div>
+                        </label>
+                    </div>
+                    <p class="text-[12px] text-slate-500 leading-relaxed">Khi bật, người dùng chỉ có thể đăng nhập trên 1 thiết bị đăng nhập lần đầu tiên</p>
+                </div>
+            </div>
+
+            <!-- Action Row -->
+            <div class="pt-4 border-t border-[#E2E8F0] flex items-center justify-end gap-3">
+                <button
+                    type="button"
+                    onclick="closeModal()"
+                    class="px-5 py-2.5 border border-[#E2E8F0] text-slate-700 font-medium rounded-button hover:bg-slate-50 transition-all-custom"
+                >
+                    Hủy bỏ
+                </button>
+                <button
+                    type="submit"
+                    class="px-5 py-2.5 bg-[#2563EB] text-white font-medium rounded-button hover:bg-[#1D4ED8] transition-all-custom"
+                >
+                    Lưu thông tin
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Real-time Custom Notification System inside Canvas -->
+<div id="toastContainer" class="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
+
+<script>
+var users = [
+    {
+        id: "usr-1",
+        name: "Nguyễn Thị Bích Hiệp",
+        email: "bichhiep1988hcm@gmail.com",
+        username: "bichhiepmland2",
+        phone: "0908 123 456",
+        role: "Sale",
+        org: "MQLand",
+        isLocked: false,
+        avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=150&auto=format&fit=crop",
+        isDeviceLocked: false,
+        transactionTypes: ["Bán", "Thuê", "Sang nhượng"],
+        propertyTypes: ["Căn hộ", "Biệt thự", "Nhà phố", "Đất nền"]
+    },
+    {
+        id: "usr-2",
+        name: "Trần Thế Phương",
+        email: "thephuong@mqhouse.com.vn",
+        username: "phuongtt.mqh",
+        phone: "0919 456 789",
+        role: "Admin",
+        org: "MQhouse",
+        isLocked: false,
+        avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=150&auto=format&fit=crop",
+        isDeviceLocked: false,
+        transactionTypes: ["Bán", "Thuê", "Sang nhượng"],
+        propertyTypes: ["Căn hộ", "Biệt thự", "Nhà phố", "Đất nền"]
+    },
+    {
+        id: "usr-3",
+        name: "Lê Hoàng Nhật Minh",
+        email: "nhatminh@mqland.vn",
+        username: "minhlhn.mqland",
+        phone: "0932 789 123",
+        role: "Approver",
+        org: "MQLand",
+        isLocked: false,
+        avatar: "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?q=80&w=150&auto=format&fit=crop",
+        isDeviceLocked: false,
+        transactionTypes: ["Bán", "Thuê", "Sang nhượng"],
+        propertyTypes: ["Căn hộ", "Biệt thự", "Nhà phố", "Đất nền"]
+    },
+    {
+        id: "usr-4",
+        name: "Phạm Minh Thư",
+        email: "minhthu.sale@mqhouse.vn",
+        username: "thupm_sale",
+        phone: "0945 123 987",
+        role: "Sale",
+        org: "MQhouse",
+        isLocked: true,
+        avatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=150&auto=format&fit=crop",
+        isDeviceLocked: false,
+        transactionTypes: ["Bán", "Thuê", "Sang nhượng"],
+        propertyTypes: ["Căn hộ", "Biệt thự", "Nhà phố", "Đất nền"]
+    },
+    {
+        id: "usr-5",
+        name: "Đặng Quốc Khánh",
+        email: "quockhanh.lead@mqland.vn",
+        username: "khanhdq_lead",
+        phone: "0988 888 777",
+        role: "Approver",
+        org: "MQLand",
+        isLocked: false,
+        avatar: "https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=150&auto=format&fit=crop",
+        isDeviceLocked: false,
+        transactionTypes: ["Bán", "Thuê", "Sang nhượng"],
+        propertyTypes: ["Căn hộ", "Biệt thự", "Nhà phố", "Đất nền"]
+    },
+    {
+        id: "usr-6",
+        name: "Vũ Phương Uyên",
+        email: "phuonguyen@mqland.vn",
+        username: "uyenvp_mqland",
+        phone: "0909 333 444",
+        role: "Sale",
+        org: "MQLand",
+        isLocked: false,
+        avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150&auto=format&fit=crop",
+        isDeviceLocked: false,
+        transactionTypes: ["Bán", "Thuê", "Sang nhượng"],
+        propertyTypes: ["Căn hộ", "Biệt thự", "Nhà phố", "Đất nền"]
+    },
+    {
+        id: "usr-7",
+        name: "Bùi Anh Tuấn",
+        email: "anhtuan.bui@mqhouse.vn",
+        username: "tuanba_mqhouse",
+        phone: "0912 555 666",
+        role: "Sale",
+        org: "MQhouse",
+        isLocked: false,
+        avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=150&auto=format&fit=crop",
+        isDeviceLocked: false,
+        transactionTypes: ["Bán", "Thuê", "Sang nhượng"],
+        propertyTypes: ["Căn hộ", "Biệt thự", "Nhà phố", "Đất nền"]
+    },
+    {
+        id: "usr-8",
+        name: "Nguyễn Lê Hương Giang",
+        email: "huonggiang.hr@mqhouse.vn",
+        username: "giangnlh_admin",
+        phone: "0938 111 222",
+        role: "Admin",
+        org: "MQhouse",
+        isLocked: false,
+        avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=150&auto=format&fit=crop",
+        isDeviceLocked: false,
+        transactionTypes: ["Bán", "Thuê", "Sang nhượng"],
+        propertyTypes: ["Căn hộ", "Biệt thự", "Nhà phố", "Đất nền"]
+    },
+    {
+        id: "usr-9",
+        name: "Hoàng Đức Thịnh",
+        email: "ducthinh.approver@mqland.vn",
+        username: "thinhhd_approver",
+        phone: "0977 444 555",
+        role: "Approver",
+        org: "MQLand",
+        isLocked: false,
+        avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=150&auto=format&fit=crop",
+        isDeviceLocked: false,
+        transactionTypes: ["Bán", "Thuê", "Sang nhượng"],
+        propertyTypes: ["Căn hộ", "Biệt thự", "Nhà phố", "Đất nền"]
+    },
+    {
+        id: "usr-10",
+        name: "Nguyễn Hoàng Duy",
+        email: "hoangduy.sale@mqland.vn",
+        username: "duynh_sale",
+        phone: "0966 888 999",
+        role: "Sale",
+        org: "MQLand",
+        isLocked: false,
+        avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=150&auto=format&fit=crop",
+        isDeviceLocked: false,
+        transactionTypes: ["Bán", "Thuê", "Sang nhượng"],
+        propertyTypes: ["Căn hộ", "Biệt thự", "Nhà phố", "Đất nền"]
+    },
+    {
+        id: "usr-11",
+        name: "Võ Thị Thanh Vân",
+        email: "thanhvan@mqhouse.vn",
+        username: "vanvtt_sale",
+        phone: "0903 222 111",
+        role: "Sale",
+        org: "MQhouse",
+        isLocked: false,
+        avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=150&auto=format&fit=crop",
+        isDeviceLocked: false,
+        transactionTypes: ["Bán", "Thuê", "Sang nhượng"],
+        propertyTypes: ["Căn hộ", "Biệt thự", "Nhà phố", "Đất nền"]
+    },
+    {
+        id: "usr-12",
+        name: "Trương Quốc Bảo",
+        email: "quocbao@mqland.vn",
+        username: "baotq_lead",
+        phone: "0978 333 555",
+        role: "Approver",
+        org: "MQLand",
+        isLocked: false,
+        avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=150&auto=format&fit=crop",
+        isDeviceLocked: false,
+        transactionTypes: ["Bán", "Thuê", "Sang nhượng"],
+        propertyTypes: ["Căn hộ", "Biệt thự", "Nhà phố", "Đất nền"]
+    },
+    {
+        id: "usr-13",
+        name: "Đỗ Minh Hoàng",
+        email: "minhhoang@mqhouse.vn",
+        username: "hoangdm_admin",
+        phone: "0915 777 333",
+        role: "Admin",
+        org: "MQhouse",
+        isLocked: false,
+        avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=150&auto=format&fit=crop",
+        isDeviceLocked: false,
+        transactionTypes: ["Bán", "Thuê", "Sang nhượng"],
+        propertyTypes: ["Căn hộ", "Biệt thự", "Nhà phố", "Đất nền"]
+    },
+    {
+        id: "usr-14",
+        name: "Lý Thanh Tùng",
+        email: "thanhtung@mqland.vn",
+        username: "tunglt_sale",
+        phone: "0936 111 888",
+        role: "Sale",
+        org: "MQLand",
+        isLocked: true,
+        avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=150&auto=format&fit=crop",
+        isDeviceLocked: false,
+        transactionTypes: ["Bán", "Thuê", "Sang nhượng"],
+        propertyTypes: ["Căn hộ", "Biệt thự", "Nhà phố", "Đất nền"]
+    },
+    {
+        id: "usr-15",
+        name: "Trần Thị Thùy Trang",
+        email: "thuytrang@mqhouse.vn",
+        username: "trangtt_admin",
+        phone: "0905 444 666",
+        role: "Admin",
+        org: "MQhouse",
+        isLocked: false,
+        avatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=150&auto=format&fit=crop",
+        isDeviceLocked: false,
+        transactionTypes: ["Bán", "Thuê", "Sang nhượng"],
+        propertyTypes: ["Căn hộ", "Biệt thự", "Nhà phố", "Đất nền"]
+    },
+    {
+        id: "usr-16",
+        name: "Phan Văn Hòa",
+        email: "vanhoa@mqland.vn",
+        username: "hoapv_approver",
+        phone: "0963 777 222",
+        role: "Approver",
+        org: "MQLand",
+        isLocked: false,
+        avatar: "https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=150&auto=format&fit=crop",
+        isDeviceLocked: false,
+        transactionTypes: ["Bán", "Thuê", "Sang nhượng"],
+        propertyTypes: ["Căn hộ", "Biệt thự", "Nhà phố", "Đất nền"]
+    },
+    {
+        id: "usr-17",
+        name: "Trịnh Ngọc Hân",
+        email: "ngochan@mqhouse.vn",
+        username: "hantn_sale",
+        phone: "0912 888 444",
+        role: "Sale",
+        org: "MQhouse",
+        isLocked: false,
+        avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150&auto=format&fit=crop",
+        isDeviceLocked: false,
+        transactionTypes: ["Bán", "Thuê", "Sang nhượng"],
+        propertyTypes: ["Căn hộ", "Biệt thự", "Nhà phố", "Đất nền"]
+    },
+    {
+        id: "usr-18",
+        name: "Dương Thị Mai",
+        email: "duongmai@mqland.vn",
+        username: "maidt_sale",
+        phone: "0987 555 333",
+        role: "Sale",
+        org: "MQLand",
+        isLocked: false,
+        avatar: "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?q=80&w=150&auto=format&fit=crop",
+        isDeviceLocked: false,
+        transactionTypes: ["Bán", "Thuê", "Sang nhượng"],
+        propertyTypes: ["Căn hộ", "Biệt thự", "Nhà phố", "Đất nền"]
+    },
+    {
+        id: "usr-19",
+        name: "Huỳnh Công Thành",
+        email: "congthanh@mqhouse.vn",
+        username: "thanhhc_admin",
+        phone: "0939 666 777",
+        role: "Admin",
+        org: "MQhouse",
+        isLocked: false,
+        avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=150&auto=format&fit=crop",
+        isDeviceLocked: false,
+        transactionTypes: ["Bán", "Thuê", "Sang nhượng"],
+        propertyTypes: ["Căn hộ", "Biệt thự", "Nhà phố", "Đất nền"]
+    },
+    {
+        id: "usr-20",
+        name: "Lâm Hoàng Long",
+        email: "hoanglong@mqland.vn",
+        username: "longlh_approver",
+        phone: "0907 222 888",
+        role: "Approver",
+        org: "MQLand",
+        isLocked: false,
+        avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=150&auto=format&fit=crop",
+        isDeviceLocked: false,
+        transactionTypes: ["Bán", "Thuê", "Sang nhượng"],
+        propertyTypes: ["Căn hộ", "Biệt thự", "Nhà phố", "Đất nền"]
+    },
+    {
+        id: "usr-21",
+        name: "Nguyễn Phương Thảo",
+        email: "phuongthao@mqhouse.vn",
+        username: "thaonp_sale",
+        phone: "0972 333 111",
+        role: "Sale",
+        org: "MQhouse",
+        isLocked: false,
+        avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=150&auto=format&fit=crop",
+        isDeviceLocked: false,
+        transactionTypes: ["Bán", "Thuê", "Sang nhượng"],
+        propertyTypes: ["Căn hộ", "Biệt thự", "Nhà phố", "Đất nền"]
+    },
+    {
+        id: "usr-22",
+        name: "Trần Minh Quân",
+        email: "minhquan@mqland.vn",
+        username: "quantm_lead",
+        phone: "0918 444 999",
+        role: "Approver",
+        org: "MQLand",
+        isLocked: false,
+        avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=150&auto=format&fit=crop",
+        isDeviceLocked: false,
+        transactionTypes: ["Bán", "Thuê", "Sang nhượng"],
+        propertyTypes: ["Căn hộ", "Biệt thự", "Nhà phố", "Đất nền"]
+    },
+    {
+        id: "usr-23",
+        name: "Mai Thanh Hải",
+        email: "thanhhai@mqhouse.vn",
+        username: "haimt_admin",
+        phone: "0935 777 555",
+        role: "Admin",
+        org: "MQhouse",
+        isLocked: true,
+        avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=150&auto=format&fit=crop",
+        isDeviceLocked: false,
+        transactionTypes: ["Bán", "Thuê", "Sang nhượng"],
+        propertyTypes: ["Căn hộ", "Biệt thự", "Nhà phố", "Đất nền"]
+    },
+    {
+        id: "usr-24",
+        name: "Hồ Tấn Phát",
+        email: "tanphat@mqland.vn",
+        username: "phatho_sale",
+        phone: "0969 888 222",
+        role: "Sale",
+        org: "MQLand",
+        isLocked: false,
+        avatar: "https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=150&auto=format&fit=crop",
+        isDeviceLocked: false,
+        transactionTypes: ["Bán", "Thuê", "Sang nhượng"],
+        propertyTypes: ["Căn hộ", "Biệt thự", "Nhà phố", "Đất nền"]
+    },
+    {
+        id: "usr-25",
+        name: "Lương Thị Mỹ Duyên",
+        email: "myduyen@mqhouse.vn",
+        username: "duyenlt_sale",
+        phone: "0901 555 777",
+        role: "Sale",
+        org: "MQhouse",
+        isLocked: false,
+        avatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=150&auto=format&fit=crop",
+        isDeviceLocked: false,
+        transactionTypes: ["Bán", "Thuê", "Sang nhượng"],
+        propertyTypes: ["Căn hộ", "Biệt thự", "Nhà phố", "Đất nền"]
+    },
+    {
+        id: "usr-26",
+        name: "Ngô Đức Hiếu",
+        email: "duchieu@mqland.vn",
+        username: "hieund_approver",
+        phone: "0944 222 666",
+        role: "Approver",
+        org: "MQLand",
+        isLocked: false,
+        avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=150&auto=format&fit=crop",
+        isDeviceLocked: false,
+        transactionTypes: ["Bán", "Thuê", "Sang nhượng"],
+        propertyTypes: ["Căn hộ", "Biệt thự", "Nhà phố", "Đất nền"]
+    },
+    {
+        id: "usr-27",
+        name: "Vương Văn Lộc",
+        email: "vanloc@mqhouse.vn",
+        username: "locvv_admin",
+        phone: "0910 666 333",
+        role: "Admin",
+        org: "MQhouse",
+        isLocked: true,
+        avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=150&auto=format&fit=crop",
+        isDeviceLocked: false,
+        transactionTypes: ["Bán", "Thuê", "Sang nhượng"],
+        propertyTypes: ["Căn hộ", "Biệt thự", "Nhà phố", "Đất nền"]
+    },
+    {
+        id: "usr-28",
+        name: "Tạ Ngọc Huyền",
+        email: "ngocluyen@mqland.vn",
+        username: "huyentn_sale",
+        phone: "0975 333 888",
+        role: "Sale",
+        org: "MQLand",
+        isLocked: false,
+        avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150&auto=format&fit=crop",
+        isDeviceLocked: false,
+        transactionTypes: ["Bán", "Thuê", "Sang nhượng"],
+        propertyTypes: ["Căn hộ", "Biệt thự", "Nhà phố", "Đất nền"]
+    },
+    {
+        id: "usr-29",
+        name: "Đoàn Vũ Linh",
+        email: "vulinh@mqhouse.vn",
+        username: "linhdv_sale",
+        phone: "0980 777 111",
+        role: "Sale",
+        org: "MQhouse",
+        isLocked: false,
+        avatar: "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?q=80&w=150&auto=format&fit=crop",
+        isDeviceLocked: false,
+        transactionTypes: ["Bán", "Thuê", "Sang nhượng"],
+        propertyTypes: ["Căn hộ", "Biệt thự", "Nhà phố", "Đất nền"]
+    },
+    {
+        id: "usr-30",
+        name: "Phùng Thị Hồng Nhung",
+        email: "hongnhung@mqland.vn",
+        username: "nhungpth_approver",
+        phone: "0933 444 555",
+        role: "Approver",
+        org: "MQLand",
+        isLocked: false,
+        avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=150&auto=format&fit=crop",
+        isDeviceLocked: false,
+        transactionTypes: ["Bán", "Thuê", "Sang nhượng"],
+        propertyTypes: ["Căn hộ", "Biệt thự", "Nhà phố", "Đất nền"]
+    }
+];
+
+var filteredUsers = [...users];
+var currentPage = 1;
+var pageSize = 10;
+var selectedUserIdForActions = null;
+
+var searchInput = document.getElementById('searchInput');
+var roleFilter = document.getElementById('roleFilter');
+var orgFilter = document.getElementById('orgFilter');
+var totalCounter = document.getElementById('totalCounter');
+var userTableBody = document.getElementById('userTableBody');
+var resetFilterBtn = document.getElementById('resetFilterBtn');
+
+var actionsDropdown = document.getElementById('actionsDropdown');
+var lockActionText = document.getElementById('lockActionText');
+var lockActionIcon = document.getElementById('lockActionIcon');
+
+var userModalOverlay = document.getElementById('userModalOverlay');
+var userModalContent = document.getElementById('userModalContent');
+var userForm = document.getElementById('userForm');
+
+lucide.createIcons();
+updateFilteredData();
+
+searchInput.addEventListener('input', function() {
+    currentPage = 1;
+    updateFilteredData();
+});
+roleFilter.addEventListener('change', function() {
+    currentPage = 1;
+    updateFilteredData();
+});
+orgFilter.addEventListener('change', function() {
+    currentPage = 1;
+    updateFilteredData();
+});
+
+document.addEventListener('click', function(e) {
+    if (!actionsDropdown.contains(e.target) && !e.target.closest('.dropdown-trigger')) {
+        hideActionsDropdown();
+    }
+});
+
+function updateFilteredData() {
+    var keyword = searchInput.value.trim().toLowerCase();
+    var roleVal = roleFilter.value;
+    var orgVal = orgFilter.value;
+
+    filteredUsers = users.filter(function(user) {
+        var matchKeyword = !keyword ||
+            user.name.toLowerCase().includes(keyword) ||
+            user.email.toLowerCase().includes(keyword) ||
+            user.username.toLowerCase().includes(keyword) ||
+            user.phone.includes(keyword);
+
+        var matchRole = roleVal === 'ALL' || user.role === roleVal;
+        var matchOrg = orgVal === 'ALL' || user.org === orgVal;
+
+        return matchKeyword && matchRole && matchOrg;
+    });
+
+    if (keyword || roleVal !== 'ALL' || orgVal !== 'ALL') {
+        resetFilterBtn.classList.remove('hidden');
+        resetFilterBtn.classList.add('inline-flex');
+    } else {
+        resetFilterBtn.classList.add('hidden');
+        resetFilterBtn.classList.remove('inline-flex');
+    }
+
+    totalCounter.textContent = users.length;
+    document.getElementById('filteredCount').textContent = filteredUsers.length;
+
+    var maxPage = Math.ceil(filteredUsers.length / pageSize) || 1;
+    if (currentPage > maxPage) {
+        currentPage = maxPage;
+    }
+
+    renderTable();
+}
+
+function renderTable() {
+    var startIndex = (currentPage - 1) * pageSize;
+    var endIndex = Math.min(startIndex + pageSize, filteredUsers.length);
+
+    var pageData = filteredUsers.slice(startIndex, endIndex);
+
+    userTableBody.innerHTML = '';
+
+    if (filteredUsers.length === 0) {
+        document.getElementById('emptyState').classList.remove('hidden');
+        document.getElementById('tableWrapper').classList.add('hidden');
+        document.getElementById('tableFooter').classList.add('hidden');
+        return;
+    }
+
+    document.getElementById('emptyState').classList.add('hidden');
+    document.getElementById('tableWrapper').classList.remove('hidden');
+    document.getElementById('tableFooter').classList.remove('hidden');
+
+    document.getElementById('paginationRange').textContent = filteredUsers.length > 0
+        ? (startIndex + 1) + ' - ' + endIndex
+        : '0';
+
+    pageData.forEach(function(user, index) {
+        var absoluteIndex = startIndex + index + 1;
+
+        var row = document.createElement('tr');
+        row.className = 'group hover:bg-slate-50/70 transition-all-custom' + (user.isLocked ? ' bg-slate-50/40 opacity-75' : '');
+
+        var roleBadgeClass = '';
+        if (user.role === 'Admin') {
+            roleBadgeClass = 'bg-blue-50 text-blue-700 border-blue-200';
+        } else if (user.role === 'Approver') {
+            roleBadgeClass = 'bg-amber-50 text-amber-700 border-amber-200';
+        } else {
+            roleBadgeClass = 'bg-slate-100 text-slate-700 border-slate-200';
+        }
+
+        var lockIcon = user.isLocked
+            ? '<span class="absolute -bottom-1 -right-1 bg-[#DC2626] text-white p-0.5 rounded-full ring-2 ring-white flex items-center justify-center"><i data-lucide="lock" class="w-2.5 h-2.5"></i></span>'
+            : '';
+
+        row.innerHTML = '\
+            <td class="py-4 px-6 text-center text-slate-400 font-medium">' + absoluteIndex + '</td>\
+            <td class="py-4 px-6">\
+                <div class="flex items-center gap-3">\
+                    <div class="relative shrink-0">\
+                        <img class="w-10 h-10 rounded-full object-cover ring-2 ring-slate-100" src="' + user.avatar + '" alt="' + user.name + '">\
+                        ' + lockIcon + '\
+                    </div>\
+                    <div class="overflow-hidden">\
+                        <span class="font-semibold text-[#0F172A] block leading-tight hover:text-[#2563EB] cursor-pointer transition-all-custom">' + user.name + '</span>\
+                        <span class="text-[12.5px] text-slate-400 block truncate leading-tight mt-0.5">' + user.email + '</span>\
+                        <span class="text-[11px] font-medium text-slate-500 bg-slate-100 px-1.5 py-0.2 rounded mt-1 inline-block">@' + user.username + '</span>\
+                    </div>\
+                </div>\
+            </td>\
+            <td class="py-4 px-6 text-slate-600 font-medium">' + user.phone + '</td>\
+            <td class="py-4 px-6">\
+                <span class="px-2.5 py-1 rounded-full text-[12px] font-medium border ' + roleBadgeClass + '">\
+                    ' + user.role + '\
+                </span>\
+            </td>\
+            <td class="py-4 px-6">\
+                <div class="flex items-center gap-1.5 text-slate-700">\
+                    <i data-lucide="layers" class="w-3.5 h-3.5 text-slate-400"></i>\
+                    <span class="font-medium">' + user.org + '</span>\
+                </div>\
+            </td>\
+            <td class="py-4 px-6 text-center">\
+                <button \
+                    data-id="' + user.id + '"\
+                    onclick="toggleDropdownMenu(event, \'' + user.id + '\')" \
+                    class="dropdown-trigger p-1.5 text-slate-400 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-all-custom inline-flex items-center justify-center"\
+                >\
+                    <i data-lucide="more-horizontal" class="w-5 h-5 pointer-events-none"></i>\
+                </button>\
+            </td>\
+        ';
+
+        userTableBody.appendChild(row);
+    });
+
+    renderPageNumbers();
+    lucide.createIcons();
+}
+
+function renderPageNumbers() {
+    var totalPages = Math.ceil(filteredUsers.length / pageSize) || 1;
+    var pageNumbersDiv = document.getElementById('pageNumbers');
+    pageNumbersDiv.innerHTML = '';
+
+    for (var i = 1; i <= totalPages; i++) {
+        (function(page) {
+            var btn = document.createElement('button');
+            btn.textContent = page;
+            btn.onclick = function() {
+                currentPage = page;
+                renderTable();
+            };
+
+            if (page === currentPage) {
+                btn.className = "px-3 py-1.5 text-[13px] font-semibold bg-[#2563EB] text-white rounded-button transition-all-custom shadow-xs";
+            } else {
+                btn.className = "px-3 py-1.5 text-[13px] font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-button transition-all-custom";
+            }
+
+            pageNumbersDiv.appendChild(btn);
+        })(i);
+    }
+
+    document.getElementById('prevBtn').disabled = currentPage === 1;
+    document.getElementById('nextBtn').disabled = currentPage === totalPages;
+}
+
+function prevPage() {
+    if (currentPage > 1) {
+        currentPage--;
+        renderTable();
+    }
+}
+
+function nextPage() {
+    var totalPages = Math.ceil(filteredUsers.length / pageSize) || 1;
+    if (currentPage < totalPages) {
+        currentPage++;
+        renderTable();
+    }
+}
+
+function resetFilters() {
+    searchInput.value = '';
+    roleFilter.value = 'ALL';
+    orgFilter.value = 'ALL';
+    currentPage = 1;
+    updateFilteredData();
+    showToast("Đã khôi phục các bộ lọc về mặc định", "success");
+}
+
+function toggleDropdownMenu(event, userId) {
+    event.stopPropagation();
+    var triggerBtn = event.currentTarget;
+    var rect = triggerBtn.getBoundingClientRect();
+    var targetUser = users.find(function(u) { return u.id === userId; });
+
+    if (!targetUser) return;
+
+    selectedUserIdForActions = userId;
+
+    if (targetUser.isLocked) {
+        lockActionText.textContent = "Mở khóa tài khoản";
+        lockActionText.className = "text-[#16A34A]";
+        lockActionIcon.setAttribute('data-lucide', 'unlock');
+        lockActionIcon.className = "w-4 h-4 text-[#16A34A]";
+    } else {
+        lockActionText.textContent = "Khóa người dùng";
+        lockActionText.className = "text-slate-700";
+        lockActionIcon.setAttribute('data-lucide', 'lock');
+        lockActionIcon.className = "w-4 h-4 text-slate-400";
+    }
+    lucide.createIcons();
+
+    actionsDropdown.style.top = (rect.bottom + window.scrollY + 4) + 'px';
+    actionsDropdown.style.left = (rect.right - 224 + window.scrollX) + 'px';
+
+    if (actionsDropdown.classList.contains('hidden')) {
+        actionsDropdown.classList.remove('hidden');
+        setTimeout(function() {
+            actionsDropdown.classList.remove('scale-95', 'opacity-0');
+            actionsDropdown.classList.add('scale-100', 'opacity-100');
+        }, 20);
+    } else {
+        hideActionsDropdown();
+    }
+}
+
+function hideActionsDropdown() {
+    actionsDropdown.classList.remove('scale-100', 'opacity-100');
+    actionsDropdown.classList.add('scale-95', 'opacity-0');
+    setTimeout(function() {
+        actionsDropdown.classList.add('hidden');
+    }, 100);
+}
+
+/* ---- Avatar Upload ---- */
+function handleAvatarUpload(e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+        var dataUrl = ev.target.result;
+        document.getElementById('avatar-preview').src = dataUrl;
+        var select = document.getElementById('formAvatar');
+        var opt = document.createElement('option');
+        opt.value = dataUrl;
+        opt.textContent = 'Ảnh tải lên';
+        select.prepend(opt);
+        select.value = dataUrl;
+    };
+    reader.readAsDataURL(file);
+}
+
+function syncAvatarPreview(url) {
+    var img = document.getElementById('avatar-preview');
+    if (img) img.src = url;
+}
+
+/* ---- Multi-Select ---- */
+var userFormTransactionTypes = ["Bán", "Thuê", "Sang nhượng"];
+var userFormPropertyTypes = ["Căn hộ", "Biệt thự", "Nhà phố", "Đất nền"];
+
+var multiSelectConfig = {
+    transaction: {
+        options: ["Bán", "Thuê", "Sang nhượng"],
+        selected: userFormTransactionTypes
+    },
+    property: {
+        options: ["Căn hộ", "Biệt thự", "Nhà phố", "Đất nền"],
+        selected: userFormPropertyTypes
+    }
+};
+
+function toggleMultiSelect(field) {
+    var popover = document.getElementById('mselect-' + field + '-popover');
+    var isHidden = popover.classList.contains('hidden');
+    document.querySelectorAll('[id$="-popover"]').forEach(function(el) {
+        el.classList.add('hidden');
+    });
+    if (isHidden) {
+        popover.classList.remove('hidden');
+        renderMultiSelectOptions(field);
+    }
+}
+
+function renderMultiSelectOptions(field) {
+    var config = multiSelectConfig[field];
+    var container = document.getElementById('mselect-' + field + '-options');
+    container.innerHTML = '';
+    config.options.forEach(function(opt) {
+        var isSelected = config.selected.indexOf(opt) !== -1;
+        var label = document.createElement('label');
+        label.className = 'flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-slate-50 cursor-pointer text-[13px] text-slate-700';
+        var checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = isSelected;
+        checkbox.className = 'w-4 h-4 rounded border-slate-300 text-[#2563EB] focus:ring-[#2563EB] cursor-pointer';
+        checkbox.onchange = function() { toggleMultiSelectOption(field, opt); };
+        label.appendChild(checkbox);
+        label.appendChild(document.createTextNode(' ' + opt));
+        container.appendChild(label);
+    });
+}
+
+function toggleMultiSelectOption(field, value) {
+    var config = multiSelectConfig[field];
+    var idx = config.selected.indexOf(value);
+    if (idx === -1) {
+        config.selected.push(value);
+    } else {
+        config.selected.splice(idx, 1);
+    }
+    updateMultiSelectText(field);
+}
+
+function toggleMultiSelectAll(field) {
+    var config = multiSelectConfig[field];
+    if (config.selected.length === config.options.length) {
+        config.selected = [];
+    } else {
+        config.selected = config.options.slice();
+    }
+    if (field === 'transaction') userFormTransactionTypes = config.selected;
+    else userFormPropertyTypes = config.selected;
+    renderMultiSelectOptions(field);
+    updateMultiSelectText(field);
+}
+
+function updateMultiSelectText(field) {
+    var config = multiSelectConfig[field];
+    var textEl = document.getElementById('mselect-' + field + '-text');
+    if (config.selected.length === config.options.length) {
+        textEl.textContent = 'Chọn tất cả';
+    } else if (config.selected.length === 0) {
+        textEl.textContent = 'Chưa chọn';
+    } else {
+        textEl.textContent = config.selected.join(', ');
+    }
+}
+
+function resetMultiSelects() {
+    userFormTransactionTypes = ["Bán", "Thuê", "Sang nhượng"];
+    userFormPropertyTypes = ["Căn hộ", "Biệt thự", "Nhà phố", "Đất nền"];
+    multiSelectConfig.transaction.selected = userFormTransactionTypes;
+    multiSelectConfig.property.selected = userFormPropertyTypes;
+    renderMultiSelectOptions('transaction');
+    renderMultiSelectOptions('property');
+    updateMultiSelectText('transaction');
+    updateMultiSelectText('property');
+}
+
+document.addEventListener('click', function(e) {
+    if (!e.target.closest) return;
+    if (!e.target.closest('[id^="mselect-"]')) {
+        document.querySelectorAll('[id$="-popover"]').forEach(function(el) {
+            el.classList.add('hidden');
+        });
+    }
+});
+
+function openCreateModal() {
+    document.getElementById('modalTitle').textContent = "Tạo người dùng mới";
+    document.getElementById('modalTitleIcon').setAttribute('data-lucide', 'user-plus');
+    document.getElementById('modalUserId').value = '';
+    userForm.reset();
+
+    document.getElementById('formDeviceLock').checked = false;
+    resetMultiSelects();
+    syncAvatarPreview(document.getElementById('formAvatar').value);
+
+    showModal();
+}
+
+function openEditModal(userId) {
+    var targetUser = users.find(function(u) { return u.id === userId; });
+    if (!targetUser) return;
+
+    document.getElementById('modalTitle').textContent = "Cập nhật người dùng";
+    document.getElementById('modalTitleIcon').setAttribute('data-lucide', 'edit-2');
+    document.getElementById('modalUserId').value = targetUser.id;
+
+    document.getElementById('formFullName').value = targetUser.name;
+    document.getElementById('formEmail').value = targetUser.email;
+    document.getElementById('formUsername').value = targetUser.username;
+    document.getElementById('formPhone').value = targetUser.phone;
+    var avatarSelect = document.getElementById('formAvatar');
+    var avatarVal = targetUser.avatar;
+    if (avatarVal && avatarVal.indexOf('data:') === 0 && !Array.from(avatarSelect.options).some(function(o) { return o.value === avatarVal; })) {
+        var opt = document.createElement('option');
+        opt.value = avatarVal;
+        opt.textContent = 'Ảnh tải lên';
+        avatarSelect.prepend(opt);
+    }
+    avatarSelect.value = avatarVal || avatarSelect.options[0].value;
+    syncAvatarPreview(avatarSelect.value);
+    document.getElementById('formRole').value = targetUser.role;
+    document.getElementById('formOrg').value = targetUser.org;
+    document.getElementById('formDeviceLock').checked = targetUser.isDeviceLocked || false;
+
+    userFormTransactionTypes = targetUser.transactionTypes ? targetUser.transactionTypes.slice() : ["Bán", "Thuê", "Sang nhượng"];
+    userFormPropertyTypes = targetUser.propertyTypes ? targetUser.propertyTypes.slice() : ["Căn hộ", "Biệt thự", "Nhà phố", "Đất nền"];
+    multiSelectConfig.transaction.selected = userFormTransactionTypes;
+    multiSelectConfig.property.selected = userFormPropertyTypes;
+    renderMultiSelectOptions('transaction');
+    renderMultiSelectOptions('property');
+    updateMultiSelectText('transaction');
+    updateMultiSelectText('property');
+
+    showModal();
+}
+
+function showModal() {
+    userModalOverlay.classList.remove('hidden');
+    setTimeout(function() {
+        userModalOverlay.classList.remove('opacity-0');
+        userModalContent.classList.remove('scale-95');
+        userModalContent.classList.add('scale-100');
+    }, 20);
+    lucide.createIcons();
+}
+
+function closeModal() {
+    userModalOverlay.classList.add('opacity-0');
+    userModalContent.classList.remove('scale-100');
+    userModalContent.classList.add('scale-95');
+    setTimeout(function() {
+        userModalOverlay.classList.add('hidden');
+    }, 200);
+}
+
+function handleFormSubmit(event) {
+    event.preventDefault();
+
+    var id = document.getElementById('modalUserId').value;
+    var name = document.getElementById('formFullName').value.trim();
+    var email = document.getElementById('formEmail').value.trim();
+    var username = document.getElementById('formUsername').value.trim();
+    var phone = document.getElementById('formPhone').value.trim();
+    var avatar = document.getElementById('formAvatar').value;
+    var role = document.getElementById('formRole').value;
+    var org = document.getElementById('formOrg').value;
+    var isDeviceLocked = document.getElementById('formDeviceLock').checked;
+
+    if (id) {
+        var index = users.findIndex(function(u) { return u.id === id; });
+        if (index !== -1) {
+            users[index] = { ...users[index], name: name, email: email, username: username, phone: phone, avatar: avatar, role: role, org: org, isDeviceLocked: isDeviceLocked, transactionTypes: userFormTransactionTypes.slice(), propertyTypes: userFormPropertyTypes.slice() };
+            showToast("Đã cập nhật thông tin cho " + name, "success");
+        }
+    } else {
+        var newUser = {
+            id: 'usr-' + Date.now(),
+            name: name,
+            email: email,
+            username: username,
+            phone: phone,
+            avatar: avatar,
+            role: role,
+            org: org,
+            isLocked: false,
+            isDeviceLocked: isDeviceLocked,
+            transactionTypes: userFormTransactionTypes.slice(),
+            propertyTypes: userFormPropertyTypes.slice()
+        };
+        users.unshift(newUser);
+        showToast("Tạo thành công người dùng mới " + name, "success");
+    }
+
+    closeModal();
+    updateFilteredData();
+}
+
+function triggerEditUser() {
+    hideActionsDropdown();
+    if (selectedUserIdForActions) {
+        openEditModal(selectedUserIdForActions);
+    }
+}
+
+function triggerPasswordReset() {
+    hideActionsDropdown();
+    var user = users.find(function(u) { return u.id === selectedUserIdForActions; });
+    if (user) {
+        showToast("Yêu cầu đổi mật khẩu đã gửi đến email " + user.email, "success");
+    }
+}
+
+function triggerDeviceReset() {
+    hideActionsDropdown();
+    var user = users.find(function(u) { return u.id === selectedUserIdForActions; });
+    if (user) {
+        showToast("Đã reset thành công trạng thái thiết bị của " + user.name, "success");
+    }
+}
+
+function triggerToggleLock() {
+    hideActionsDropdown();
+    var index = users.findIndex(function(u) { return u.id === selectedUserIdForActions; });
+    if (index !== -1) {
+        users[index].isLocked = !users[index].isLocked;
+        var stateText = users[index].isLocked ? "đã được khóa" : "đã được kích hoạt";
+        showToast("Tài khoản " + users[index].name + " " + stateText, users[index].isLocked ? "warning" : "success");
+        updateFilteredData();
+    }
+}
+
+function triggerDeleteUser() {
+    hideActionsDropdown();
+    var targetUser = users.find(function(u) { return u.id === selectedUserIdForActions; });
+    if (!targetUser) return;
+
+    var confirmText = "Bạn có chắc chắn muốn xóa tài khoản " + targetUser.name + "?";
+
+    var confirmOverlay = document.createElement('div');
+    confirmOverlay.className = "fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50 transition-all duration-200";
+    confirmOverlay.innerHTML = '\
+        <div class="bg-white rounded-modal p-6 shadow-xl max-w-sm w-full space-y-4">\
+            <div class="flex items-center gap-3 text-[#DC2626]">\
+                <span class="p-2 bg-red-100 rounded-full">\
+                    <i data-lucide="alert-triangle" class="w-6 h-6"></i>\
+                </span>\
+                <h3 class="font-semibold text-[16px]">Xác nhận xóa tài khoản</h3>\
+            </div>\
+            <p class="text-slate-600 text-[13px]">' + confirmText + '</p>\
+            <div class="flex items-center justify-end gap-2 pt-2">\
+                <button id="cancelDelBtn" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-button text-[13px] transition-all-custom">Hủy bỏ</button>\
+                <button id="confirmDelBtn" class="px-4 py-2 bg-[#DC2626] text-white rounded-button text-[13px] font-medium transition-all-custom">Đồng ý xóa</button>\
+            </div>\
+        </div>\
+    ';
+
+    document.body.appendChild(confirmOverlay);
+    lucide.createIcons();
+
+    document.getElementById('cancelDelBtn').onclick = function() { confirmOverlay.remove(); };
+    document.getElementById('confirmDelBtn').onclick = function() {
+        users = users.filter(function(u) { return u.id !== selectedUserIdForActions; });
+        showToast("Đã xóa tài khoản " + targetUser.name + " khỏi hệ thống", "error");
+        confirmOverlay.remove();
+        updateFilteredData();
+    };
+}
+
+function showToast(message, type) {
+    if (!type) type = "success";
+    var container = document.getElementById('toastContainer');
+    var toast = document.createElement('div');
+
+    var bgStyle = 'bg-white border-l-4 border-l-[#16A34A]';
+    var iconColor = 'text-[#16A34A]';
+    var iconName = 'check-circle-2';
+
+    if (type === 'warning') {
+        bgStyle = 'bg-white border-l-4 border-l-[#F59E0B]';
+        iconColor = 'text-[#F59E0B]';
+        iconName = 'alert-triangle';
+    } else if (type === 'error') {
+        bgStyle = 'bg-white border-l-4 border-l-[#DC2626]';
+        iconColor = 'text-[#DC2626]';
+        iconName = 'x-circle';
+    }
+
+    toast.className = 'flex items-start gap-3 p-4 rounded-card border border-[#E2E8F0] shadow-md transition-all duration-300 transform translate-x-12 opacity-0 pointer-events-auto ' + bgStyle;
+    toast.innerHTML = '\
+        <span class="' + iconColor + ' shrink-0 mt-0.5">\
+            <i data-lucide="' + iconName + '" class="w-5 h-5"></i>\
+        </span>\
+        <div class="flex-1">\
+            <p class="text-slate-800 font-medium text-[13.5px]">' + message + '</p>\
+        </div>\
+        <button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-slate-600">\
+            <i data-lucide="x" class="w-4 h-4"></i>\
+        </button>\
+    ';
+
+    container.appendChild(toast);
+    lucide.createIcons();
+
+    setTimeout(function() {
+        toast.classList.remove('translate-x-12', 'opacity-0');
+    }, 50);
+
+    setTimeout(function() {
+        toast.classList.add('translate-x-12', 'opacity-0');
+        setTimeout(function() { toast.remove(); }, 300);
+    }, 3500);
+}
+</script>
