@@ -1,0 +1,1564 @@
+<!DOCTYPE html>
+<html lang="vi" class="h-full bg-slate-50">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cấu hình hệ thống | Real Estate CRM</title>
+  
+  <!-- Inter Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- TailwindCSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            primary: '#2563EB',
+            background: '#F8FAFC',
+            surface: '#FFFFFF',
+            border: '#E2E8F0',
+            textPrimary: '#0F172A',
+            textSecondary: '#64748B',
+            success: '#16A34A',
+            warning: '#F59E0B',
+            error: '#DC2626',
+          },
+          borderRadius: {
+            'card': '16px',
+            'btn': '12px',
+            'input': '10px',
+            'modal': '20px',
+          },
+          boxShadow: {
+            'soft': '0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 8px -1px rgba(15, 23, 42, 0.03)',
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Custom CSS overrides and animation styling -->
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #F8FAFC;
+      color: #0F172A;
+    }
+    
+    /* Strict font classes from requirements */
+    .text-h1 { font-size: 32px; font-weight: 600; line-height: 40px; }
+    .text-h2 { font-size: 24px; font-weight: 600; line-height: 32px; }
+    .text-h3 { font-size: 20px; font-weight: 500; line-height: 28px; }
+    .text-body { font-size: 14px; font-weight: 400; line-height: 20px; }
+    .text-small { font-size: 12px; font-weight: 400; line-height: 16px; }
+
+    /* Custom Transitions */
+    .transition-custom {
+      transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    /* Shimmer keyframes */
+    @keyframes shimmer {
+      100% { transform: translateX(100%); }
+    }
+    .shimmer {
+      position: relative;
+      overflow: hidden;
+    }
+    .shimmer::after {
+      position: absolute;
+      top: 0; right: 0; bottom: 0; left: 0;
+      transform: translateX(-100%);
+      background-image: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.2) 20%,
+        rgba(255, 255, 255, 0.5) 60%,
+        rgba(255, 255, 255, 0) 100%
+      );
+      animation: shimmer 2s infinite;
+      content: '';
+    }
+  </style>
+</head>
+<body class="min-h-screen text-body antialiased flex flex-col">
+
+  <!-- Header Banner / Navigation -->
+  <header class="bg-white border-b border-border sticky top-0 z-40 transition-custom shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <!-- Logo and Platform Brand -->
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-btn bg-primary flex items-center justify-center text-white">
+            <i data-lucide="home" class="w-5.5 h-5.5"></i>
+          </div>
+          <div>
+            <span class="text-body font-bold text-textPrimary tracking-tight">LANDFLOW CRM</span>
+            <span class="text-small text-textSecondary block -mt-1 font-medium">Hệ thống quản trị và phân phối</span>
+          </div>
+        </div>
+
+        <!-- Right Side Nav Metadata -->
+        <div class="flex items-center gap-4">
+          <div class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 text-slate-700 text-small font-medium">
+            <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+            Máy chủ: Đang hoạt động
+          </div>
+          <div class="flex items-center gap-3 border-l border-slate-200 pl-4">
+            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=100" 
+                 alt="Admin Avatar" 
+                 class="w-9 h-9 rounded-full object-cover border border-slate-200">
+            <div class="hidden sm:block text-left">
+              <p class="text-body font-semibold text-textPrimary leading-none">Lê Minh Trí</p>
+              <p class="text-small text-textSecondary leading-none mt-1">Quản trị hệ thống viên</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Interactive Controls Toolbar (To demonstrate other screen states required in specifications) -->
+  <section class="bg-blue-50 border-b border-blue-100 px-4 py-3">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-2 text-blue-900">
+        <i data-lucide="settings-2" class="w-5 h-5 text-primary"></i>
+        <span class="text-small font-semibold">Trình giả lập trạng thái màn hình (SaaS States Demo):</span>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <button onclick="setSimState('idle')" class="sim-btn px-3 py-1.5 rounded-btn text-small font-semibold bg-white border border-blue-200 text-blue-700 hover:bg-blue-100 transition-custom" id="btn-state-idle">
+          Idle (Hoạt động)
+        </button>
+        <button onclick="setSimState('loading')" class="sim-btn px-3 py-1.5 rounded-btn text-small font-semibold bg-white border border-blue-200 text-blue-700 hover:bg-blue-100 transition-custom" id="btn-state-loading">
+          Loading (Xương / Shimmer)
+        </button>
+        <button onclick="setSimState('empty')" class="sim-btn px-3 py-1.5 rounded-btn text-small font-semibold bg-white border border-blue-200 text-blue-700 hover:bg-blue-100 transition-custom" id="btn-state-empty">
+          Empty (Trống)
+        </button>
+        <button onclick="setSimState('network-error')" class="sim-btn px-3 py-1.5 rounded-btn text-small font-semibold bg-white border border-blue-200 text-blue-700 hover:bg-blue-100 transition-custom" id="btn-state-network-error">
+          Network Error (Mạng lỗi)
+        </button>
+        <button onclick="toggleDeleteProtection()" class="px-3 py-1.5 rounded-btn text-small font-semibold bg-orange-100 border border-orange-200 text-orange-800 hover:bg-orange-200 transition-custom flex items-center gap-1">
+          <i data-lucide="shield-alert" class="w-4 h-4"></i>
+          <span>Chặn Xóa: <strong id="delete-protection-status">Bật</strong></span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Content Layout -->
+  <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    
+    <!-- Title Page & Stats overview (No fake analytics, just contextual system status summary) -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+      <div>
+        <h1 class="text-h1 text-textPrimary leading-tight">Cấu hình hệ thống</h1>
+        <p class="text-body text-textSecondary mt-1">Cấu hình danh mục nền tảng: đơn vị quản lý, loại hình giao dịch bất động sản, và phân loại sản phẩm.</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <!-- Main add buttons depend on active tab. Driven dynamically by active tab selection -->
+        <button id="main-add-button" onclick="openAddModal()" class="px-6 py-3 bg-primary text-white font-semibold rounded-btn text-body shadow-soft hover:bg-blue-700 transition-custom flex items-center gap-2">
+          <i data-lucide="plus" class="w-5 h-5"></i>
+          <span id="main-add-button-text">Thêm tổ chức</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Navigation Tabs of System Configuration -->
+    <div class="border-b border-border mb-6">
+      <nav class="flex space-x-8" aria-label="Tabs">
+        <!-- Organizations Tab Button -->
+        <button onclick="switchTab('orgs')" id="tab-btn-orgs" class="tab-btn border-b-2 py-4 px-1 text-body font-semibold flex items-center gap-2 transition-custom border-primary text-primary" aria-current="page">
+          <i data-lucide="building-2" class="w-5 h-5"></i>
+          <span>Tổ chức liên kết</span>
+          <span id="badge-orgs" class="ml-1 bg-blue-100 text-blue-700 py-0.5 px-2 rounded-full text-small">5</span>
+        </button>
+
+        <!-- Transaction Types Tab Button -->
+        <button onclick="switchTab('tx-types')" id="tab-btn-tx-types" class="tab-btn border-b-2 py-4 px-1 text-body font-semibold flex items-center gap-2 transition-custom border-transparent text-textSecondary hover:text-textPrimary hover:border-slate-300">
+          <i data-lucide="arrow-left-right" class="w-5 h-5"></i>
+          <span>Loại hình giao dịch</span>
+          <span id="badge-tx-types" class="ml-1 bg-slate-100 text-slate-700 py-0.5 px-2 rounded-full text-small">4</span>
+        </button>
+
+        <!-- Property Types Tab Button -->
+        <button onclick="switchTab('prop-types')" id="tab-btn-prop-types" class="tab-btn border-b-2 py-4 px-1 text-body font-semibold flex items-center gap-2 transition-custom border-transparent text-textSecondary hover:text-textPrimary hover:border-slate-300">
+          <i data-lucide="home" class="w-5 h-5"></i>
+          <span>Loại hình bất động sản</span>
+          <span id="badge-prop-types" class="ml-1 bg-slate-100 text-slate-700 py-0.5 px-2 rounded-full text-small">6</span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- Dynamic Status Views (Loading, Empty, Data Error, Idle) -->
+    <div class="relative min-h-[380px]">
+
+      <!-- STATUS 1: Network / Loading Error Panel -->
+      <div id="state-error-panel" class="hidden absolute inset-0 z-10 bg-white rounded-card border border-border flex flex-col items-center justify-center p-8 text-center shadow-soft">
+        <div class="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center text-error mb-4">
+          <i data-lucide="wifi-off" class="w-8 h-8"></i>
+        </div>
+        <h3 class="text-h3 text-textPrimary mb-2">Không thể kết nối đến máy chủ</h3>
+        <p class="text-body text-textSecondary max-w-md mb-6">Đã xảy ra lỗi khi tải cấu hình dữ liệu của tab hiện tại. Vui lòng kiểm tra lại kết nối mạng của bạn.</p>
+        <button onclick="retryDataLoad()" class="px-5 py-2.5 bg-primary text-white font-semibold rounded-btn text-body shadow-soft hover:bg-blue-700 transition-custom flex items-center gap-2">
+          <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+          Thử lại ngay
+        </button>
+      </div>
+
+      <!-- STATUS 2: Empty Data Panel -->
+      <div id="state-empty-panel" class="hidden absolute inset-0 z-10 bg-white rounded-card border border-border flex flex-col items-center justify-center p-8 text-center shadow-soft">
+        <div class="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center text-textSecondary mb-4">
+          <i data-lucide="folder-open" class="w-8 h-8"></i>
+        </div>
+        <h3 class="text-h3 text-textPrimary mb-2" id="empty-title">Không tìm thấy bản ghi nào</h3>
+        <p class="text-body text-textSecondary max-w-md mb-6" id="empty-description">Hệ thống chưa ghi nhận cấu hình nào trong danh mục này. Hãy khởi tạo bản ghi đầu tiên của bạn.</p>
+        <button onclick="openAddModal()" class="px-5 py-2.5 bg-primary text-white font-semibold rounded-btn text-body shadow-soft hover:bg-blue-700 transition-custom flex items-center gap-2">
+          <i data-lucide="plus" class="w-4 h-4"></i>
+          <span id="empty-btn-text">Thêm ngay</span>
+        </button>
+      </div>
+
+      <!-- STATUS 3: Grey Shimmer Skeleton Loader -->
+      <div id="state-loading-panel" class="hidden absolute inset-0 z-10 bg-white rounded-card border border-border p-6 shadow-soft">
+        <div class="flex items-center justify-between mb-6">
+          <div class="h-6 w-48 bg-slate-200 rounded shimmer"></div>
+          <div class="h-8 w-28 bg-slate-200 rounded-btn shimmer"></div>
+        </div>
+        <div class="space-y-4">
+          <div class="h-10 bg-slate-100 rounded shimmer w-full"></div>
+          <div class="h-14 bg-slate-50 rounded shimmer w-full"></div>
+          <div class="h-14 bg-slate-50 rounded shimmer w-full"></div>
+          <div class="h-14 bg-slate-50 rounded shimmer w-full"></div>
+          <div class="h-14 bg-slate-50 rounded shimmer w-full"></div>
+          <div class="h-14 bg-slate-50 rounded shimmer w-full"></div>
+        </div>
+      </div>
+
+      <!-- STATUS 4: Idle (Data is Ready) Content Grid / Tables -->
+      <div id="state-idle-panel" class="block transition-custom">
+        
+        <!-- Tab 1: Organizations View -->
+        <div id="tab-content-orgs" class="tab-pane-content">
+          <div class="bg-white rounded-card border border-border overflow-hidden shadow-soft">
+            <div class="px-6 py-4 border-b border-border bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h3 class="text-body font-semibold text-textPrimary">Danh sách tổ chức liên kết</h3>
+                <p class="text-small text-textSecondary mt-0.5">Các tổng công ty, công ty thành viên, đơn vị sử dụng hạ tầng CRM.</p>
+              </div>
+              <div class="relative max-w-xs w-full">
+                <i data-lucide="search" class="w-4 h-4 text-textSecondary absolute left-3 top-3"></i>
+                <input type="text" id="search-orgs" onkeyup="filterOrgsTable()" placeholder="Tìm kiếm tổ chức..." class="w-full text-body pl-9 pr-4 py-2 border border-border rounded-input focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-custom">
+              </div>
+            </div>
+            
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="border-b border-border text-small text-textSecondary font-semibold uppercase bg-slate-50/40">
+                    <th class="px-6 py-4 w-12 text-center">#</th>
+                    <th class="px-6 py-4">Mã tổ chức</th>
+                    <th class="px-6 py-4">Tên hiển thị</th>
+                    <th class="px-6 py-4">Giao dịch được cấp</th>
+                    <th class="px-6 py-4">BĐS được cấp</th>
+                    <th class="px-6 py-4">Ngày tạo</th>
+                    <th class="px-6 py-4 text-center w-24">Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody id="orgs-table-body" class="divide-y divide-border text-body text-textPrimary">
+                  <!-- Injected via JavaScript -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Pagination block strictly matching the 20 items per page requirement -->
+            <div class="px-6 py-4 border-t border-border flex items-center justify-between bg-slate-50/50">
+              <span class="text-small text-textSecondary" id="org-pagination-info">
+                Hiển thị <span class="font-semibold text-textPrimary">1-5</span> trong tổng số <span class="font-semibold text-textPrimary" id="org-total-count">5</span> tổ chức
+              </span>
+              <div class="flex items-center gap-1">
+                <button class="p-1.5 rounded-btn border border-border bg-white text-textSecondary hover:bg-slate-50 transition-custom disabled:opacity-40" disabled>
+                  <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                </button>
+                <button class="px-3 py-1 rounded-btn border border-primary bg-primary text-white text-small font-semibold">1</button>
+                <button class="p-1.5 rounded-btn border border-border bg-white text-textSecondary hover:bg-slate-50 transition-custom disabled:opacity-40" disabled>
+                  <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 2: Transaction Types View -->
+        <div id="tab-content-tx-types" class="tab-pane-content hidden">
+          <div class="bg-white rounded-card border border-border overflow-hidden shadow-soft">
+            <div class="px-6 py-4 border-b border-border bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h3 class="text-body font-semibold text-textPrimary">Danh mục loại hình giao dịch</h3>
+                <p class="text-small text-textSecondary mt-0.5">Các hình thức giao dịch áp dụng toàn hệ thống bất động sản.</p>
+              </div>
+              <div class="relative max-w-xs w-full">
+                <i data-lucide="search" class="w-4 h-4 text-textSecondary absolute left-3 top-3"></i>
+                <input type="text" id="search-tx" onkeyup="filterTxTable()" placeholder="Tìm kiếm loại hình..." class="w-full text-body pl-9 pr-4 py-2 border border-border rounded-input focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-custom">
+              </div>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="border-b border-border text-small text-textSecondary font-semibold uppercase bg-slate-50/40">
+                    <th class="px-6 py-4 w-12 text-center">#</th>
+                    <th class="px-6 py-4">Mã Code hệ thống</th>
+                    <th class="px-6 py-4">Tên hiển thị tiếng Việt</th>
+                    <th class="px-6 py-4">Ngày khởi tạo</th>
+                    <th class="px-6 py-4 text-center w-24">Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody id="tx-table-body" class="divide-y divide-border text-body text-textPrimary">
+                  <!-- Injected via JavaScript -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 3: Property Types View -->
+        <div id="tab-content-prop-types" class="tab-pane-content hidden">
+          <div class="bg-white rounded-card border border-border overflow-hidden shadow-soft">
+            <div class="px-6 py-4 border-b border-border bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h3 class="text-body font-semibold text-textPrimary">Danh mục loại hình bất động sản</h3>
+                <p class="text-small text-textSecondary mt-0.5">Phân loại phân khúc sản phẩm bất động sản lưu trữ trên hệ thống.</p>
+              </div>
+              <div class="relative max-w-xs w-full">
+                <i data-lucide="search" class="w-4 h-4 text-textSecondary absolute left-3 top-3"></i>
+                <input type="text" id="search-prop" onkeyup="filterPropTable()" placeholder="Tìm loại hình BĐS..." class="w-full text-body pl-9 pr-4 py-2 border border-border rounded-input focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-custom">
+              </div>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="border-b border-border text-small text-textSecondary font-semibold uppercase bg-slate-50/40">
+                    <th class="px-6 py-4 w-12 text-center">#</th>
+                    <th class="px-6 py-4">Mã Code phân loại</th>
+                    <th class="px-6 py-4">Tên hiển thị tiếng Việt</th>
+                    <th class="px-6 py-4">Ngày khởi tạo</th>
+                    <th class="px-6 py-4 text-center w-24">Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody id="prop-table-body" class="divide-y divide-border text-body text-textPrimary">
+                  <!-- Injected via JavaScript -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Footnote -->
+  <footer class="bg-white border-t border-border py-6 mt-auto">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
+      <p class="text-small text-textSecondary">
+        &copy; 2026 Landflow CRM. Phiên bản phân hệ quản trị lõi 4.2.1.
+      </p>
+      <div class="flex items-center gap-6 text-small text-textSecondary">
+        <span class="flex items-center gap-1">
+          <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+          Dữ liệu Sandbox Hoạt Động
+        </span>
+        <span class="hover:text-textPrimary cursor-help">Tài liệu API</span>
+        <span class="hover:text-textPrimary cursor-help">Liên hệ hỗ trợ kỹ thuật</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ==================== POPUP DIALOGS (MODALS) ==================== -->
+
+  <!-- Backgrop backdrop backdrop overlay -->
+  <div id="modal-overlay" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-all duration-200">
+    
+    <!-- Modal 1: Organization Add/Edit Modal -->
+    <div id="modal-org-form" class="hidden bg-white rounded-modal shadow-xl max-w-lg w-full flex flex-col overflow-hidden max-h-[90vh]">
+      <!-- Header -->
+      <div class="px-6 py-4 border-b border-border flex items-center justify-between bg-slate-50">
+        <div>
+          <h3 class="text-h3 text-textPrimary" id="org-modal-title">Thêm tổ chức mới</h3>
+          <p class="text-small text-textSecondary mt-0.5">Nhập thông tin cấu hình và phân phối tài nguyên cho đơn vị mới.</p>
+        </div>
+        <button onclick="closeModal()" class="text-textSecondary hover:text-textPrimary p-1.5 rounded-btn hover:bg-slate-100 transition-custom">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <!-- Form Content -->
+      <form id="org-form" onsubmit="submitOrgForm(event)" class="p-6 overflow-y-auto space-y-4">
+        <input type="hidden" id="org-id-field">
+        
+        <!-- Code / System Name -->
+        <div>
+          <label class="block text-small font-semibold text-textPrimary mb-1.5" for="org-name">
+            Mã định danh hệ thống (Name) <span class="text-error">*</span>
+          </label>
+          <input type="text" id="org-name" placeholder="Ví dụ: org_biglands" class="w-full text-body px-3 py-2 border border-border rounded-input focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-custom">
+          <p id="error-org-name" class="text-small text-error mt-1 hidden">Vui lòng nhập mã định danh định dạng chữ thường, không dấu hoặc dấu gạch dưới.</p>
+        </div>
+
+        <!-- Display Name -->
+        <div>
+          <label class="block text-small font-semibold text-textPrimary mb-1.5" for="org-display-name">
+            Tên hiển thị (Display Name) <span class="text-error">*</span>
+          </label>
+          <input type="text" id="org-display-name" placeholder="Ví dụ: Biglands Corporation" class="w-full text-body px-3 py-2 border border-border rounded-input focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-custom">
+          <p id="error-org-display-name" class="text-small text-error mt-1 hidden">Vui lòng nhập tên hiển thị tổ chức.</p>
+        </div>
+
+        <!-- Transaction Types selection -->
+        <div>
+          <label class="block text-small font-semibold text-textPrimary mb-1.5">
+            Cấp phép Loại hình giao dịch <span class="text-error">*</span>
+          </label>
+          <div class="p-3 bg-slate-50 rounded-input border border-border space-y-2 max-h-32 overflow-y-auto" id="org-tx-checkboxes">
+            <!-- Populated via JavaScript dynamically based on existing Transaction Types -->
+          </div>
+          <p id="error-org-tx" class="text-small text-error mt-1 hidden">Chọn tối thiểu một loại hình giao dịch được ủy quyền.</p>
+        </div>
+
+        <!-- Property Types selection -->
+        <div>
+          <label class="block text-small font-semibold text-textPrimary mb-1.5">
+            Cấp phép Loại hình bất động sản <span class="text-error">*</span>
+          </label>
+          <div class="p-3 bg-slate-50 rounded-input border border-border space-y-2 max-h-32 overflow-y-auto" id="org-prop-checkboxes">
+            <!-- Populated via JavaScript dynamically based on existing Property Types -->
+          </div>
+          <p id="error-org-prop" class="text-small text-error mt-1 hidden">Chọn tối thiểu một loại hình bất động sản phân phối.</p>
+        </div>
+
+        <!-- Action buttons inside form footer -->
+        <div class="pt-4 border-t border-border flex items-center justify-end gap-3 bg-white">
+          <button type="button" onclick="closeModal()" class="px-4 py-2 border border-border rounded-btn text-body font-semibold text-textSecondary hover:bg-slate-50 transition-custom">
+            Hủy bỏ
+          </button>
+          <button type="submit" id="org-submit-btn" class="px-5 py-2.5 bg-primary text-white font-semibold rounded-btn text-body shadow-soft hover:bg-blue-700 transition-custom">
+            Lưu thay đổi
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Modal 2: Transaction Type Form -->
+    <div id="modal-tx-form" class="hidden bg-white rounded-modal shadow-xl max-w-md w-full flex flex-col overflow-hidden">
+      <!-- Header -->
+      <div class="px-6 py-4 border-b border-border flex items-center justify-between bg-slate-50">
+        <div>
+          <h3 class="text-h3 text-textPrimary" id="tx-modal-title">Thêm loại hình giao dịch</h3>
+          <p class="text-small text-textSecondary mt-0.5">Tạo mã định danh giao dịch kinh doanh bất động sản mới.</p>
+        </div>
+        <button onclick="closeModal()" class="text-textSecondary hover:text-textPrimary p-1.5 rounded-btn hover:bg-slate-100 transition-custom">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <!-- Form Content -->
+      <form id="tx-form" onsubmit="submitTxForm(event)" class="p-6 space-y-4">
+        <input type="hidden" id="tx-id-field">
+        
+        <!-- Code -->
+        <div>
+          <label class="block text-small font-semibold text-textPrimary mb-1.5" for="tx-code">
+            Mã Code hệ thống (ví dụ: 'sell', 'rent') <span class="text-error">*</span>
+          </label>
+          <input type="text" id="tx-code" placeholder="Chữ thường không dấu, ví dụ: sublease" class="w-full text-body px-3 py-2 border border-border rounded-input focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-custom">
+          <p id="error-tx-code" class="text-small text-error mt-1 hidden">Vui lòng nhập mã code hợp lệ (chữ thường, không dấu, không khoảng trắng).</p>
+        </div>
+
+        <!-- Display Name -->
+        <div>
+          <label class="block text-small font-semibold text-textPrimary mb-1.5" for="tx-display-name">
+            Tên hiển thị tiếng Việt <span class="text-error">*</span>
+          </label>
+          <input type="text" id="tx-display-name" placeholder="Ví dụ: Cho thuê lại" class="w-full text-body px-3 py-2 border border-border rounded-input focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-custom">
+          <p id="error-tx-display-name" class="text-small text-error mt-1 hidden">Vui lòng nhập tên hiển thị loại hình giao dịch.</p>
+        </div>
+
+        <!-- Action buttons inside form footer -->
+        <div class="pt-4 border-t border-border flex items-center justify-end gap-3">
+          <button type="button" onclick="closeModal()" class="px-4 py-2 border border-border rounded-btn text-body font-semibold text-textSecondary hover:bg-slate-50 transition-custom">
+            Hủy bỏ
+          </button>
+          <button type="submit" id="tx-submit-btn" class="px-5 py-2.5 bg-primary text-white font-semibold rounded-btn text-body shadow-soft hover:bg-blue-700 transition-custom">
+            Lưu thay đổi
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Modal 3: Property Type Form -->
+    <div id="modal-prop-form" class="hidden bg-white rounded-modal shadow-xl max-w-md w-full flex flex-col overflow-hidden">
+      <!-- Header -->
+      <div class="px-6 py-4 border-b border-border flex items-center justify-between bg-slate-50">
+        <div>
+          <h3 class="text-h3 text-textPrimary" id="prop-modal-title">Thêm loại hình bất động sản</h3>
+          <p class="text-small text-textSecondary mt-0.5">Thêm phân loại bất động sản giao dịch trên sàn.</p>
+        </div>
+        <button onclick="closeModal()" class="text-textSecondary hover:text-textPrimary p-1.5 rounded-btn hover:bg-slate-100 transition-custom">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <!-- Form Content -->
+      <form id="prop-form" onsubmit="submitPropForm(event)" class="p-6 space-y-4">
+        <input type="hidden" id="prop-id-field">
+        
+        <!-- Code -->
+        <div>
+          <label class="block text-small font-semibold text-textPrimary mb-1.5" for="prop-code">
+            Mã Code hệ thống (ví dụ: 'apartment', 'villa') <span class="text-error">*</span>
+          </label>
+          <input type="text" id="prop-code" placeholder="Chữ thường không dấu, ví dụ: penthouse" class="w-full text-body px-3 py-2 border border-border rounded-input focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-custom">
+          <p id="error-prop-code" class="text-small text-error mt-1 hidden">Vui lòng nhập mã code hợp lệ (chữ thường, không dấu, không khoảng trắng).</p>
+        </div>
+
+        <!-- Display Name -->
+        <div>
+          <label class="block text-small font-semibold text-textPrimary mb-1.5" for="prop-display-name">
+            Tên hiển thị tiếng Việt <span class="text-error">*</span>
+          </label>
+          <input type="text" id="prop-display-name" placeholder="Ví dụ: Căn hộ cao cấp" class="w-full text-body px-3 py-2 border border-border rounded-input focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-custom">
+          <p id="error-prop-display-name" class="text-small text-error mt-1 hidden">Vui lòng nhập tên hiển thị tiếng Việt của loại hình BĐS.</p>
+        </div>
+
+        <!-- Action buttons inside form footer -->
+        <div class="pt-4 border-t border-border flex items-center justify-end gap-3">
+          <button type="button" onclick="closeModal()" class="px-4 py-2 border border-border rounded-btn text-body font-semibold text-textSecondary hover:bg-slate-50 transition-custom">
+            Hủy bỏ
+          </button>
+          <button type="submit" id="prop-submit-btn" class="px-5 py-2.5 bg-primary text-white font-semibold rounded-btn text-body shadow-soft hover:bg-blue-700 transition-custom">
+            Lưu thay đổi
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Modal 4: Confirmation Dialog for Deletions -->
+    <div id="modal-confirm-delete" class="hidden bg-white rounded-modal shadow-xl max-w-md w-full flex flex-col overflow-hidden p-6">
+      <div class="flex items-start gap-4 mb-4">
+        <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center text-error shrink-0">
+          <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h3 class="text-h3 text-textPrimary" id="delete-confirm-title">Xác nhận xóa bản ghi</h3>
+          <p class="text-body text-textSecondary mt-2" id="delete-confirm-message">
+            Bạn có chắc chắn muốn xóa mục này? Hành động này không thể hoàn tác.
+          </p>
+        </div>
+      </div>
+      <!-- Internal logic metadata storage -->
+      <input type="hidden" id="delete-target-id">
+      <input type="hidden" id="delete-target-type"> <!-- 'org' | 'tx' | 'prop' -->
+      
+      <div class="flex items-center justify-end gap-3 pt-2">
+        <button onclick="closeModal()" class="px-4 py-2 border border-border rounded-btn text-body font-semibold text-textSecondary hover:bg-slate-50 transition-custom">
+          Hủy bỏ
+        </button>
+        <button onclick="confirmExecuteDelete()" class="px-5 py-2.5 bg-error text-white font-semibold rounded-btn text-body shadow-soft hover:bg-red-700 transition-custom">
+          Xác nhận xóa
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Toast Notification System (Sits in bottom-right corner) -->
+  <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-3 max-w-sm w-full">
+    <!-- Toasts injected dynamically here -->
+  </div>
+
+
+  <!-- ==================== SCRIPTS & CRM SYSTEM BUSINESS LOGIC ==================== -->
+  
+  <!-- Lucide Icons Library Injection -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <script>
+    // --- REALISTIC CRM MOCK DATA ---
+    let transactionTypes = [
+      { id: "tx-1", code: "sell", displayName: "Bán bất động sản", createdDate: "2025-01-15" },
+      { id: "tx-2", code: "rent", displayName: "Cho thuê dài hạn", createdDate: "2025-01-15" },
+      { id: "tx-3", code: "sublease", displayName: "Cho thuê lại (F1)", createdDate: "2025-03-10" },
+      { id: "tx-4", code: "transfer", displayName: "Chuyển nhượng hợp đồng", createdDate: "2025-06-20" }
+    ];
+
+    let propertyTypes = [
+      { id: "prop-1", code: "apartment", displayName: "Căn hộ chung cư", createdDate: "2025-01-15" },
+      { id: "prop-2", code: "townhouse", displayName: "Nhà phố thương mại", createdDate: "2025-01-15" },
+      { id: "prop-3", code: "villa", displayName: "Biệt thự nghỉ dưỡng", createdDate: "2025-02-12" },
+      { id: "prop-4", code: "land", displayName: "Đất nền dự án", createdDate: "2025-02-28" },
+      { id: "prop-5", code: "shophouse", displayName: "Shophouse khối đế", createdDate: "2025-04-05" },
+      { id: "prop-6", code: "industrial", displayName: "Kho bãi / Nhà xưởng", createdDate: "2025-05-18" }
+    ];
+
+    let organizations = [
+      { 
+        id: "org-1", 
+        name: "org_biglands", 
+        displayName: "Biglands Capital JSC", 
+        grantedTxTypes: ["sell", "rent"], 
+        grantedPropTypes: ["apartment", "townhouse", "villa"],
+        createdDate: "2025-01-20" 
+      },
+      { 
+        id: "org-2", 
+        name: "org_vinhomes_agents", 
+        displayName: "Đại lý liên kết Vinhomes Sài Gòn", 
+        grantedTxTypes: ["sell", "rent", "transfer"], 
+        grantedPropTypes: ["apartment", "shophouse"],
+        createdDate: "2025-02-10" 
+      },
+      { 
+        id: "org-3", 
+        name: "org_novaland_sales", 
+        displayName: "Sàn giao dịch Novaland Miền Nam", 
+        grantedTxTypes: ["sell", "transfer"], 
+        grantedPropTypes: ["villa", "townhouse"],
+        createdDate: "2025-03-05" 
+      },
+      { 
+        id: "org-4", 
+        name: "org_cenland_group", 
+        displayName: "CenLand Miền Bắc Premium", 
+        grantedTxTypes: ["sell", "rent", "sublease"], 
+        grantedPropTypes: ["apartment", "townhouse", "land"],
+        createdDate: "2025-04-12" 
+      },
+      { 
+        id: "org-5", 
+        name: "org_datxanh_services", 
+        displayName: "Đất Xanh Miền Tây Distribution", 
+        grantedTxTypes: ["sell", "rent", "transfer", "sublease"], 
+        grantedPropTypes: ["apartment", "townhouse", "land", "shophouse", "industrial"],
+        createdDate: "2025-05-01" 
+      }
+    ];
+
+    // --- SYSTEM STATES ---
+    let currentTab = 'orgs'; // 'orgs' | 'tx-types' | 'prop-types'
+    let currentSimulationState = 'idle'; // 'idle' | 'loading' | 'empty' | 'network-error'
+    let deleteProtectionEnabled = true; // Simulates database dependencies block deletion
+
+    // Keep track of visited tabs to simulate faster cached loads vs first-time shimmer load
+    let loadedTabsCache = {
+      'orgs': true,
+      'tx-types': false,
+      'prop-types': false
+    };
+
+    // --- ON INITIAL DOM LOAD ---
+    window.addEventListener('DOMContentLoaded', () => {
+      // Setup Initial State & Bindings
+      renderAll();
+      lucide.createIcons();
+      updateDemoStateSelectorUI();
+    });
+
+    // --- THE TAB-SWITCH LOGIC ---
+    function switchTab(tabName) {
+      if (currentSimulationState === 'network-error') {
+        // Clear network error state upon user manual tab change for fluent UX
+        currentSimulationState = 'idle';
+        updateDemoStateSelectorUI();
+      }
+
+      currentTab = tabName;
+
+      // Update active tab buttons visual state
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('border-primary', 'text-primary');
+        btn.classList.add('border-transparent', 'text-textSecondary');
+      });
+
+      const activeBtn = document.getElementById(`tab-btn-${tabName}`);
+      if (activeBtn) {
+        activeBtn.classList.remove('border-transparent', 'text-textSecondary');
+        activeBtn.classList.add('border-primary', 'text-primary');
+      }
+
+      // Sync page title contextual add button text
+      const mainAddBtn = document.getElementById('main-add-button-text');
+      if (tabName === 'orgs') {
+        mainAddBtn.textContent = 'Thêm tổ chức';
+      } else if (tabName === 'tx-types') {
+        mainAddBtn.textContent = 'Thêm loại giao dịch';
+      } else {
+        mainAddBtn.textContent = 'Thêm loại BĐS';
+      }
+
+      // Simulated Loading effect for new tabs
+      if (!loadedTabsCache[tabName] && currentSimulationState === 'idle') {
+        // First switch gets a quick shimmer loading skeleton
+        setSimState('loading');
+        setTimeout(() => {
+          loadedTabsCache[tabName] = true;
+          setSimState('idle');
+        }, 600);
+      } else {
+        renderAll();
+      }
+    }
+
+    // --- SIMULATED STATES HANDLERS ---
+    function setSimState(stateName) {
+      currentSimulationState = stateName;
+      updateDemoStateSelectorUI();
+      renderAll();
+      
+      if (stateName === 'network-error') {
+        showToast('Không thể kết nối đến máy chủ. Vui lòng thử lại!', 'error');
+      }
+    }
+
+    // --- TOGGLE DELETE PROTECTION ---
+    function toggleDeleteProtection() {
+      deleteProtectionEnabled = !deleteProtectionEnabled;
+      const label = document.getElementById('delete-protection-status');
+      label.textContent = deleteProtectionEnabled ? "Bật" : "Tắt";
+      if (deleteProtectionEnabled) {
+        showToast('Đã BẬT cơ chế khóa bảo vệ xóa các danh mục liên quan.', 'warning');
+      } else {
+        showToast('Đã TẮT cơ chế khóa bảo vệ xóa (Dữ liệu thử nghiệm có thể bị xóa hoàn toàn).', 'success');
+      }
+    }
+
+    function updateDemoStateSelectorUI() {
+      // Reset active styles on simulation toolbar buttons
+      document.querySelectorAll('.sim-btn').forEach(btn => {
+        btn.className = "sim-btn px-3 py-1.5 rounded-btn text-small font-semibold bg-white border border-blue-200 text-blue-700 hover:bg-blue-50 transition-custom";
+      });
+
+      const activeBtn = document.getElementById(`btn-state-${currentSimulationState}`);
+      if (activeBtn) {
+        activeBtn.className = "sim-btn px-3 py-1.5 rounded-btn text-small font-semibold bg-primary text-white border border-primary shadow-sm transition-custom";
+      }
+    }
+
+    function retryDataLoad() {
+      setSimState('loading');
+      setTimeout(() => {
+        setSimState('idle');
+        showToast('Khôi phục kết nối & tải dữ liệu thành công!', 'success');
+      }, 700);
+    }
+
+    // --- RENDER MASTER DISPATCHER ---
+    function renderAll() {
+      const errorPanel = document.getElementById('state-error-panel');
+      const emptyPanel = document.getElementById('state-empty-panel');
+      const loadingPanel = document.getElementById('state-loading-panel');
+      const idlePanel = document.getElementById('state-idle-panel');
+
+      // Hide all panels initially
+      errorPanel.classList.add('hidden');
+      emptyPanel.classList.add('hidden');
+      loadingPanel.classList.add('hidden');
+      idlePanel.classList.add('hidden');
+
+      // Update counters in tab headers safely
+      const badgeOrgs = document.getElementById('badge-orgs');
+      if (badgeOrgs) badgeOrgs.textContent = organizations.length;
+      
+      const badgeTx = document.getElementById('badge-tx-types');
+      if (badgeTx) badgeTx.textContent = transactionTypes.length;
+      
+      const badgeProp = document.getElementById('badge-prop-types');
+      if (badgeProp) badgeProp.textContent = propertyTypes.length;
+
+      // Handle Simulated Layout States
+      if (currentSimulationState === 'network-error') {
+        errorPanel.classList.remove('hidden');
+        return;
+      }
+      if (currentSimulationState === 'loading') {
+        loadingPanel.classList.remove('hidden');
+        return;
+      }
+
+      // Check for real empty states of currently active tab list
+      let listIsEmpty = false;
+      if (currentTab === 'orgs' && organizations.length === 0) listIsEmpty = true;
+      if (currentTab === 'tx-types' && transactionTypes.length === 0) listIsEmpty = true;
+      if (currentTab === 'prop-types' && propertyTypes.length === 0) listIsEmpty = true;
+
+      if (currentSimulationState === 'empty' || listIsEmpty) {
+        emptyPanel.classList.remove('hidden');
+        const emptyTitle = document.getElementById('empty-title');
+        const emptyDesc = document.getElementById('empty-description');
+        const emptyBtn = document.getElementById('empty-btn-text');
+
+        if (currentTab === 'orgs') {
+          emptyTitle.textContent = "Chưa có tổ chức nào";
+          emptyDesc.textContent = "Hệ thống chưa ghi nhận bất kỳ đơn vị / công ty bất động sản liên kết nào sử dụng CRM.";
+          emptyBtn.textContent = "Khởi tạo tổ chức";
+        } else if (currentTab === 'tx-types') {
+          emptyTitle.textContent = "Danh mục loại giao dịch trống";
+          emptyDesc.textContent = "Bạn cần khởi tạo ít nhất một loại hình giao dịch cốt lõi (ví dụ: Bán, Thuê) để các đại lý liên kết hoạt động.";
+          emptyBtn.textContent = "Thêm loại giao dịch";
+        } else {
+          emptyTitle.textContent = "Danh mục loại hình BĐS trống";
+          emptyDesc.textContent = "Thiết lập các phân khúc sản phẩm đặc trưng như căn hộ, đất nền, biệt thự, nhà xưởng kinh doanh.";
+          emptyBtn.textContent = "Thêm loại hình BĐS";
+        }
+        return;
+      }
+
+      // Normal IDLE State Rendering
+      idlePanel.classList.remove('hidden');
+
+      // Hide/Show correct tab pane
+      document.querySelectorAll('.tab-pane-content').forEach(pane => {
+        pane.classList.add('hidden');
+      });
+      const activeTabContent = document.getElementById(`tab-content-${currentTab}`);
+      if (activeTabContent) {
+        activeTabContent.classList.remove('hidden');
+      }
+
+      // Execute specific table builders
+      if (currentTab === 'orgs') renderOrgsTable();
+      if (currentTab === 'tx-types') renderTxTypesTable();
+      if (currentTab === 'prop-types') renderPropTypesTable();
+
+      // Recalculate icon triggers
+      lucide.createIcons();
+    }
+
+
+    // --- TAB 1: ORGANIZATIONS IMPLEMENTATION ---
+    function renderOrgsTable() {
+      const tbody = document.getElementById('orgs-table-body');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      organizations.forEach((org, index) => {
+        // Map Codes to Displays for badges
+        const txBadges = org.grantedTxTypes.map(code => {
+          const match = transactionTypes.find(t => t.code === code);
+          const name = match ? match.displayName : code;
+          return `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">${name}</span>`;
+        }).join(' ');
+
+        const propBadges = org.grantedPropTypes.map(code => {
+          const match = propertyTypes.find(p => p.code === code);
+          const name = match ? match.displayName : code;
+          return `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">${name}</span>`;
+        }).join(' ');
+
+        const formattedDate = formatDate(org.createdDate);
+
+        const row = document.createElement('tr');
+        row.className = "hover:bg-slate-50/50 transition-custom";
+        row.innerHTML = `
+          <td class="px-6 py-4 text-center font-medium text-textSecondary">${index + 1}</td>
+          <td class="px-6 py-4 font-mono text-small text-blue-600 font-semibold">${org.name}</td>
+          <td class="px-6 py-4">
+            <span class="font-semibold text-textPrimary block">${org.displayName}</span>
+          </td>
+          <td class="px-6 py-4">
+            <div class="flex flex-wrap gap-1 max-w-xs">${txBadges || '<span class="text-xs text-textSecondary italic">Không có</span>'}</div>
+          </td>
+          <td class="px-6 py-4">
+            <div class="flex flex-wrap gap-1 max-w-xs">${propBadges || '<span class="text-xs text-textSecondary italic">Không có</span>'}</div>
+          </td>
+          <td class="px-6 py-4 text-small text-textSecondary">${formattedDate}</td>
+          <td class="px-6 py-4 text-center">
+            <div class="flex items-center justify-center gap-2">
+              <button onclick="openEditOrgModal('${org.id}')" title="Sửa thông tin" class="p-1.5 rounded-btn text-textSecondary hover:text-primary hover:bg-blue-50 transition-custom">
+                <i data-lucide="edit-3" class="w-4 h-4"></i>
+              </button>
+              <button onclick="requestDelete('org', '${org.id}', '${org.displayName}')" title="Xóa tổ chức" class="p-1.5 rounded-btn text-textSecondary hover:text-error hover:bg-red-50 transition-custom">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+
+      // Update Pagination Info safely by maintaining the id reference inside template string
+      const paginationInfo = document.getElementById('org-pagination-info');
+      if (paginationInfo) {
+        paginationInfo.innerHTML = `
+          Hiển thị <span class="font-semibold text-textPrimary">1-${organizations.length}</span> trong tổng số <span class="font-semibold text-textPrimary" id="org-total-count">${organizations.length}</span> tổ chức
+        `;
+      }
+    }
+
+    function filterOrgsTable() {
+      const q = document.getElementById('search-orgs').value.toLowerCase();
+      const rows = document.querySelectorAll('#orgs-table-body tr');
+      rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        if (text.includes(q)) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    }
+
+
+    // --- TAB 2: TRANSACTION TYPES IMPLEMENTATION ---
+    function renderTxTypesTable() {
+      const tbody = document.getElementById('tx-table-body');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      transactionTypes.forEach((tx, index) => {
+        const row = document.createElement('tr');
+        row.className = "hover:bg-slate-50/50 transition-custom";
+        row.innerHTML = `
+          <td class="px-6 py-4 text-center font-medium text-textSecondary">${index + 1}</td>
+          <td class="px-6 py-4 font-mono text-small text-primary font-bold bg-slate-50 inline-block my-2 rounded px-2 border border-slate-100">${tx.code}</td>
+          <td class="px-6 py-4 font-semibold text-textPrimary">${tx.displayName}</td>
+          <td class="px-6 py-4 text-small text-textSecondary">${formatDate(tx.createdDate)}</td>
+          <td class="px-6 py-4 text-center">
+            <div class="flex items-center justify-center gap-2">
+              <button onclick="openEditTxModal('${tx.id}')" class="p-1.5 rounded-btn text-textSecondary hover:text-primary hover:bg-blue-50 transition-custom">
+                <i data-lucide="edit-3" class="w-4 h-4"></i>
+              </button>
+              <button onclick="requestDelete('tx', '${tx.id}', '${tx.displayName}')" class="p-1.5 rounded-btn text-textSecondary hover:text-error hover:bg-red-50 transition-custom">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    function filterTxTable() {
+      const q = document.getElementById('search-tx').value.toLowerCase();
+      const rows = document.querySelectorAll('#tx-table-body tr');
+      rows.forEach(row => {
+        if (row.textContent.toLowerCase().includes(q)) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    }
+
+
+    // --- TAB 3: PROPERTY TYPES IMPLEMENTATION ---
+    function renderPropTypesTable() {
+      const tbody = document.getElementById('prop-table-body');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      propertyTypes.forEach((prop, index) => {
+        const row = document.createElement('tr');
+        row.className = "hover:bg-slate-50/50 transition-custom";
+        row.innerHTML = `
+          <td class="px-6 py-4 text-center font-medium text-textSecondary">${index + 1}</td>
+          <td class="px-6 py-4 font-mono text-small text-violet-600 font-bold bg-slate-50 inline-block my-2 rounded px-2 border border-slate-100">${prop.code}</td>
+          <td class="px-6 py-4 font-semibold text-textPrimary">${prop.displayName}</td>
+          <td class="px-6 py-4 text-small text-textSecondary">${formatDate(prop.createdDate)}</td>
+          <td class="px-6 py-4 text-center">
+            <div class="flex items-center justify-center gap-2">
+              <button onclick="openEditPropModal('${prop.id}')" class="p-1.5 rounded-btn text-textSecondary hover:text-primary hover:bg-blue-50 transition-custom">
+                <i data-lucide="edit-3" class="w-4 h-4"></i>
+              </button>
+              <button onclick="requestDelete('prop', '${prop.id}', '${prop.displayName}')" class="p-1.5 rounded-btn text-textSecondary hover:text-error hover:bg-red-50 transition-custom">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    function filterPropTable() {
+      const q = document.getElementById('search-prop').value.toLowerCase();
+      const rows = document.querySelectorAll('#prop-table-body tr');
+      rows.forEach(row => {
+        if (row.textContent.toLowerCase().includes(q)) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    }
+
+
+    // --- MODERN TOAST ENGINE ---
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+      
+      const toastId = 'toast-' + Math.random().toString(36).substring(2, 9);
+      
+      let icon = 'check-circle';
+      let iconColor = 'text-success';
+      let bgColor = 'bg-white border-green-200';
+      
+      if (type === 'error') {
+        icon = 'x-circle';
+        iconColor = 'text-error';
+        bgColor = 'bg-white border-red-200';
+      } else if (type === 'warning') {
+        icon = 'alert-circle';
+        iconColor = 'text-warning';
+        bgColor = 'bg-white border-amber-200';
+      }
+
+      const toast = document.createElement('div');
+      toast.id = toastId;
+      toast.className = `flex items-center gap-3 p-4 rounded-card border shadow-soft transition-all duration-300 transform translate-y-2 opacity-0 ${bgColor}`;
+      toast.innerHTML = `
+        <div class="${iconColor} shrink-0">
+          <i data-lucide="${icon}" class="w-5 h-5"></i>
+        </div>
+        <div class="flex-grow text-body font-medium text-textPrimary text-sm">${message}</div>
+        <button onclick="dismissToast('${toastId}')" class="text-textSecondary hover:text-textPrimary transition-custom">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      `;
+
+      container.appendChild(toast);
+      lucide.createIcons();
+
+      // Trigger animation frame to reveal
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      });
+
+      // Self-dismiss mechanism
+      setTimeout(() => {
+        dismissToast(toastId);
+      }, 5000);
+    }
+
+    function dismissToast(id) {
+      const toast = document.getElementById(id);
+      if (toast) {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => {
+          toast.remove();
+        }, 300);
+      }
+    }
+
+
+    // --- MODAL UTILITIES (OPEN/CLOSE/PRE-POPULATE) ---
+    function openOverlay() {
+      const overlay = document.getElementById('modal-overlay');
+      if (overlay) {
+        overlay.classList.remove('hidden');
+        overlay.classList.add('flex');
+      }
+    }
+
+    function closeModal() {
+      const overlay = document.getElementById('modal-overlay');
+      if (overlay) {
+        overlay.classList.add('hidden');
+        overlay.classList.remove('flex');
+      }
+      
+      // Hide all sub-modals inside container
+      const orgForm = document.getElementById('modal-org-form');
+      if (orgForm) orgForm.classList.add('hidden');
+      
+      const txForm = document.getElementById('modal-tx-form');
+      if (txForm) txForm.classList.add('hidden');
+      
+      const propForm = document.getElementById('modal-prop-form');
+      if (propForm) propForm.classList.add('hidden');
+      
+      const confirmDelete = document.getElementById('modal-confirm-delete');
+      if (confirmDelete) confirmDelete.classList.add('hidden');
+
+      // Clear all errors & validation highlights
+      clearFormErrors();
+    }
+
+    function clearFormErrors() {
+      document.querySelectorAll('[id^="error-"]').forEach(el => el.classList.add('hidden'));
+    }
+
+    function openAddModal() {
+      clearFormErrors();
+      openOverlay();
+
+      if (currentTab === 'orgs') {
+        const orgFormContainer = document.getElementById('modal-org-form');
+        if (orgFormContainer) orgFormContainer.classList.remove('hidden');
+        
+        const modalTitle = document.getElementById('org-modal-title');
+        if (modalTitle) modalTitle.textContent = "Thêm tổ chức mới";
+        
+        const idField = document.getElementById('org-id-field');
+        if (idField) idField.value = "";
+        
+        const orgForm = document.getElementById('org-form');
+        if (orgForm) orgForm.reset();
+        
+        // Build Dynamic authorized select lists inside the form modal
+        buildOrgCheckboxes();
+      } 
+      else if (currentTab === 'tx-types') {
+        const txFormContainer = document.getElementById('modal-tx-form');
+        if (txFormContainer) txFormContainer.classList.remove('hidden');
+        
+        const modalTitle = document.getElementById('tx-modal-title');
+        if (modalTitle) modalTitle.textContent = "Thêm loại hình giao dịch";
+        
+        const idField = document.getElementById('tx-id-field');
+        if (idField) idField.value = "";
+        
+        const txForm = document.getElementById('tx-form');
+        if (txForm) txForm.reset();
+        
+        const txCodeInput = document.getElementById('tx-code');
+        if (txCodeInput) txCodeInput.disabled = false;
+      } 
+      else if (currentTab === 'prop-types') {
+        const propFormContainer = document.getElementById('modal-prop-form');
+        if (propFormContainer) propFormContainer.classList.remove('hidden');
+        
+        const modalTitle = document.getElementById('prop-modal-title');
+        if (modalTitle) modalTitle.textContent = "Thêm loại hình bất động sản";
+        
+        const idField = document.getElementById('prop-id-field');
+        if (idField) idField.value = "";
+        
+        const propForm = document.getElementById('prop-form');
+        if (propForm) propForm.reset();
+        
+        const propCodeInput = document.getElementById('prop-code');
+        if (propCodeInput) propCodeInput.disabled = false;
+      }
+      lucide.createIcons();
+    }
+
+    // --- POPULATE AUTHORIZED LISTS INSIDE ORG FORM ---
+    function buildOrgCheckboxes(checkedTx = [], checkedProp = []) {
+      const txContainer = document.getElementById('org-tx-checkboxes');
+      const propContainer = document.getElementById('org-prop-checkboxes');
+
+      if (txContainer) {
+        txContainer.innerHTML = '';
+        transactionTypes.forEach(tx => {
+          const isChecked = checkedTx.includes(tx.code) ? 'checked' : '';
+          txContainer.innerHTML += `
+            <label class="flex items-center gap-2 cursor-pointer py-0.5 hover:bg-slate-100/50 rounded px-1 transition-custom">
+              <input type="checkbox" name="org-tx-checkbox" value="${tx.code}" ${isChecked} class="w-4 h-4 text-primary focus:ring-primary border-slate-300 rounded">
+              <span class="text-body text-textPrimary">${tx.displayName} <code class="text-xs text-textSecondary">(${tx.code})</code></span>
+            </label>
+          `;
+        });
+      }
+
+      if (propContainer) {
+        propContainer.innerHTML = '';
+        propertyTypes.forEach(prop => {
+          const isChecked = checkedProp.includes(prop.code) ? 'checked' : '';
+          propContainer.innerHTML += `
+            <label class="flex items-center gap-2 cursor-pointer py-0.5 hover:bg-slate-100/50 rounded px-1 transition-custom">
+              <input type="checkbox" name="org-prop-checkbox" value="${prop.code}" ${isChecked} class="w-4 h-4 text-primary focus:ring-primary border-slate-300 rounded">
+              <span class="text-body text-textPrimary">${prop.displayName} <code class="text-xs text-textSecondary">(${prop.code})</code></span>
+            </label>
+          `;
+        });
+      }
+    }
+
+    // --- EDIT VIEW LAUNCHERS ---
+    function openEditOrgModal(id) {
+      const org = organizations.find(o => o.id === id);
+      if (!org) return;
+
+      clearFormErrors();
+      openOverlay();
+      
+      const orgFormContainer = document.getElementById('modal-org-form');
+      if (orgFormContainer) orgFormContainer.classList.remove('hidden');
+      
+      const modalTitle = document.getElementById('org-modal-title');
+      if (modalTitle) modalTitle.textContent = "Cập nhật thông tin tổ chức";
+      
+      const idField = document.getElementById('org-id-field');
+      if (idField) idField.value = org.id;
+      
+      const nameField = document.getElementById('org-name');
+      if (nameField) nameField.value = org.name;
+      
+      const displayNameField = document.getElementById('org-display-name');
+      if (displayNameField) displayNameField.value = org.displayName;
+
+      buildOrgCheckboxes(org.grantedTxTypes, org.grantedPropTypes);
+      lucide.createIcons();
+    }
+
+    function openEditTxModal(id) {
+      const tx = transactionTypes.find(t => t.id === id);
+      if (!tx) return;
+
+      clearFormErrors();
+      openOverlay();
+      
+      const txFormContainer = document.getElementById('modal-tx-form');
+      if (txFormContainer) txFormContainer.classList.remove('hidden');
+      
+      const modalTitle = document.getElementById('tx-modal-title');
+      if (modalTitle) modalTitle.textContent = "Cập nhật loại giao dịch";
+      
+      const idField = document.getElementById('tx-id-field');
+      if (idField) idField.value = tx.id;
+      
+      const codeField = document.getElementById('tx-code');
+      if (codeField) {
+        codeField.value = tx.code;
+        codeField.disabled = true; // Typically code is key, block edit
+      }
+      
+      const displayNameField = document.getElementById('tx-display-name');
+      if (displayNameField) displayNameField.value = tx.displayName;
+      
+      lucide.createIcons();
+    }
+
+    function openEditPropModal(id) {
+      const prop = propertyTypes.find(p => p.id === id);
+      if (!prop) return;
+
+      clearFormErrors();
+      openOverlay();
+      
+      const propFormContainer = document.getElementById('modal-prop-form');
+      if (propFormContainer) propFormContainer.classList.remove('hidden');
+      
+      const modalTitle = document.getElementById('prop-modal-title');
+      if (modalTitle) modalTitle.textContent = "Cập nhật loại hình BĐS";
+      
+      const idField = document.getElementById('prop-id-field');
+      if (idField) idField.value = prop.id;
+      
+      const codeField = document.getElementById('prop-code');
+      if (codeField) {
+        codeField.value = prop.code;
+        codeField.disabled = true; // Block code edit, can only edit display name
+      }
+      
+      const displayNameField = document.getElementById('prop-display-name');
+      if (displayNameField) displayNameField.value = prop.displayName;
+      
+      lucide.createIcons();
+    }
+
+
+    // --- FORM SUBMISSIONS (WITH VALIDATIONS & BUSINESS RULES) ---
+    
+    // Organization submit handler
+    function submitOrgForm(e) {
+      e.preventDefault();
+      clearFormErrors();
+
+      const orgId = document.getElementById('org-id-field').value;
+      const orgName = document.getElementById('org-name').value.trim();
+      const orgDisplayName = document.getElementById('org-display-name').value.trim();
+      
+      // Collect checked permissions
+      const checkedTx = Array.from(document.querySelectorAll('input[name="org-tx-checkbox"]:checked')).map(cb => cb.value);
+      const checkedProp = Array.from(document.querySelectorAll('input[name="org-prop-checkbox"]:checked')).map(cb => cb.value);
+
+      // Validation flags
+      let hasError = false;
+
+      // Rule: lowercase, no accent, letters/numbers/underscore
+      const codeRegex = /^[a-z0-9_]+$/;
+      if (!orgName || !codeRegex.test(orgName)) {
+        document.getElementById('error-org-name').classList.remove('hidden');
+        hasError = true;
+      }
+      
+      if (!orgDisplayName) {
+        document.getElementById('error-org-display-name').classList.remove('hidden');
+        hasError = true;
+      }
+
+      if (checkedTx.length === 0) {
+        document.getElementById('error-org-tx').classList.remove('hidden');
+        hasError = true;
+      }
+
+      if (checkedProp.length === 0) {
+        document.getElementById('error-org-prop').classList.remove('hidden');
+        hasError = true;
+      }
+
+      if (hasError) return;
+
+      if (orgId) {
+        // Mode: EDIT
+        const orgIndex = organizations.findIndex(o => o.id === orgId);
+        if (orgIndex !== -1) {
+          organizations[orgIndex].name = orgName;
+          organizations[orgIndex].displayName = orgDisplayName;
+          organizations[orgIndex].grantedTxTypes = checkedTx;
+          organizations[orgIndex].grantedPropTypes = checkedProp;
+        }
+        showToast(`Đã lưu thay đổi thông tin tổ chức ${orgDisplayName}.`);
+      } else {
+        // Mode: CREATE
+        // Ensure uniqueness of Name code
+        if (organizations.some(o => o.name === orgName)) {
+          const nameError = document.getElementById('error-org-name');
+          if (nameError) {
+            nameError.textContent = "Mã định danh đã tồn tại trong hệ thống.";
+            nameError.classList.remove('hidden');
+          }
+          return;
+        }
+
+        const newOrg = {
+          id: 'org-' + Date.now(),
+          name: orgName,
+          displayName: orgDisplayName,
+          grantedTxTypes: checkedTx,
+          grantedPropTypes: checkedProp,
+          createdDate: new Date().toISOString().split('T')[0]
+        };
+        organizations.unshift(newOrg);
+        showToast(`Đã khởi tạo thành công tổ chức ${orgDisplayName}!`, 'success');
+      }
+
+      closeModal();
+      renderAll();
+    }
+
+    // Transaction Type submit handler
+    function submitTxForm(e) {
+      e.preventDefault();
+      clearFormErrors();
+
+      const txId = document.getElementById('tx-id-field').value;
+      const txCode = document.getElementById('tx-code').value.trim();
+      const txDisplayName = document.getElementById('tx-display-name').value.trim();
+
+      let hasError = false;
+      const codeRegex = /^[a-z0-9_]+$/;
+
+      if (!txCode || !codeRegex.test(txCode)) {
+        document.getElementById('error-tx-code').classList.remove('hidden');
+        hasError = true;
+      }
+
+      if (!txDisplayName) {
+        document.getElementById('error-tx-display-name').classList.remove('hidden');
+        hasError = true;
+      }
+
+      if (hasError) return;
+
+      if (txId) {
+        // Edit mode
+        const txIndex = transactionTypes.findIndex(t => t.id === txId);
+        if (txIndex !== -1) {
+          transactionTypes[txIndex].displayName = txDisplayName;
+        }
+        showToast(`Đã cập nhật hiển thị loại giao dịch: ${txDisplayName}.`);
+      } else {
+        // Create mode
+        if (transactionTypes.some(t => t.code === txCode)) {
+          const codeError = document.getElementById('error-tx-code');
+          if (codeError) {
+            codeError.textContent = "Mã Code giao dịch này đã tồn tại.";
+            codeError.classList.remove('hidden');
+          }
+          return;
+        }
+
+        const newTx = {
+          id: 'tx-' + Date.now(),
+          code: txCode,
+          displayName: txDisplayName,
+          createdDate: new Date().toISOString().split('T')[0]
+        };
+        transactionTypes.push(newTx);
+        showToast(`Khởi tạo loại giao dịch "${txDisplayName}" thành công.`, 'success');
+      }
+
+      closeModal();
+      renderAll();
+    }
+
+    // Property Type submit handler
+    function submitPropForm(e) {
+      e.preventDefault();
+      clearFormErrors();
+
+      const propId = document.getElementById('prop-id-field').value;
+      const propCode = document.getElementById('prop-code').value.trim();
+      const propDisplayName = document.getElementById('prop-display-name').value.trim();
+
+      let hasError = false;
+      const codeRegex = /^[a-z0-9_]+$/;
+
+      if (!propCode || !codeRegex.test(propCode)) {
+        document.getElementById('error-prop-code').classList.remove('hidden');
+        hasError = true;
+      }
+
+      if (!propDisplayName) {
+        document.getElementById('error-prop-display-name').classList.remove('hidden');
+        hasError = true;
+      }
+
+      if (hasError) return;
+
+      if (propId) {
+        // Edit mode
+        const propIndex = propertyTypes.findIndex(p => p.id === propId);
+        if (propIndex !== -1) {
+          propertyTypes[propIndex].displayName = propDisplayName;
+        }
+        showToast(`Đã cập nhật loại bất động sản: ${propDisplayName}.`);
+      } else {
+        // Create mode
+        if (propertyTypes.some(p => p.code === propCode)) {
+          const codeError = document.getElementById('error-prop-code');
+          if (codeError) {
+            codeError.textContent = "Mã phân loại BĐS này đã tồn tại.";
+            codeError.classList.remove('hidden');
+          }
+          return;
+        }
+
+        const newProp = {
+          id: 'prop-' + Date.now(),
+          code: propCode,
+          displayName: propDisplayName,
+          createdDate: new Date().toISOString().split('T')[0]
+        };
+        propertyTypes.push(newProp);
+        showToast(`Đã thêm loại bất động sản "${propDisplayName}" vào cấu hình sàn.`, 'success');
+      }
+
+      closeModal();
+      renderAll();
+    }
+
+
+    // --- CONTROLLED DELETE WITH SAAS ERROR TRIGGERS ---
+    function requestDelete(type, id, displayName) {
+      // Clear out past overlay displays
+      clearFormErrors();
+
+      // Trigger Blocked/Error Rules if Protection simulation is active
+      if (deleteProtectionEnabled) {
+        if (type === 'org') {
+          // Rule: cannot delete organization if users reference it
+          showToast(`Không thể xóa tổ chức này — hiện có nhân sự/môi giới thuộc sàn đang hoạt động!`, 'error');
+          return;
+        }
+        if (type === 'tx') {
+          // Rule: cannot delete tx type if referenced by any org
+          const targetTx = transactionTypes.find(t => t.id === id);
+          if (targetTx && organizations.some(o => o.grantedTxTypes.includes(targetTx.code))) {
+            showToast(`Không thể xóa loại giao dịch — đang được áp dụng bởi tối thiểu một tổ chức liên kết.`, 'error');
+            return;
+          }
+        }
+        if (type === 'prop') {
+          // Rule: cannot delete property type if referenced by any org
+          const targetProp = propertyTypes.find(p => p.id === id);
+          if (targetProp && organizations.some(o => o.grantedPropTypes.includes(targetProp.code))) {
+            showToast(`Không thể xóa loại hình BĐS — đang được cấu hình phân phối trong tổ chức liên kết.`, 'error');
+            return;
+          }
+        }
+      }
+
+      // No blockages triggered? Open clean confirmation popup
+      openOverlay();
+      const confirmDeleteContainer = document.getElementById('modal-confirm-delete');
+      if (confirmDeleteContainer) confirmDeleteContainer.classList.remove('hidden');
+      
+      const idField = document.getElementById('delete-target-id');
+      if (idField) idField.value = id;
+      
+      const typeField = document.getElementById('delete-target-type');
+      if (typeField) typeField.value = type;
+
+      const title = document.getElementById('delete-confirm-title');
+      const msg = document.getElementById('delete-confirm-message');
+
+      if (type === 'org') {
+        if (title) title.textContent = "Xóa tổ chức liên kết?";
+        if (msg) msg.innerHTML = `Bạn có chắc chắn muốn xóa tổ chức <strong class="text-textPrimary">${displayName}</strong>? Toàn bộ thiết lập tài nguyên phân phối sẽ bị gỡ bỏ ngay lập tức.`;
+      } else if (type === 'tx') {
+        if (title) title.textContent = "Xóa loại hình giao dịch?";
+        if (msg) msg.innerHTML = `Xóa phân loại giao dịch <strong class="text-textPrimary">${displayName}</strong> khỏi hệ thống toàn sàn? Dữ liệu giao dịch lịch sử có thể bị ảnh hưởng.`;
+      } else {
+        if (title) title.textContent = "Xóa loại hình bất động sản?";
+        if (msg) msg.innerHTML = `Bạn chắc chắn muốn xóa danh mục bất động sản <strong class="text-textPrimary">${displayName}</strong>?`;
+      }
+      lucide.createIcons();
+    }
+
+    function confirmExecuteDelete() {
+      const id = document.getElementById('delete-target-id').value;
+      const type = document.getElementById('delete-target-type').value;
+
+      if (type === 'org') {
+        const index = organizations.findIndex(o => o.id === id);
+        if (index !== -1) {
+          const name = organizations[index].displayName;
+          organizations.splice(index, 1);
+          showToast(`Đã xóa thành công tổ chức "${name}".`, 'success');
+        }
+      } else if (type === 'tx') {
+        const index = transactionTypes.findIndex(t => t.id === id);
+        if (index !== -1) {
+          const name = transactionTypes[index].displayName;
+          transactionTypes.splice(index, 1);
+          showToast(`Đã gỡ bỏ loại giao dịch "${name}" khỏi danh mục.`, 'success');
+        }
+      } else if (type === 'prop') {
+        const index = propertyTypes.findIndex(p => p.id === id);
+        if (index !== -1) {
+          const name = propertyTypes[index].displayName;
+          propertyTypes.splice(index, 1);
+          showToast(`Đã xóa cấu hình phân loại "${name}".`, 'success');
+        }
+      }
+
+      closeModal();
+      renderAll();
+    }
+
+    // --- HELPER FUNCTION: PRETTY DATE FORMATTER ---
+    function formatDate(dateStr) {
+      if (!dateStr) return '';
+      const parts = dateStr.split('-');
+      if (parts.length === 3) {
+        return `${parts[2]}/${parts[1]}/${parts[0]}`; // DD/MM/YYYY
+      }
+      return dateStr;
+    }
+  </script>
+
+</body>
+</html>

@@ -112,6 +112,10 @@
                             <i data-lucide="users" class="w-5 h-5 flex-shrink-0"></i>
                             <span>Quản lý người dùng</span>
                         </a>
+                        <a href="#" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-[12px] text-textSecondary hover:text-textPrimary hover:bg-[#F8FAFC] transition-all-custom" data-route="cau-hinh-he-thong">
+                            <i data-lucide="settings" class="w-5 h-5 flex-shrink-0"></i>
+                            <span>Cấu hình hệ thống</span>
+                        </a>
                     </nav>
                 </div>
 
@@ -219,6 +223,10 @@
                         <a href="#" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-[12px] text-textSecondary hover:text-textPrimary hover:bg-[#F8FAFC] transition-all-custom" data-route="quan-ly-nguoi-dung">
                             <i data-lucide="users" class="w-5 h-5 flex-shrink-0"></i>
                             <span>Quản lý người dùng</span>
+                        </a>
+                        <a href="#" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-[12px] text-textSecondary hover:text-textPrimary hover:bg-[#F8FAFC] transition-all-custom" data-route="cau-hinh-he-thong">
+                            <i data-lucide="settings" class="w-5 h-5 flex-shrink-0"></i>
+                            <span>Cấu hình hệ thống</span>
                         </a>
                     </nav>
                 </div>
@@ -596,6 +604,7 @@
             'sangnhuong-huy-coc': 'Sang nhượng - Hủy cọc',
             'sangnhuong-chot-hang': 'Sang nhượng - Chốt hàng',
             'sangnhuong-het-hang': 'Sang nhượng - Hết hàng',
+            'cau-hinh-he-thong': 'Cấu hình hệ thống',
         };
 
         var selectedProductId = null;
@@ -661,6 +670,7 @@
                 'quan-ly-nguoi-dung': 'user-management/user-management-content.html',
                 'chi-tiet-san-pham': 'product-details/product-details-content.html',
                 'them-hang': 'create-product/create-product-content.html',
+                'cau-hinh-he-thong': 'config-system/config-system.content.html',
             };
 
             const url = routeMap[route];
