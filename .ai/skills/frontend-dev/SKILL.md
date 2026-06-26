@@ -34,18 +34,17 @@ Three-layer architecture enforcing View → Facade → Data dependency flow. Eve
 
 ```
 src/
+├─ platform/                           # HTTP client, Query client, persistence
 ├─ data/                               # Data Layer
-│  ├─ infra/                           # HTTP client, Query client, persistence
 │  ├─ queries/                         # <feature>Queries.ts — query key factories
 │  ├─ repositories/                    # <feature>Repository.ts — API calls, return DTOs
 │  ├─ types/                           # <Name>DTO type files
 │  └─ utils/                           # serialization, deserialization at API boundary
 ├─ pages/<feature>/
-│  ├─ facades/                         # Facade — use<Feature>State, use<Action><Feature>
+│  ├─ facades/                         # use<Feature>State, use<Action><Feature>, use<Feature>Mapper
 │  ├─ components/                      # View — UI components
 │  ├─ constants/                       # View — UI presentation maps
-│  ├─ hooks/                           # Facade — use<Feature>Mapper, use<Feature>Validator
-│  ├─ types.ts                         # Facade — UI types (I<Name>)
+│  ├─ types.ts                         # I<Name> UI types + zod schemas
 │  └─ <PageName>.tsx                   # View — page component
 ├─ shared/
 │  ├─ components/                      # View — reusable UI
@@ -60,14 +59,15 @@ src/
 
 | Layer | Depends on | Must Not Depend On |
 |-------|-----------|--------------------|
-| View | Facade hooks only | Data layer, DTOs, `fetch` |
+| View | Facades only | Data layer, DTOs, `fetch` |
 | Facade | Data layer, shared context/utils | View components, other feature facades |
-| Data | — | UI types, View, Facade |
+| Data | Platform | UI types, View, Facade |
+| Platform | — | UI types, View, Facade, Data |
 
 ### Error Flow
 
 ```
-Data (throws ApiError) → Facade action hook (catches, fires toast) → View (reads error state, shows retry UI)
+Platform (throws ApiError) → Data → Facade action hook (catches, fires toast) → View (reads error state, shows retry UI)
 ```
 
 ### Facade Coordination
@@ -117,24 +117,24 @@ Default: hooks + context. Introduce external state only when:
 
 #### Facade Layer
 
-##### `pages/<feature>/facades/` (View-facing API)
-- Closed set: `use<Feature>State`, `use<Action><Feature>` — these are the complete facade API for View
+##### `pages/<feature>/facades/` (View-facing API + internal utilities)
+- Closed set: `use<Feature>State`, `use<Action><Feature>`, `use<Feature>Mapper`
 - **State hooks** — own UI state (`useState` for eg. mode, flags, text, filters), derived state (eg. computed lists from queries), and non-mutation UI interactions (eg. navigate, showToast, open platform APIs, open modals, set filters, toggle views). Read server state via `useQuery` with query keys. Map DTOs to `I<Name>` internally via mapper — never expose DTOs to View. NEVER import action hooks.
-- **Action hooks** — own business operations that mutate server state: validate → mapper.toPayload() → repository.mutate() → queryClient.invalidateQueries() → side effects. Use `useMutation` with `onSuccess`/`onError`. Mutation-triggered side effects (eg. `navigate`, `showToast`) belong EXCLUSIVELY in action hooks — View must NOT call them after `mutate`. Never rethrow errors to View. NEVER Multiple mutations combined in a single facade hook (e.g., `useAuthActions` with login + register + logout)
+- **Action hooks** — own business operations that mutate server state: validate via zod → mapper.toPayload() → repository.mutate() → queryClient.invalidateQueries() → side effects. Use `useMutation` with `onSuccess`/`onError`. Mutation-triggered side effects (eg. `navigate`, `showToast`) belong EXCLUSIVELY in action hooks — View must NOT call them after `mutate`. Never rethrow errors to View. NEVER Multiple mutations combined in a single facade hook (e.g., `useAuthActions` with login + register + logout)
     - Error handling: return errors View needs to display (eg. validation errors) from the action hook; handle flow error internally (eg. fire toast/notification for API/mutation errors). NEVER accept error callbacks.
+- **Mapper hooks** — sole owner of DTO↔UI transformation both directions; carry raw DTO + derived display fields; depend only on DTO/UI types, shared context, shared utils; NEVER import from View components
 - NEVER skip layers (no direct `httpClient` calls in facades)
 - NEVER create combined facade hooks that import both state and action hooks
 
-##### `pages/<feature>/hooks/` (internal utilities)
-- Closed set: `use<Feature>Mapper`, `use<Feature>Validator` — imported by facades only, never by View
-- **Mapper hooks** — sole owner of DTO↔UI transformation both directions; carry raw DTO + derived display fields; depend only on DTO/UI types, shared context, shared utils
-- **Validator hooks** — feature validation logic, return error maps; pure functions preferred
-- NEVER import from `facades/` or View components
+##### `pages/<feature>/types.ts` (zod schemas)
+- Feature validation via zod schemas defined directly in `types.ts` alongside `I<Name>` types
+- Facades import zod schemas for form validation — no hook wrapper needed since zod is pure functions
+- NEVER import from `facades/`, View components, or Data layer
 
 #### Data Layer
-- Repositories call API via infra only, return DTOs — no UI types
+- Repositories call API via platform only, return DTOs — no UI types
 - DTOs: one file per entity in `data/types/<entity>.dto.ts`, type-only
-- Infra: feature-agnostic, normalize errors to `ApiError`, retry with exponential backoff
+- Platform: feature-agnostic, normalize errors to `ApiError`, retry with exponential backoff
 - Query key factories: start simple (`{ all, me }`), graduate to hierarchical (`{ all, lists(), details() }`) when needed
 
 ### Naming
@@ -148,6 +148,7 @@ Variables should be named in English consistently.
 | State Hook | `use<Feature>State` | `useUserState`   |
 | Action Hook | `use<Action><Feature>` | `useCreateUser`  |
 | Mapper Hook | `use<Feature>Mapper` | `useUserMapper`  |
+| Zod Schemas | Defined in `types.ts` | `userSchema`, `UserFormData` |
 | Page | `<Name>Page` | `UsersPage`      |
 | Repository | `<name>Repository` | `userRepository` |
 | Query Keys | `<name>Queries` | `userQueries`    |
@@ -161,19 +162,19 @@ Variables should be named in English consistently.
 ## Workflow
 
 1. Read all rules below before writing code
-2. Scaffold feature folder under `pages/<feature>/` with `types.ts` + `facades/` + `hooks/` + `components/` + `constants/`
+2. Scaffold feature folder under `pages/<feature>/` with `types.ts` + `facades/` + `components/` + `constants/`
 3. Define DTO → Repository → Query keys in `data/`
-4. Implement hooks (mapper, validator) → facades (state/action hooks) → page component
+4. Define zod schemas in `types.ts` → implement mapper + facades (state/action hooks) → page component
 5. Verify: no layer violations, no DTOs in View, all state named per conventions
 
 ## Quick Reference
 
-- **ALWAYS** go View → Facade → Repository → Infra — never skip layers
+- **ALWAYS** go View → Facade → Repository → Platform — never skip layers
 - **ALWAYS** isolate features under `pages/<feature>/` — no cross-feature imports between facades
 - **ALWAYS** call `mutate(data)` unconditionally from View — guards in facade only
 - **ALWAYS** use Lucide CSS class names (`lucide lucide-{name}`) for icons
 - **ALWAYS** use `@/` alias for cross-directory imports
 - **NEVER** use `useState`/`useReducer` in page components
 - **NEVER** import DTO types in View
-- **NEVER** call `httpClient` outside `data/`
+- **NEVER** call `httpClient` outside `platform/`
 - **NEVER** construct DTO types in facade hooks — delegate to mapper
