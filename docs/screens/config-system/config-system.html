@@ -195,6 +195,13 @@
           <span>Loại hình bất động sản</span>
           <span id="badge-prop-types" class="ml-1 bg-slate-100 text-slate-700 py-0.5 px-2 rounded-full text-small">6</span>
         </button>
+
+        <!-- Tags Tab Button -->
+        <button onclick="switchTab('tags')" id="tab-btn-tags" class="tab-btn border-b-2 py-4 px-1 text-body font-semibold flex items-center gap-2 transition-custom border-transparent text-textSecondary hover:text-textPrimary hover:border-slate-300">
+          <i data-lucide="tag" class="w-5 h-5"></i>
+          <span>Nhãn</span>
+          <span id="badge-tags" class="ml-1 bg-slate-100 text-slate-700 py-0.5 px-2 rounded-full text-small">0</span>
+        </button>
       </nav>
     </div>
 
@@ -356,6 +363,38 @@
                   </tr>
                 </thead>
                 <tbody id="prop-table-body" class="divide-y divide-border text-body text-textPrimary">
+                  <!-- Injected via JavaScript -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 4: Tags View -->
+        <div id="tab-content-tags" class="tab-pane-content hidden">
+          <div class="bg-white rounded-card border border-border overflow-hidden shadow-soft">
+            <div class="px-6 py-4 border-b border-border bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h3 class="text-body font-semibold text-textPrimary">Danh mục nhãn</h3>
+                <p class="text-small text-textSecondary mt-0.5">Các thẻ nhãn phân loại bất động sản theo đặc điểm, vị trí, tiện ích.</p>
+              </div>
+              <div class="relative max-w-xs w-full">
+                <i data-lucide="search" class="w-4 h-4 text-textSecondary absolute left-3 top-3"></i>
+                <input type="text" id="search-tags" onkeyup="filterTagsTable()" placeholder="Tìm kiếm nhãn..." class="w-full text-body pl-9 pr-4 py-2 border border-border rounded-input focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-custom">
+              </div>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="border-b border-border text-small text-textSecondary font-semibold uppercase bg-slate-50/40">
+                    <th class="px-6 py-4">Slug (ID)</th>
+                    <th class="px-6 py-4">Tên hiển thị</th>
+                    <th class="px-6 py-4">Ngày khởi tạo</th>
+                    <th class="px-6 py-4 text-center w-24">Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody id="tags-table-body" class="divide-y divide-border text-body text-textPrimary">
                   <!-- Injected via JavaScript -->
                 </tbody>
               </table>
@@ -551,7 +590,49 @@
       </form>
     </div>
 
-    <!-- Modal 4: Confirmation Dialog for Deletions -->
+    <!-- Modal 4: Tag Form -->
+    <div id="modal-tag-form" class="hidden bg-white rounded-modal shadow-xl max-w-md w-full flex flex-col overflow-hidden">
+      <div class="px-6 py-4 border-b border-border flex items-center justify-between bg-slate-50">
+        <div>
+          <h3 class="text-h3 text-textPrimary" id="tag-modal-title">Thêm nhãn mới</h3>
+          <p class="text-small text-textSecondary mt-0.5">Tạo thẻ nhãn phân loại bất động sản theo đặc điểm.</p>
+        </div>
+        <button onclick="closeModal()" class="text-textSecondary hover:text-textPrimary p-1.5 rounded-btn hover:bg-slate-100 transition-custom">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <form id="tag-form" onsubmit="submitTagForm(event)" class="p-6 space-y-4">
+        <input type="hidden" id="tag-id-field">
+
+        <div>
+          <label class="block text-small font-semibold text-textPrimary mb-1.5" for="tag-display-name">
+            Tên hiển thị <span class="text-error">*</span>
+          </label>
+          <input type="text" id="tag-display-name" placeholder="Ví dụ: Trung tâm, Mặt tiền" class="w-full text-body px-3 py-2 border border-border rounded-input focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-custom">
+          <p id="error-tag-display-name" class="text-small text-error mt-1 hidden">Vui lòng nhập tên hiển thị của nhãn.</p>
+        </div>
+
+        <div>
+          <label class="block text-small font-semibold text-textPrimary mb-1.5" for="tag-slug">
+            Slug (ID) <span class="text-textSecondary text-small font-normal">— để trống để tự động tạo</span>
+          </label>
+          <input type="text" id="tag-slug" placeholder="Ví dụ: trung-tam, mat-tien" class="w-full text-body px-3 py-2 border border-border rounded-input focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-custom">
+          <p id="error-tag-slug" class="text-small text-error mt-1 hidden">Slug không hợp lệ. Chỉ chấp nhận chữ thường, số, dấu gạch ngang.</p>
+          <p id="info-tag-slug" class="text-small text-textSecondary mt-1 hidden">Slug sẽ được tự động tạo từ tên hiển thị.</p>
+        </div>
+
+        <div class="pt-4 border-t border-border flex items-center justify-end gap-3">
+          <button type="button" onclick="closeModal()" class="px-4 py-2 border border-border rounded-btn text-body font-semibold text-textSecondary hover:bg-slate-50 transition-custom">
+            Hủy bỏ
+          </button>
+          <button type="submit" id="tag-submit-btn" class="px-5 py-2.5 bg-primary text-white font-semibold rounded-btn text-body shadow-soft hover:bg-blue-700 transition-custom">
+            Lưu thay đổi
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Modal 5: Confirmation Dialog for Deletions -->
     <div id="modal-confirm-delete" class="hidden bg-white rounded-modal shadow-xl max-w-md w-full flex flex-col overflow-hidden p-6">
       <div class="flex items-start gap-4 mb-4">
         <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center text-error shrink-0">
@@ -609,6 +690,16 @@
       { id: "prop-6", code: "industrial", displayName: "Kho bãi / Nhà xưởng", createdDate: "2025-05-18" }
     ];
 
+    let tags = [
+      { id: "trung-tam", displayName: "Trung tâm", createdDate: "2025-01-15" },
+      { id: "mat-tien", displayName: "Mặt tiền", createdDate: "2025-01-20" },
+      { id: "co-thang-may", displayName: "Có thang máy", createdDate: "2025-02-10" },
+      { id: "gan-truong-hoc", displayName: "Gần trường học", createdDate: "2025-03-05" },
+      { id: "gan-benh-vien", displayName: "Gần bệnh viện", createdDate: "2025-03-12" },
+      { id: "ho-boi", displayName: "Hồ bơi", createdDate: "2025-04-18" },
+      { id: "do-moi-100", displayName: "Đồ mới 100%", createdDate: "2025-05-22" }
+    ];
+
     let organizations = [
       { 
         id: "org-1", 
@@ -653,7 +744,7 @@
     ];
 
     // --- SYSTEM STATES ---
-    let currentTab = 'orgs'; // 'orgs' | 'tx-types' | 'prop-types'
+    let currentTab = 'orgs'; // 'orgs' | 'tx-types' | 'prop-types' | 'tags'
     let currentSimulationState = 'idle'; // 'idle' | 'loading' | 'empty' | 'network-error'
     let deleteProtectionEnabled = true; // Simulates database dependencies block deletion
 
@@ -661,7 +752,8 @@
     let loadedTabsCache = {
       'orgs': true,
       'tx-types': false,
-      'prop-types': false
+      'prop-types': false,
+      'tags': false
     };
 
     // --- ON INITIAL DOM LOAD ---
@@ -700,8 +792,10 @@
         mainAddBtn.textContent = 'Thêm tổ chức';
       } else if (tabName === 'tx-types') {
         mainAddBtn.textContent = 'Thêm loại giao dịch';
-      } else {
+      } else if (tabName === 'prop-types') {
         mainAddBtn.textContent = 'Thêm loại BĐS';
+      } else {
+        mainAddBtn.textContent = 'Thêm nhãn';
       }
 
       // Simulated Loading effect for new tabs
@@ -783,6 +877,9 @@
       const badgeProp = document.getElementById('badge-prop-types');
       if (badgeProp) badgeProp.textContent = propertyTypes.length;
 
+      const badgeTags = document.getElementById('badge-tags');
+      if (badgeTags) badgeTags.textContent = tags.length;
+
       // Handle Simulated Layout States
       if (currentSimulationState === 'network-error') {
         errorPanel.classList.remove('hidden');
@@ -798,6 +895,7 @@
       if (currentTab === 'orgs' && organizations.length === 0) listIsEmpty = true;
       if (currentTab === 'tx-types' && transactionTypes.length === 0) listIsEmpty = true;
       if (currentTab === 'prop-types' && propertyTypes.length === 0) listIsEmpty = true;
+      if (currentTab === 'tags' && tags.length === 0) listIsEmpty = true;
 
       if (currentSimulationState === 'empty' || listIsEmpty) {
         emptyPanel.classList.remove('hidden');
@@ -813,10 +911,14 @@
           emptyTitle.textContent = "Danh mục loại giao dịch trống";
           emptyDesc.textContent = "Bạn cần khởi tạo ít nhất một loại hình giao dịch cốt lõi (ví dụ: Bán, Thuê) để các đại lý liên kết hoạt động.";
           emptyBtn.textContent = "Thêm loại giao dịch";
-        } else {
+        } else if (currentTab === 'prop-types') {
           emptyTitle.textContent = "Danh mục loại hình BĐS trống";
           emptyDesc.textContent = "Thiết lập các phân khúc sản phẩm đặc trưng như căn hộ, đất nền, biệt thự, nhà xưởng kinh doanh.";
           emptyBtn.textContent = "Thêm loại hình BĐS";
+        } else {
+          emptyTitle.textContent = "Chưa có nhãn nào";
+          emptyDesc.textContent = "Hệ thống chưa có thẻ nhãn phân loại nào. Tạo nhãn để gắn thẻ đặc điểm cho bất động sản.";
+          emptyBtn.textContent = "Thêm nhãn";
         }
         return;
       }
@@ -837,6 +939,7 @@
       if (currentTab === 'orgs') renderOrgsTable();
       if (currentTab === 'tx-types') renderTxTypesTable();
       if (currentTab === 'prop-types') renderPropTypesTable();
+      if (currentTab === 'tags') renderTagsTable();
 
       // Recalculate icon triggers
       lucide.createIcons();
@@ -1001,6 +1104,47 @@
     }
 
 
+    // --- TAB 4: TAGS IMPLEMENTATION ---
+    function renderTagsTable() {
+      const tbody = document.getElementById('tags-table-body');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      tags.forEach((tag, index) => {
+        const row = document.createElement('tr');
+        row.className = "hover:bg-slate-50/50 transition-custom";
+        row.innerHTML = `
+          <td class="px-6 py-4 font-mono text-small text-emerald-600 font-bold bg-slate-50 inline-block my-2 rounded px-2 border border-slate-100">${tag.id}</td>
+          <td class="px-6 py-4 font-semibold text-textPrimary">${tag.displayName}</td>
+          <td class="px-6 py-4 text-small text-textSecondary">${formatDate(tag.createdDate)}</td>
+          <td class="px-6 py-4 text-center">
+            <div class="flex items-center justify-center gap-2">
+              <button onclick="openEditTagModal('${tag.id}')" class="p-1.5 rounded-btn text-textSecondary hover:text-primary hover:bg-blue-50 transition-custom">
+                <i data-lucide="edit-3" class="w-4 h-4"></i>
+              </button>
+              <button onclick="requestDelete('tag', '${tag.id}', '${tag.displayName}')" class="p-1.5 rounded-btn text-textSecondary hover:text-error hover:bg-red-50 transition-custom">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    function filterTagsTable() {
+      const q = document.getElementById('search-tags').value.toLowerCase();
+      const rows = document.querySelectorAll('#tags-table-body tr');
+      rows.forEach(row => {
+        if (row.textContent.toLowerCase().includes(q)) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    }
+
+
     // --- MODERN TOAST ENGINE ---
     function showToast(message, type = 'success') {
       const container = document.getElementById('toast-container');
@@ -1085,6 +1229,9 @@
       
       const propForm = document.getElementById('modal-prop-form');
       if (propForm) propForm.classList.add('hidden');
+
+      const tagForm = document.getElementById('modal-tag-form');
+      if (tagForm) tagForm.classList.add('hidden');
       
       const confirmDelete = document.getElementById('modal-confirm-delete');
       if (confirmDelete) confirmDelete.classList.add('hidden');
@@ -1148,6 +1295,28 @@
         
         const propCodeInput = document.getElementById('prop-code');
         if (propCodeInput) propCodeInput.disabled = false;
+      }
+      else if (currentTab === 'tags') {
+        const tagFormContainer = document.getElementById('modal-tag-form');
+        if (tagFormContainer) tagFormContainer.classList.remove('hidden');
+        
+        const modalTitle = document.getElementById('tag-modal-title');
+        if (modalTitle) modalTitle.textContent = "Thêm nhãn mới";
+        
+        const idField = document.getElementById('tag-id-field');
+        if (idField) idField.value = "";
+        
+        const tagForm = document.getElementById('tag-form');
+        if (tagForm) tagForm.reset();
+        
+        const slugInput = document.getElementById('tag-slug');
+        if (slugInput) {
+          slugInput.disabled = false;
+          slugInput.value = '';
+        }
+        
+        const slugInfo = document.getElementById('info-tag-slug');
+        if (slugInfo) slugInfo.classList.add('hidden');
       }
       lucide.createIcons();
     }
@@ -1263,6 +1432,37 @@
       
       const displayNameField = document.getElementById('prop-display-name');
       if (displayNameField) displayNameField.value = prop.displayName;
+      
+      lucide.createIcons();
+    }
+
+    function openEditTagModal(id) {
+      const tag = tags.find(t => t.id === id);
+      if (!tag) return;
+
+      clearFormErrors();
+      openOverlay();
+      
+      const tagFormContainer = document.getElementById('modal-tag-form');
+      if (tagFormContainer) tagFormContainer.classList.remove('hidden');
+      
+      const modalTitle = document.getElementById('tag-modal-title');
+      if (modalTitle) modalTitle.textContent = "Cập nhật nhãn";
+      
+      const idField = document.getElementById('tag-id-field');
+      if (idField) idField.value = tag.id;
+      
+      const displayNameField = document.getElementById('tag-display-name');
+      if (displayNameField) displayNameField.value = tag.displayName;
+      
+      const slugField = document.getElementById('tag-slug');
+      if (slugField) {
+        slugField.value = tag.id;
+        slugField.disabled = true; // Slug is immutable on edit
+      }
+      
+      const slugInfo = document.getElementById('info-tag-slug');
+      if (slugInfo) slugInfo.classList.add('hidden');
       
       lucide.createIcons();
     }
@@ -1460,6 +1660,75 @@
       renderAll();
     }
 
+    // Tag submit handler
+    function submitTagForm(e) {
+      e.preventDefault();
+      clearFormErrors();
+
+      const tagId = document.getElementById('tag-id-field').value;
+      const tagDisplayName = document.getElementById('tag-display-name').value.trim();
+      let tagSlug = document.getElementById('tag-slug').value.trim();
+
+      let hasError = false;
+
+      if (!tagDisplayName) {
+        document.getElementById('error-tag-display-name').classList.remove('hidden');
+        hasError = true;
+      }
+
+      const slugRegex = /^[a-z0-9-]+$/;
+      if (tagSlug && !slugRegex.test(tagSlug)) {
+        document.getElementById('error-tag-slug').classList.remove('hidden');
+        hasError = true;
+      }
+
+      if (hasError) return;
+
+      // Auto-generate slug from display_name if empty
+      if (!tagSlug) {
+        tagSlug = tagDisplayName
+          .toLowerCase()
+          .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // remove accents
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '');
+        const slugInfo = document.getElementById('info-tag-slug');
+        if (slugInfo) {
+          slugInfo.textContent = `Slug tự động: ${tagSlug}`;
+          slugInfo.classList.remove('hidden');
+        }
+      }
+
+      if (tagId) {
+        // Edit mode
+        const tagIndex = tags.findIndex(t => t.id === tagId);
+        if (tagIndex !== -1) {
+          tags[tagIndex].displayName = tagDisplayName;
+        }
+        showToast(`Đã cập nhật nhãn: ${tagDisplayName}.`);
+      } else {
+        // Create mode
+        if (tags.some(t => t.id === tagSlug)) {
+          const slugError = document.getElementById('error-tag-slug');
+          if (slugError) {
+            slugError.textContent = "Slug này đã tồn tại.";
+            slugError.classList.remove('hidden');
+          }
+          return;
+        }
+
+        const newTag = {
+          id: tagSlug,
+          displayName: tagDisplayName,
+          createdDate: new Date().toISOString().split('T')[0]
+        };
+        tags.push(newTag);
+        showToast(`Đã thêm nhãn "${tagDisplayName}" thành công.`, 'success');
+      }
+
+      closeModal();
+      renderAll();
+    }
+
 
     // --- CONTROLLED DELETE WITH SAAS ERROR TRIGGERS ---
     function requestDelete(type, id, displayName) {
@@ -1489,6 +1758,11 @@
             return;
           }
         }
+        if (type === 'tag') {
+          // Rule: cannot delete tag if referenced by any property
+          showToast(`Không thể xóa nhãn này — đang được sử dụng bởi một hoặc nhiều bất động sản.`, 'error');
+          return;
+        }
       }
 
       // No blockages triggered? Open clean confirmation popup
@@ -1511,9 +1785,12 @@
       } else if (type === 'tx') {
         if (title) title.textContent = "Xóa loại hình giao dịch?";
         if (msg) msg.innerHTML = `Xóa phân loại giao dịch <strong class="text-textPrimary">${displayName}</strong> khỏi hệ thống toàn sàn? Dữ liệu giao dịch lịch sử có thể bị ảnh hưởng.`;
-      } else {
+      } else if (type === 'prop') {
         if (title) title.textContent = "Xóa loại hình bất động sản?";
         if (msg) msg.innerHTML = `Bạn chắc chắn muốn xóa danh mục bất động sản <strong class="text-textPrimary">${displayName}</strong>?`;
+      } else if (type === 'tag') {
+        if (title) title.textContent = "Xóa nhãn?";
+        if (msg) msg.innerHTML = `Bạn chắc chắn muốn xóa nhãn <strong class="text-textPrimary">${displayName}</strong>? Thẻ nhãn này sẽ bị gỡ khỏi hệ thống.`;
       }
       lucide.createIcons();
     }
@@ -1542,6 +1819,13 @@
           const name = propertyTypes[index].displayName;
           propertyTypes.splice(index, 1);
           showToast(`Đã xóa cấu hình phân loại "${name}".`, 'success');
+        }
+      } else if (type === 'tag') {
+        const index = tags.findIndex(t => t.id === id);
+        if (index !== -1) {
+          const name = tags[index].displayName;
+          tags.splice(index, 1);
+          showToast(`Đã xóa nhãn "${name}".`, 'success');
         }
       }
 

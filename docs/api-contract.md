@@ -3,7 +3,6 @@
 ### Enums
 CommissionType = [PERCENTAGE, FLAT]
 DirectionType = [EAST, WEST, SOUTH, NORTH, NORTHEAST, SOUTHEAST, NORTHWEST, SOUTHWEST]
-Tag = [newest, best_selling, hot]
 Status = [draft, post_pending, edit_pending, deposit_pending, soldout_pending, complete_pending, cancel_pending, available, deposited, soldout, expired, completed]
 Action = [submit, withdraw, deposit, soldout, cancel, complete]
 NotificationType = [request_edit, request_post, request_deposit, request_soldout, request_cancel, request_complete]
@@ -76,6 +75,7 @@ Property = {
 	price_per_m2: number | null
 	primary_image_url: string | null
 	images: FileInfo[]
+	tags: TagInfo[]
 	created_by_id: UUID
 	creator: CreatorInfo | null
 	approved_by_id: UUID | null
@@ -175,6 +175,13 @@ PropertyTypeInfo = {
 	updated_at: Date
 }
 
+TagInfo = {
+	id: string          // primary key, auto-generated slug from display_name
+	display_name: string
+	created_at: Date
+	updated_at: Date
+}
+
 Notification = {
 	id: UUID
 	user_id: UUID
@@ -202,7 +209,7 @@ PropertyFilterRequest = {
 	search: string | null
 	transaction_type: string[] | null
 	property_type: string[] | null
-	tag: Tag[] | null
+	tag: string[] | null
 	district: District[] | null
 	ward: Ward[] | null
 	direction: DirectionType[] | null
@@ -253,6 +260,7 @@ PropertyInfo = {
 	road_width: string | null
 	owner_phone: string | null
 	video_url: string | null
+	tag_ids: string[]
 }
 
 LoginRequest = { username: string, password: string }
@@ -263,7 +271,7 @@ ChangePasswordRequest = { current_password: string, new_password: string }
 
 CreatePropertyRequest = { type: 'draft' | 'post_pending', data: PropertyInfo }
 PropertyListParams = { is_hot: bool | null, is_pin: bool | null, created_by: 'me' | UUID | null, sort_by: 'created_at' | 'price' | 'view_count' | null, sort_order: 'asc' | 'desc' | null } & PropertyFilterRequest
-UpdatePropertyRequest = { [key in PropertyInfo]: value }  // partial property fields
+UpdatePropertyRequest = { [key in PropertyInfo]: value } & { tag_ids: string[] | null }  // partial property fields
 
 NotesRequest = { notes: string | null }
 
@@ -305,6 +313,9 @@ UpdateTransactionTypeRequest = { code: string, display_name: string }
 
 CreatePropertyTypeRequest = { code: string, display_name: string }
 UpdatePropertyTypeRequest = { code: string, display_name: string }
+
+CreateTagRequest = { id: string | null, display_name: string }  // auto-generated slug if null
+UpdateTagRequest = { display_name: string }                      // id is immutable
 
 ### Response types
 
@@ -410,6 +421,10 @@ TransactionTypeListResponse = [TransactionTypeInfo]
 #### Property Types
 PropertyTypeResponse = PropertyTypeInfo
 PropertyTypeListResponse = [PropertyTypeInfo]
+
+#### Tags
+TagResponse = TagInfo
+TagListResponse = [TagInfo]
 
 #### Geography
 CityListResponse = [Province]
@@ -590,6 +605,38 @@ Response: PropertyTypeResponse
 
 DELETE /property-types/{id}
 Desc: Delete property type
+Rules: ADMIN
+Response: 204 No Content
+
+---
+
+## Tags
+Prefix: `/tags`
+
+GET /tags
+Desc: List all tags
+Rules: Authenticated
+Response: TagListResponse
+
+POST /tags
+Desc: Create tag
+Rules: ADMIN
+Request: CreateTagRequest
+Response: TagResponse
+
+GET /tags/{tag_id}
+Desc: Get tag by id
+Rules: Authenticated
+Response: TagResponse
+
+PUT /tags/{tag_id}
+Desc: Update tag
+Rules: ADMIN
+Request: UpdateTagRequest
+Response: TagResponse
+
+DELETE /tags/{tag_id}
+Desc: Delete tag
 Rules: ADMIN
 Response: 204 No Content
 

@@ -2,7 +2,7 @@
 
 ## Overview
 
-Admin-only configuration screen for managing platform settings. Consists of 3 tabs.
+Admin-only configuration screen for managing platform settings. Consists of 4 tabs.
 
 **Route:** `/cau-hinh-he-thong`
 
@@ -13,10 +13,11 @@ Admin-only configuration screen for managing platform settings. Consists of 3 ta
 ## Page Layout
 
 - Page title: "Cấu hình hệ thống" (System Configuration)
-- Three tabs to switch between data groups:
+- Four tabs to switch between data groups:
   1. **Organizations** (shown by default)
   2. **Transaction Types**
   3. **Property Types**
+  4. **Tags**
 - Each tab has its own data table.
 - All add/edit/delete operations use pop-up dialogs.
 
@@ -143,6 +144,41 @@ Table displays:
 
 ---
 
+## Tab 4 — Tags (Nhãn)
+
+### Purpose
+Manage the list of tags/labels used to categorize and filter properties.
+
+### Actions
+
+#### View list
+Table displays:
+- Slug (auto-generated ID from display_name)
+- Display Name
+- Created Date
+- Actions (Edit / Delete)
+
+#### Add new tag
+1. Click **"Add Tag"** button.
+2. Pop-up with fields:
+   - **Display Name**: Vietnamese name (e.g. `Trung tâm`, `Mặt tiền`)
+   - **Slug** (optional): system identifier, auto-generated from display_name if left empty (e.g. `trung-tam`, `mat-tien`)
+3. Click **"Create Tag"** to save.
+
+#### Edit / Delete
+- Edit: click Edit button, modify display name, click **"Save Changes"**.
+- Delete: click Delete button, confirm, click **"Delete"**.
+
+### Screen States
+
+Same as previous tabs (Idle / Loading / Empty / Validation Error / Network Error).
+
+**Special — Delete Blocked:**
+- If the tag is referenced by a property, it cannot be deleted.
+- Toast shows: *"Cannot delete this tag — it is currently in use by one or more properties"*
+
+---
+
 ## General Rules
 
 ### Tab Switching
@@ -155,4 +191,5 @@ Table displays:
 ### Delete Protection
 - An Organization cannot be deleted if it still has users assigned to it.
 - A Transaction Type or Property Type cannot be deleted if it is referenced by an Organization.
+- A Tag cannot be deleted if it is referenced by a Property.
 - The system shows a specific reason when a delete is blocked.

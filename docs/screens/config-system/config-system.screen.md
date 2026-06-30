@@ -2,7 +2,7 @@
 
 ## Overview
 
-Admin-only configuration screen for managing system entities. Uses a tabbed interface with 3 tabs: Tổ chức (Organizations), Loại giao dịch (Transaction Types), Loại bất động sản (Property Types).
+Admin-only configuration screen for managing system entities. Uses a tabbed interface with 4 tabs: Tổ chức (Organizations), Loại giao dịch (Transaction Types), Loại bất động sản (Property Types), Nhãn (Tags).
 
 ### Route
 `/cau-hinh-he-thong`
@@ -12,10 +12,11 @@ Admin-only configuration screen for managing system entities. Uses a tabbed inte
 
 ### Page Layout
 - `PageHeader` with title "Cấu hình hệ thống"
-- Tabs component (`Tabs` from shadcn/ui) with 3 tab triggers:
+- Tabs component (`Tabs` from shadcn/ui) with 4 tab triggers:
   - "Tổ chức" (default, index 0)
   - "Loại giao dịch"
   - "Loại bất động sản"
+  - "Nhãn"
 - Each tab contains a data table with entity-specific columns and action buttons
 - Create/Edit operations open modal `Dialog` components
 - Delete operations open confirmation `Dialog`
@@ -421,6 +422,125 @@ Delete Endpoint.
 
 ---
 
+# Tab 4 — Quản lý nhãn (Tags)
+
+## APIs
+
+### GET /api/v1/tags/
+
+List Endpoint.
+
+**Response (200)**
+```json
+[
+  {
+    "id": "trung-tam",
+    "display_name": "Trung tâm",
+    "created_at": "2026-06-25T10:00:00",
+    "updated_at": "2026-06-25T10:00:00"
+  }
+]
+```
+
+### POST /api/v1/tags/
+
+Create Endpoint.
+
+| Field | Type | Required | Constraints |
+|-------|------|----------|-------------|
+| `id` | string | no | custom slug; auto-generated from display_name if null |
+| `display_name` | string | yes | UI display name |
+
+**Request**
+```json
+{
+  "id": null,
+  "display_name": "Trung tâm"
+}
+```
+
+**Response (201)**
+```json
+{
+  "id": "trung-tam",
+  "display_name": "Trung tâm",
+  "created_at": "2026-06-25T10:00:00",
+  "updated_at": "2026-06-25T10:00:00"
+}
+```
+
+### GET /api/v1/tags/{tag_id}
+
+Get Endpoint.
+
+### PUT /api/v1/tags/{tag_id}
+
+Update Endpoint.
+
+| Field | Type | Required | Constraints |
+|-------|------|----------|-------------|
+| `display_name` | string | yes | UI display name (id/slug is immutable) |
+
+**Response (200)** — Same `TagResponse`.
+
+### DELETE /api/v1/tags/{tag_id}
+
+Delete Endpoint.
+
+**Response (204)** — No content.
+
+---
+
+## Screen States — Tags Tab
+
+### Idle
+- DataTable with columns:
+  | Slug (id) | Tên hiển thị | Ngày tạo | Thao tác |
+  |-----------|---------------|----------|----------|
+- Actions: Edit (Pencil), Delete (Trash2)
+- Header action: "Thêm nhãn" Button (Plus icon)
+- Pagination at bottom if > 1 page
+
+### Loading
+- Table skeleton: 5 rows of shimmer placeholders
+
+### Empty
+- `<EmptyState>` with icon `Tag`
+- Message: "Chưa có nhãn nào"
+- Action: "Thêm nhãn" button
+
+### Dialog — Create Tag
+- Title: "Thêm nhãn mới"
+- Fields:
+  - `display_name` (Input) — text, placeholder "Nhập tên nhãn, ví dụ: Trung tâm"
+  - `slug` (Input) — text, placeholder "Để trống để tự động tạo từ tên nhãn, ví dụ: trung-tam" (optional)
+- Slug auto-filled if left empty: lowercase, replace spaces with hyphens, remove accents
+- Submit: "Tạo nhãn" / "Đang tạo..."
+- Cancel: "Hủy"
+
+### Dialog — Edit Tag
+- Title: "Chỉnh sửa nhãn"
+- Same form, pre-filled (slug field read-only/disabled)
+- Submit: "Lưu thay đổi" / "Đang lưu..."
+
+### Dialog — Delete Confirmation
+- Title: "Xóa nhãn"
+- Message: "Bạn có chắc chắn muốn xóa nhãn **[display_name]**? Hành động này không thể hoàn tác."
+- Two buttons: "Hủy", "Xóa" (destructive)
+
+### Error — Validation (422)
+- Field-level inline errors
+- Top banner: "Vui lòng kiểm tra lại thông tin"
+
+### Error — Network / Server Error
+- Toast: "Không thể kết nối đến máy chủ. Vui lòng thử lại."
+
+### Error — Conflict (Delete blocked by Property reference)
+- Toast: "Không thể xóa nhãn này vì đang được bất động sản sử dụng"
+- Dialog closes
+
+---
+
 # Shared Behaviors
 
 ### Tab Switching
@@ -430,7 +550,7 @@ Delete Endpoint.
 - No navigation (same route, tab state managed internally)
 
 ### Pagination
-- All 3 list endpoints may return large datasets
+- All 4 list endpoints may return large datasets
 - Pagination state per tab: `page`, `size` (default 20)
 - Prev/Next buttons + page number buttons + ellipsis for large page counts
 - Page size fixed at 20 (no page size selector)
@@ -448,4 +568,4 @@ Delete Endpoint.
 All list endpoints return a flat JSON array (not paginated wrapper). Pagination UI may be omitted initially depending on actual data volume.
 
 ### Delete Conflict
-The API may return a 409 Conflict or 422 Validation error when attempting to delete a Transaction Type or Property Type that is referenced by an Organization. The frontend interprets this as a "cannot delete, in use" error and shows the appropriate toast.
+The API may return a 409 Conflict or 422 Validation error when attempting to delete a Transaction Type or Property Type that is referenced by an Organization, or a Tag referenced by a Property. The frontend interprets this as a "cannot delete, in use" error and shows the appropriate toast.

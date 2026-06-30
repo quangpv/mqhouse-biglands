@@ -19,7 +19,7 @@ techstack:
   build-tools:
     - Vite
   icons:
-    - Lucide (CSS class names)
+    - Lucide (icon components)
 ---
 
 # Frontend Development Skill
@@ -36,7 +36,7 @@ Three-layer architecture enforcing View → Facade → Data dependency flow. Eve
 src/
 ├─ platform/                           # HTTP client, Query client, persistence
 ├─ data/                               # Data Layer
-│  ├─ queries/                         # <feature>Queries.ts — query key factories
+│  ├─ queries/                         # <feature>Queries.ts — query key factories + reusable use<Feature>Query hooks (useQuery only). Must NOT contain useMutation — mutations belong in facade action hooks.
 │  ├─ repositories/                    # <feature>Repository.ts — API calls, return DTOs
 │  ├─ types/                           # <Name>DTO type files
 │  └─ utils/                           # serialization, deserialization at API boundary
@@ -108,7 +108,7 @@ Default: hooks + context. Introduce external state only when:
 - DO use Lucide icon components for all icons. Replace SVG icons with the matching Lucide component whenever available; otherwise, extract the SVG into a dedicated component at `shared/components/icons/<Name>Icon.tsx`.
 - DO call `mutate(data)` unconditionally — guards and branching belong in facade; pass raw event arguments only — never compute mutation payloads, arrays, or derived data in View; View may read mutation result for local UI state resets only (eg. mode, dirty flags, selection) — server side effects (eg. navigate, toast) stay in action hook
 - DO read error/loading state from facade; show retry UI
-- NEVER use `useState`, `useReducer`, or mutable refs in page components
+- NEVER use `useState`, `useReducer`, `useForm` or mutable refs in page components
 - Context providers in `shared/context/` are View layer
   - **Component Context providers**: eg. Toast, Notification, Modal,...
   - **Domain Context providers**: (eg. Auth,...) follow all View rules above (facade hooks only, no API/DTO/fetch); export shared context `use<Name>Context`; do NOT place business logic, side effects, or data fetching in context; NEVER put mutation logic in shared context.
@@ -126,8 +126,10 @@ Default: hooks + context. Introduce external state only when:
 - NEVER skip layers (no direct `httpClient` calls in facades)
 - NEVER create combined facade hooks that import both state and action hooks
 
-##### `pages/<feature>/types.ts` (zod schemas)
-- Feature validation via zod schemas defined directly in `types.ts` alongside `I<Name>` types
+##### `pages/<feature>/types.ts` (zod schemas + UI types)
+- For form data, define zod schemas as the **single source of truth** for validation and shape
+- Derive `I<Name>` form types from the schema using `z.infer<typeof schema>`
+- Keep additional UI-only fields (e.g., `rememberMe`, `confirmPassword`) in the schema alongside validation rules
 - Facades import zod schemas for form validation — no hook wrapper needed since zod is pure functions
 - NEVER import from `facades/`, View components, or Data layer
 
@@ -143,12 +145,12 @@ Variables should be named in English consistently.
 
 | Pattern | Convention | Example          |
 |---------|-----------|------------------|
-| UI Types | `I<Name>` | `IUser`          |
-| DTO Types | `<Name>DTO` (in `<name>.dto.ts`) | `UserDTO`        |
-| State Hook | `use<Feature>State` | `useUserState`   |
-| Action Hook | `use<Action><Feature>` | `useCreateUser`  |
-| Mapper Hook | `use<Feature>Mapper` | `useUserMapper`  |
-| Zod Schemas | Defined in `types.ts` | `userSchema`, `UserFormData` |
+| Display Types | `I<Name>` (plain interface) | `ITransactionType` |
+| DTO Types | `<Name>DTO` (in `<name>.dto.ts`) | `UserDTO` |
+| Form Types | Schema + `z.infer<typeof schema>` in `types.ts` | `loginSchema`, `ILoginForm = z.infer<typeof loginSchema>` |
+| State Hook | `use<Feature>State` | `useUserState` |
+| Action Hook | `use<Action><Feature>` | `useCreateUser` |
+| Mapper Hook | `use<Feature>Mapper` | `useUserMapper` |
 | Page | `<Name>Page` | `UsersPage`      |
 | Repository | `<name>Repository` | `userRepository` |
 | Query Keys | `<name>Queries` | `userQueries`    |
@@ -172,9 +174,10 @@ Variables should be named in English consistently.
 - **ALWAYS** go View → Facade → Repository → Platform — never skip layers
 - **ALWAYS** isolate features under `pages/<feature>/` — no cross-feature imports between facades
 - **ALWAYS** call `mutate(data)` unconditionally from View — guards in facade only
-- **ALWAYS** use Lucide CSS class names (`lucide lucide-{name}`) for icons
+- **ALWAYS** use Lucide icon components (`import { IconName } from "lucide-react"`)
 - **ALWAYS** use `@/` alias for cross-directory imports
 - **NEVER** use `useState`/`useReducer` in page components
 - **NEVER** import DTO types in View
 - **NEVER** call `httpClient` outside `platform/`
 - **NEVER** construct DTO types in facade hooks — delegate to mapper
+- **ALWAYS** derive `I<Name>` from zod schema via `z.infer<typeof schema>` — never manually redefining fields
