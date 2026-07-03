@@ -357,13 +357,13 @@ ApprovalRequestDetail = {
 	customer_phone: string | null
 	contract_date: Date | null
 	file_ids: UUID[]
-	old_values: { [key: string]: any } | null
+	changed_fields: { [key: string]: { old: any, new: any } } | null
 }
 
-// old_values: populated only for EDIT_PENDING approvals.
-// Contains property field values before the edit was applied.
-// Frontend should diff against current property values in ApprovalResponse.property.
-// Example: { "price": 1000000000, "title": "Old Title", "area_width": 5.0 }
+// changed_fields: populated for EDIT_PENDING approvals.
+// Contains property field changes with old and new values.
+// Frontend should render diff table from this.
+// Example: { "price": { "old": 1000000000, "new": 5000000000 }, "title": { "old": "Old Title", "new": "New Title" } }
 
 DecisionInfo = {
 	decided_by: CreatorInfo
@@ -971,11 +971,6 @@ Desc: List my notifications
 Rules: Authenticated
 Params: NotificationListParams
 Response: NotificationListResponse
-
-GET /notifications/unread-count
-Desc: Get unread notification count
-Rules: Authenticated
-Response: NotificationCountResponse
 
 PATCH /notifications/{id}/read
 Desc: Mark notification as read

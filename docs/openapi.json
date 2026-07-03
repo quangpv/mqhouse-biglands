@@ -3774,32 +3774,6 @@
         }
       }
     },
-    "/notifications/unread-count": {
-      "get": {
-        "tags": [
-          "notifications"
-        ],
-        "summary": "Unread Count Endpoint",
-        "operationId": "unread_count_endpoint_notifications_unread_count_get",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/NotificationCountResponse"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ]
-      }
-    },
     "/notifications/{id}/read": {
       "patch": {
         "tags": [
@@ -4007,17 +3981,20 @@
             "title": "File Ids",
             "default": []
           },
-          "old_values": {
+          "changed_fields": {
             "anyOf": [
               {
-                "additionalProperties": true,
+                "additionalProperties": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
                 "type": "object"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Old Values"
+            "title": "Changed Fields"
           }
         },
         "type": "object",

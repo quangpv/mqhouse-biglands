@@ -13,7 +13,7 @@ Visible on `lg+` screens (`w-64`), fixed height, scrollable.
 | Section | Items | Icon |
 |---------|-------|------|
 | Brand | Logo + "Biglands CRM" | home |
-| Hệ thống | Trang chủ, Giỏ hàng, Thông báo, Quản lý người dùng, Cấu hình hệ thống | layout-dashboard, shopping-cart, bell, users, settings |
+| Hệ thống | Trang chủ, Giỏ hàng, Phê duyệt, Thông báo, Quản lý người dùng, Cấu hình hệ thống | layout-dashboard, shopping-cart, check-circle, bell, users, settings |
 | Duyệt sản phẩm | Bán, Cho thuê, Sang nhượng (each expandable) | badge-dollar-sign, key-round, git-compare |
 
 Each expandable group (Bán / Cho thuê / Sang nhượng) contains:
@@ -121,10 +121,6 @@ Dropdown panel triggered by notification bell in topbar.
 ```
 GET /notifications
 Params: { page: 1, size: 20, is_read: null }
-```
-
-```
-GET /notifications/unread-count
 ```
 
 ```
@@ -262,11 +258,12 @@ Client-side routing system mapping route keys to HTML partials.
 | `trang-chu` | `home/home_content.html` | Dashboard |
 | `gio-hang` | `my-cart/my-cart.html` | My cart |
 | `thong-bao` | `notification/notification-content.html` | Notifications |
+| `phe-duyet` | `approvals/approvals-content.html` | Approvals |
 | `quan-ly-nguoi-dung` | `user-management/user-management-content.html` | User management |
 | `chi-tiet-san-pham` | `product-details/product-details-content.html` | Property detail |
 | `them-hang` | `create-product/create-product-content.html` | Create property |
 | `cau-hinh-he-thong` | `config-system/config-system.content.html` | System config |
-| `ban-*`, `thue-*`, `sangnhuong-*` | `review-products/review-products-content.html` | Review products |
+| `ban-*`, `thue-*`, `sangnhuong-*` | `approve-products/approve-products-content.html` | Approve products |
 
 ### States
 

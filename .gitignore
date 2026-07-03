@@ -2,3 +2,5 @@
 crawler.py
 .idea
 .ai/plans
+.opencode
+.playwright-mcp/

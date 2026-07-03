@@ -123,6 +123,7 @@ Default: hooks + context. Introduce external state only when:
 - **Action hooks** — own business operations that mutate server state: validate via zod → mapper.toPayload() → repository.mutate() → queryClient.invalidateQueries() → side effects. Use `useMutation` with `onSuccess`/`onError`. Mutation-triggered side effects (eg. `navigate`, `showToast`) belong EXCLUSIVELY in action hooks — View must NOT call them after `mutate`. Never rethrow errors to View. NEVER Multiple mutations combined in a single facade hook (e.g., `useAuthActions` with login + register + logout)
     - Error handling: return errors View needs to display (eg. validation errors) from the action hook; handle flow error internally (eg. fire toast/notification for API/mutation errors). NEVER accept error callbacks.
 - **Mapper hooks** — sole owner of DTO↔UI transformation both directions; carry raw DTO + derived display fields; depend only on DTO/UI types, shared context, shared utils; NEVER import from View components
+  - `I<Name>` fields are **always camelCase**; DTO fields match the API. When the backend uses a different case (e.g., Python's snake_case), the mapper converts both directions — DTO→UI on reads, UI→DTO on mutation payloads.
 - NEVER skip layers (no direct `httpClient` calls in facades)
 - NEVER create combined facade hooks that import both state and action hooks
 
@@ -135,7 +136,7 @@ Default: hooks + context. Introduce external state only when:
 
 #### Data Layer
 - Repositories call API via platform only, return DTOs — no UI types
-- DTOs: one file per entity in `data/types/<entity>.dto.ts`, type-only
+- DTOs: one file per entity in `data/types/<entity>.dto.ts`, type-only; field names mirror the API (snake_case for Python/Django, camelCase for Node.js) — never required to be camelCase
 - Platform: feature-agnostic, normalize errors to `ApiError`, retry with exponential backoff
 - Query key factories: start simple (`{ all, me }`), graduate to hierarchical (`{ all, lists(), details() }`) when needed
 
@@ -145,7 +146,7 @@ Variables should be named in English consistently.
 
 | Pattern | Convention | Example          |
 |---------|-----------|------------------|
-| Display Types | `I<Name>` (plain interface) | `ITransactionType` |
+| Display Types | `I<Name>` (type alias, `I` prefix convention) | `ITransactionType` |
 | DTO Types | `<Name>DTO` (in `<name>.dto.ts`) | `UserDTO` |
 | Form Types | Schema + `z.infer<typeof schema>` in `types.ts` | `loginSchema`, `ILoginForm = z.infer<typeof loginSchema>` |
 | State Hook | `use<Feature>State` | `useUserState` |
@@ -154,6 +155,8 @@ Variables should be named in English consistently.
 | Page | `<Name>Page` | `UsersPage`      |
 | Repository | `<name>Repository` | `userRepository` |
 | Query Keys | `<name>Queries` | `userQueries`    |
+| UI Model Fields | `camelCase` — always, regardless of backend | `firstName`, `createdAt` |
+| DTO Fields | Match API convention | `first_name` (Python), `firstName` (Node.js) |
 
 ### Imports
 
@@ -181,3 +184,4 @@ Variables should be named in English consistently.
 - **NEVER** call `httpClient` outside `platform/`
 - **NEVER** construct DTO types in facade hooks — delegate to mapper
 - **ALWAYS** derive `I<Name>` from zod schema via `z.infer<typeof schema>` — never manually redefining fields
+- **ALWAYS** use camelCase for `I<Name>` fields; DTO naming follows the API; mapper bridges any case mismatch
