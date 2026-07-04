@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RealtyShare CRM - Hệ thống Chia sẻ Bất động sản</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2563EB',
+                        background: '#F8FAFC',
+                        surface: '#FFFFFF',
+                        border: '#E2E8F0',
+                        'text-primary': '#0F172A',
+                        'text-secondary': '#64748B',
+                        success: '#16A34A',
+                        warning: '#F59E0B',
+                        error: '#DC2626'
+                    },
+                    borderRadius: {
+                        card: '16px',
+                        btn: '12px',
+                        input: '10px',
+                        modal: '20px'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F8FAFC;
+            color: #0F172A;
+        }
+        /* Custom scrollbar for cleaner look */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #CBD5E1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94A3B8;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased">
+
+    <header class="bg-white border-b border-[#E2E8F0] sticky top-0 z-40 transition-shadow duration-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="bg-[#2563EB]/10 text-[#2563EB] p-2.5 rounded-[12px]">
+                    <i data-lucide="home" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <span class="text-[20px] font-semibold text-[#0F172A] block leading-none">RealtyShare</span>
+                    <span class="text-[12px] text-[#64748B] font-medium tracking-wide">CRM PORTAL</span>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                <div class="hidden md:flex flex-col text-right">
+                    <span class="text-[14px] font-semibold text-[#0F172A]">Nguyễn Văn Minh</span>
+                    <span class="text-[12px] text-[#16A34A] font-medium flex items-center justify-end">
+                        <span class="w-1.5 h-1.5 bg-[#16A34A] rounded-full mr-1.5 animate-pulse"></span>
+                        Đang hoạt động
+                    </span>
+                </div>
+                <img class="w-10 h-10 rounded-full object-cover border border-[#E2E8F0]" 
+                     src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80" 
+                     alt="Broker Avatar">
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 flex flex-col lg:flex-row gap-6">
+        
+        <!-- Left Side: Property Listings & Search -->
+        <div class="w-full lg:w-5/12 xl:w-4/12 flex flex-col space-y-4">
+            <!-- Search & Filter Area -->
+            <div class="bg-white rounded-[16px] p-4 border border-[#E2E8F0] shadow-sm">
+                <h2 class="text-[20px] font-semibold text-[#0F172A] mb-3">Kho hàng BĐS</h2>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-[#64748B]">
+                        <i data-lucide="search" class="w-4 h-4"></i>
+                    </span>
+                    <input id="searchInput" type="text" 
+                           placeholder="Tìm kiếm địa chỉ, dự án..." 
+                           class="w-full pl-9 pr-4 py-2 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[10px] text-[14px] text-[#0F172A] placeholder-[#64748B] focus:outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] transition-colors duration-150">
+                </div>
+            </div>
+
+            <!-- Property List Container -->
+            <div class="space-y-3 overflow-y-auto max-h-[calc(100vh-240px)] pr-1" id="propertiesContainer">
+                <!-- Dynamically populated via JS -->
+            </div>
+        </div>
+
+        <div class="w-full lg:w-7/12 xl:w-8/12 flex flex-col">
+            <div id="shareConsole" class="bg-white rounded-[16px] border border-[#E2E8F0] shadow-sm flex flex-col h-full overflow-hidden min-h-[500px]">
+                
+                <!-- Share Console Header -->
+                <div class="p-6 border-b border-[#E2E8F0] bg-[#FFFFFF]">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[12px] font-medium bg-[#2563EB]/10 text-[#2563EB] mb-2" id="consoleTypeBadge">
+                                Căn hộ dịch vụ
+                            </span>
+                            <h1 class="text-[24px] font-semibold text-[#0F172A] leading-tight" id="consoleTitle">
+                                Nguyễn Trọng Tuyển, Q. Phú Nhuận
+                            </h1>
+                            <p class="text-[14px] text-[#64748B] mt-1" id="consoleSubtitle">
+                                Chọn thông tin cần chia sẻ bên dưới để sao chép hoặc chia sẻ hình ảnh
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Segmented Tabs for Sharing Options -->
+                    <div class="flex mt-6 bg-[#F8FAFC] p-1 rounded-[12px] border border-[#E2E8F0]">
+                        <button id="tabTextBtn" onclick="switchTab('text')" 
+                                class="flex-1 py-2 text-[14px] font-medium rounded-[10px] transition-all duration-150 flex items-center justify-center gap-2 bg-white text-[#2563EB] shadow-sm">
+                            <i data-lucide="copy" class="w-4 h-4"></i>
+                            Chia sẻ văn bản
+                        </button>
+                        <button id="tabImagesBtn" onclick="switchTab('images')" 
+                                class="flex-1 py-2 text-[14px] font-medium rounded-[10px] transition-all duration-150 flex items-center justify-center gap-2 text-[#64748B] hover:text-[#0F172A]">
+                            <i data-lucide="image" class="w-4 h-4"></i>
+                            Chia sẻ hình ảnh
+                            <span id="selectedImagesCountBadge" class="hidden ml-1 px-1.5 py-0.5 text-[11px] font-semibold bg-[#2563EB] text-white rounded-full">0</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="textSharingView" class="p-6 space-y-6 flex-grow overflow-y-auto">
+                    <div>
+                        <h3 class="text-[14px] font-semibold text-[#64748B] uppercase tracking-wider mb-3">Thông tin có thể chia sẻ</h3>
+                        <div class="space-y-2" id="infoRowList">
+                            <!-- Dynamic checklist rows go here -->
+                        </div>
+                    </div>
+
+                    <!-- Rich Text Preview area -->
+                    <div class="bg-[#F8FAFC] border border-[#E2E8F0] rounded-[16px] p-5 relative">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="text-[12px] font-semibold text-[#64748B] uppercase tracking-wider">Xem trước nội dung sao chép</h3>
+                            <span class="text-[11px] text-[#2563EB] bg-[#2563EB]/10 px-2 py-0.5 rounded-full font-medium">Bản nháp tự động</span>
+                        </div>
+                        <pre id="textPreview" class="text-[14px] font-mono text-[#0F172A] whitespace-pre-wrap break-words leading-relaxed bg-white border border-[#E2E8F0] p-4 rounded-[12px] min-h-[140px] max-h-[300px] overflow-y-auto">
+🏡 Địa chỉ: Nguyễn Trọng Tuyển, Phường 15, Quận Phú Nhuận, Hồ Chí Minh
+
+🏠 Thông tin: CHDV, 360.000.000đ
+
+📐 Đặc điểm: 80m², 4x20m, 8 phòng ngủ, 8 WC, 4 tầng
+                        </pre>
+                    </div>
+                </div>
+
+                <div id="imageSharingView" class="p-6 space-y-4 flex-grow overflow-y-auto hidden">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-[14px] font-semibold text-[#64748B] uppercase tracking-wider">Chọn hình ảnh muốn gửi</h3>
+                            <p class="text-[12px] text-[#64748B]">Tối đa 10 ảnh. Hãy click chọn theo thứ tự bạn muốn chia sẻ.</p>
+                        </div>
+                        <span class="text-[14px] font-semibold text-[#2563EB]" id="imageCounter">
+                            Đã chọn: 0/10
+                        </span>
+                    </div>
+
+                    <div id="imageSelectorGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                        <!-- Dynamic image grid cards go here -->
+                    </div>
+                </div>
+
+                <!-- Console Action Footer -->
+                <div class="p-6 border-t border-[#E2E8F0] bg-[#FFFFFF] flex items-center justify-end space-x-3">
+                    <div class="text-[12px] text-[#64748B] mr-auto hidden sm:block">
+                        <span class="font-medium text-[#0F172A]">Mẹo:</span> Copy xong là có thể paste trực tiếp vào Zalo, Viber hoặc Messenger.
+                    </div>
+                    
+                    <!-- Copy Button (Always visible on text tab) -->
+                    <button id="copyTextBtn" onclick="handleCopyText()" 
+                            class="w-full sm:w-auto bg-[#2563EB] text-white px-5 py-3 rounded-[12px] text-[14px] font-semibold flex items-center justify-center gap-2 hover:bg-[#1D4ED8] active:scale-[0.98] transition-all duration-150 shadow-sm shadow-[#2563EB]/20">
+                        <i data-lucide="copy" class="w-4 h-4"></i>
+                        <span>Sao chép thông tin</span>
+                    </button>
+
+                    <!-- Share Images Button (Hidden initially, visible on images tab) -->
+                    <button id="shareImagesBtn" onclick="handleShareImages()" 
+                            class="w-full sm:w-auto bg-[#2563EB] text-white px-5 py-3 rounded-[12px] text-[14px] font-semibold flex items-center justify-center gap-2 hover:bg-[#1D4ED8] active:scale-[0.98] transition-all duration-150 shadow-sm shadow-[#2563EB]/20 hidden">
+                        <i data-lucide="share-2" class="w-4 h-4"></i>
+                        <span>Chia sẻ hình ảnh</span>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+
+    <div id="toastContainer" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none">
+        <!-- Dynmically appended toasts will appear here -->
+    </div>
+
+    <div id="shareModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white w-full max-w-md rounded-[20px] shadow-xl border border-[#E2E8F0] overflow-hidden transform scale-95 opacity-0 transition-all duration-200" id="shareModalContent">
+            <div class="p-5 border-b border-[#E2E8F0] flex items-center justify-between">
+                <h3 class="text-[18px] font-semibold text-[#0F172A]">Chia sẻ qua ứng dụng</h3>
+                <button onclick="closeShareModal()" class="text-[#64748B] hover:text-[#0F172A] p-1.5 rounded-full hover:bg-[#F8FAFC]">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <div class="p-6 space-y-5">
+                <div class="flex items-center justify-between bg-[#F8FAFC] p-3 rounded-[12px] border border-[#E2E8F0]">
+                    <div class="flex items-center space-x-2">
+                        <i data-lucide="check-circle" class="w-5 h-5 text-[#16A34A]"></i>
+                        <span class="text-[14px] font-medium text-[#0F172A]">Số hình ảnh chuẩn bị gửi:</span>
+                    </div>
+                    <span id="modalSelectedCount" class="text-[14px] font-bold text-[#2563EB] bg-[#2563EB]/10 px-3 py-1 rounded-full">
+                        5 ảnh
+                    </span>
+                </div>
+
+                <p class="text-[12px] text-[#64748B]">Bấm vào ứng dụng bất kì để tiến hành mở giao diện gửi tin:</p>
+
+                <div class="grid grid-cols-4 gap-4 text-center">
+                    <button onclick="simulateChannelShare('Zalo')" class="flex flex-col items-center justify-center group focus:outline-none">
+                        <div class="w-12 h-12 bg-[#2563EB]/10 rounded-full flex items-center justify-center text-[#2563EB] group-hover:scale-110 transition-transform duration-150">
+                            <span class="font-bold text-[18px]">Z</span>
+                        </div>
+                        <span class="text-[12px] text-[#64748B] mt-2 group-hover:text-[#0F172A] font-medium">Zalo</span>
+                    </button>
+                    <button onclick="simulateChannelShare('Messenger')" class="flex flex-col items-center justify-center group focus:outline-none">
+                        <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 group-hover:scale-110 transition-transform duration-150">
+                            <i data-lucide="message-circle" class="w-6 h-6"></i>
+                        </div>
+                        <span class="text-[12px] text-[#64748B] mt-2 group-hover:text-[#0F172A] font-medium">Messenger</span>
+                    </button>
+                    <button onclick="simulateChannelShare('Telegram')" class="flex flex-col items-center justify-center group focus:outline-none">
+                        <div class="w-12 h-12 bg-sky-100 rounded-full flex items-center justify-center text-sky-500 group-hover:scale-110 transition-transform duration-150">
+                            <i data-lucide="send" class="w-6 h-6"></i>
+                        </div>
+                        <span class="text-[12px] text-[#64748B] mt-2 group-hover:text-[#0F172A] font-medium">Telegram</span>
+                    </button>
+                    <button onclick="simulateCopyImageLinks()" class="flex flex-col items-center justify-center group focus:outline-none">
+                        <div class="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center text-slate-700 group-hover:scale-110 transition-transform duration-150">
+                            <i data-lucide="link-2" class="w-6 h-6"></i>
+                        </div>
+                        <span class="text-[12px] text-[#64748B] mt-2 group-hover:text-[#0F172A] font-medium">Copy links</span>
+                    </button>
+                </div>
+                
+                <div class="pt-4 border-t border-[#E2E8F0]">
+                    <button onclick="nativeShareFilesFallback()" class="w-full bg-[#F8FAFC] border border-[#E2E8F0] hover:bg-[#F1F5F9] py-2.5 rounded-[12px] text-[13px] font-semibold text-[#0F172A] flex items-center justify-center gap-2">
+                        <i data-lucide="external-link" class="w-4 h-4"></i>
+                        Mở cổng chia sẻ hệ điều hành
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <textarea id="clipboardBuffer" class="absolute -top-[9999px] left-0 pointer-events-none opacity-0"></textarea>
+
+    <script>
+        // Real-world, high-quality, actual real estate images curated from Unsplash
+        const unpslashPool = [
+            "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=600&q=80",
+            "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=600&q=80",
+            "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=600&q=80",
+            "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=600&q=80",
+            "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=600&q=80",
+            "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=600&q=80",
+            "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=600&q=80",
+            "https://images.unsplash.com/photo-1617806118233-18e1db207f62?auto=format&fit=crop&w=600&q=80",
+            "https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?auto=format&fit=crop&w=600&q=80",
+            "https://images.unsplash.com/photo-1533777857889-4be7c70b33f7?auto=format&fit=crop&w=600&q=80",
+            "https://images.unsplash.com/photo-1558036117-15d82a90b9b1?auto=format&fit=crop&w=600&q=80",
+            "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=600&q=80"
+        ];
+
+        // 6 Premium Real-World Real estate Vietnamese listings
+        const propertiesData = [
+            {
+                id: "p1",
+                title: "Căn hộ dịch vụ Phú Nhuận Nguyễn Trọng Tuyển",
+                address: "Nguyễn Trọng Tuyển, Phường 15, Quận Phú Nhuận, Hồ Chí Minh",
+                type: "CHDV",
+                price: "360.000.000đ",
+                features: "80m², 4x20m, 8 phòng ngủ, 8 WC, 4 tầng",
+                direction: "Bắc",
+                frontage: "Mặt tiền",
+                thumbnail: unpslashPool[0],
+                images: [
+                    unpslashPool[0],
+                    unpslashPool[2],
+                    unpslashPool[3],
+                    unpslashPool[4],
+                    unpslashPool[5],
+                    unpslashPool[7],
+                    unpslashPool[8],
+                    unpslashPool[11]
+                ]
+            },
+            {
+                id: "p2",
+                title: "Biệt thự Lê Văn Sỹ Quận Tân Bình",
+                address: "Lê Văn Sỹ, Phường 1, Quận Tân Bình, Hồ Chí Minh",
+                type: "Biệt thự",
+                price: "120.000.000đ/tháng",
+                features: "120m², 6x20m, 5 phòng ngủ, 6 WC, 3 tầng",
+                direction: "Đông Nam",
+                frontage: "Hẻm xe hơi 6m",
+                thumbnail: unpslashPool[1],
+                images: [
+                    unpslashPool[1],
+                    unpslashPool[3],
+                    unpslashPool[7],
+                    unpslashPool[8],
+                    unpslashPool[10],
+                    unpslashPool[11]
+                ]
+            },
+            {
+                id: "p3",
+                title: "Căn hộ Vinhomes View Sông Nguyễn Hữu Cảnh",
+                address: "Nguyễn Hữu Cảnh, Phường 22, Quận Bình Thạnh, Hồ Chí Minh",
+                type: "Căn hộ cao cấp",
+                price: "45.000.000đ/tháng",
+                features: "95m², 3 phòng ngủ, 2 WC, Tầng 28",
+                direction: "Nam",
+                frontage: "Căn góc view trực diện sông",
+                thumbnail: unpslashPool[6],
+                images: [
+                    unpslashPool[6],
+                    unpslashPool[2],
+                    unpslashPool[4],
+                    unpslashPool[5],
+                    unpslashPool[9],
+                    unpslashPool[7]
+                ]
+            },
+            {
+                id: "p4",
+                title: "Nhà phố nguyên căn Cách Mạng Tháng 8",
+                address: "Cách Mạng Tháng 8, Phường 11, Quận 3, Hồ Chí Minh",
+                type: "Nhà phố",
+                price: "85.000.000đ",
+                features: "75m², 5x15m, 4 phòng ngủ, 4 WC, 3 tầng",
+                direction: "Tây Bắc",
+                frontage: "Hẻm 6m thông thoáng",
+                thumbnail: unpslashPool[10],
+                images: [
+                    unpslashPool[10],
+                    unpslashPool[3],
+                    unpslashPool[4],
+                    unpslashPool[5],
+                    unpslashPool[11]
+                ]
+            },
+            {
+                id: "p5",
+                title: "Mặt bằng thương mại Trần Hưng Đạo Q1",
+                address: "Trần Hưng Đạo, Phường Cô Giang, Quận 1, Hồ Chí Minh",
+                type: "Mặt bằng",
+                price: "250.000.000đ",
+                features: "150m², 6x25m, 2 phòng ngủ, 3 WC, 2 tầng",
+                direction: "Tây Nam",
+                frontage: "Mặt tiền đại lộ",
+                thumbnail: unpslashPool[11],
+                images: [
+                    unpslashPool[11],
+                    unpslashPool[2],
+                    unpslashPool[7],
+                    unpslashPool[8],
+                    unpslashPool[9],
+                    unpslashPool[1]
+                ]
+            },
+            {
+                id: "p6",
+                title: "Nhà phố kinh doanh Bạch Đằng",
+                address: "Bạch Đằng, Phường 15, Quận Bình Thạnh, Hồ Chí Minh",
+                type: "Nhà phố",
+                price: "55.000.000đ/tháng",
+                features: "60m², 4x15m, 3 phòng ngủ, 3 WC, 3 tầng",
+                direction: "Đông",
+                frontage: "Mặt tiền đường sầm uất",
+                thumbnail: unpslashPool[8],
+                images: [
+                    unpslashPool[8],
+                    unpslashPool[2],
+                    unpslashPool[3],
+                    unpslashPool[5],
+                    unpslashPool[6]
+                ]
+            }
+        ];
+
+        // State Store
+        let activeProperty = propertiesData[0];
+        let currentTab = "text"; // "text" | "images"
+        let activeSelectedSections = {
+            address: true,
+            propertyInfo: true,
+            features: true,
+            direction: true,
+            frontage: true
+        };
+        let activeSelectedImages = []; // Array of image URLs preserving order
+
+        function showToast(message, type = "success") {
+            const container = document.getElementById("toastContainer");
+            const toast = document.createElement("div");
+            toast.className = `flex items-center space-x-2.5 px-4 py-3 bg-white text-[#0F172A] border rounded-[16px] shadow-lg pointer-events-auto transition-all duration-200 transform translate-y-2 opacity-0 select-none`;
+            
+            let colorBorderClass = "border-l-4 border-l-[#16A34A] border-[#E2E8F0]";
+            let iconCode = `<i data-lucide="check" class="w-5 h-5 text-[#16A34A]"></i>`;
+            
+            if (type === "warning") {
+                colorBorderClass = "border-l-4 border-l-[#F59E0B] border-[#E2E8F0]";
+                iconCode = `<i data-lucide="alert-triangle" class="w-5 h-5 text-[#F59E0B]"></i>`;
+            } else if (type === "error") {
+                colorBorderClass = "border-l-4 border-l-[#DC2626] border-[#E2E8F0]";
+                iconCode = `<i data-lucide="x-circle" class="w-5 h-5 text-[#DC2626]"></i>`;
+            }
+            
+            toast.className += ` ${colorBorderClass}`;
+            toast.innerHTML = `
+                ${iconCode}
+                <span class="text-[14px] font-medium">${message}</span>
+            `;
+            
+            container.appendChild(toast);
+            lucide.createIcons();
+            
+            // Animation trigger
+            setTimeout(() => {
+                toast.classList.remove("translate-y-2", "opacity-0");
+            }, 50);
+
+            // Close duration
+            setTimeout(() => {
+                toast.classList.add("translate-y-2", "opacity-0");
+                setTimeout(() => {
+                    toast.remove();
+                }, 200);
+            }, 3000);
+        }
+
+        function loadPropertyList() {
+            const listContainer = document.getElementById("propertiesContainer");
+            listContainer.innerHTML = "";
+            
+            propertiesData.forEach(p => {
+                const isActive = p.id === activeProperty.id;
+                const card = document.createElement("div");
+                card.id = `card-${p.id}`;
+                card.onclick = () => selectProperty(p.id);
+                card.className = `p-4 rounded-[16px] bg-white border cursor-pointer transition-all duration-150 shadow-sm hover:border-[#2563EB]/40 flex gap-3 ${
+                    isActive ? "border-[#2563EB] ring-1 ring-[#2563EB]" : "border-[#E2E8F0]"
+                }`;
+                
+                card.innerHTML = `
+                    <div class="w-20 h-20 rounded-[12px] overflow-hidden flex-shrink-0 relative bg-slate-100">
+                        <img src="${p.thumbnail}" alt="${p.title}" class="w-full h-full object-cover">
+                        <span class="absolute top-1 left-1 bg-[#2563EB] text-white text-[10px] font-semibold px-1.5 py-0.5 rounded-[6px]">
+                            ${p.type}
+                        </span>
+                    </div>
+                    <div class="flex-grow min-w-0 flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-[14px] font-semibold text-[#0F172A] truncate leading-snug">${p.title}</h3>
+                            <p class="text-[12px] text-[#64748B] truncate mt-0.5 flex items-center">
+                                <i data-lucide="map-pin" class="w-3.5 h-3.5 mr-1 flex-shrink-0 text-[#64748B]"></i>
+                                ${p.address}
+                            </p>
+                        </div>
+                        <div class="flex items-center justify-between mt-1">
+                            <span class="text-[14px] font-bold text-[#2563EB]">${p.price}</span>
+                            <span class="text-[11px] text-[#16A34A] font-semibold bg-[#16A34A]/10 px-2 py-0.5 rounded-full">Sẵn sàng</span>
+                        </div>
+                    </div>
+                `;
+                listContainer.appendChild(card);
+            });
+            lucide.createIcons();
+        }
+
+        // Search mechanism
+        document.getElementById("searchInput").addEventListener("input", function(e) {
+            const query = e.target.value.toLowerCase().trim();
+            propertiesData.forEach(p => {
+                const card = document.getElementById(`card-${p.id}`);
+                const matches = p.title.toLowerCase().includes(query) || 
+                                p.address.toLowerCase().includes(query) || 
+                                p.type.toLowerCase().includes(query);
+                if (matches) {
+                    card.classList.remove("hidden");
+                } else {
+                    card.classList.add("hidden");
+                }
+            });
+        });
+
+        function switchTab(tabName) {
+            currentTab = tabName;
+            const tabTextBtn = document.getElementById("tabTextBtn");
+            const tabImagesBtn = document.getElementById("tabImagesBtn");
+            const textSharingView = document.getElementById("textSharingView");
+            const imageSharingView = document.getElementById("imageSharingView");
+            const copyTextBtn = document.getElementById("copyTextBtn");
+            const shareImagesBtn = document.getElementById("shareImagesBtn");
+
+            if (tabName === "text") {
+                tabTextBtn.className = "flex-1 py-2 text-[14px] font-medium rounded-[10px] transition-all duration-150 flex items-center justify-center gap-2 bg-white text-[#2563EB] shadow-sm";
+                tabImagesBtn.className = "flex-1 py-2 text-[14px] font-medium rounded-[10px] transition-all duration-150 flex items-center justify-center gap-2 text-[#64748B] hover:text-[#0F172A]";
+                textSharingView.classList.remove("hidden");
+                imageSharingView.classList.add("hidden");
+                copyTextBtn.classList.remove("hidden");
+                shareImagesBtn.classList.add("hidden");
+            } else {
+                tabImagesBtn.className = "flex-1 py-2 text-[14px] font-medium rounded-[10px] transition-all duration-150 flex items-center justify-center gap-2 bg-white text-[#2563EB] shadow-sm";
+                tabTextBtn.className = "flex-1 py-2 text-[14px] font-medium rounded-[10px] transition-all duration-150 flex items-center justify-center gap-2 text-[#64748B] hover:text-[#0F172A]";
+                textSharingView.classList.add("hidden");
+                imageSharingView.classList.remove("hidden");
+                copyTextBtn.classList.add("hidden");
+                shareImagesBtn.classList.remove("hidden");
+            }
+        }
+
+        // Switch and load individual property context
+        function selectProperty(id) {
+            const match = propertiesData.find(p => p.id === id);
+            if (!match) return;
+            
+            activeProperty = match;
+            
+            // Reload sidebar list visual focus
+            propertiesData.forEach(p => {
+                const card = document.getElementById(`card-${p.id}`);
+                if (card) {
+                    if (p.id === activeProperty.id) {
+                        card.className = "p-4 rounded-[16px] bg-white border cursor-pointer transition-all duration-150 shadow-sm hover:border-[#2563EB]/40 flex gap-3 border-[#2563EB] ring-1 ring-[#2563EB]";
+                    } else {
+                        card.className = "p-4 rounded-[16px] bg-white border cursor-pointer transition-all duration-150 shadow-sm hover:border-[#2563EB]/40 flex gap-3 border-[#E2E8F0]";
+                    }
+                }
+            });
+
+            // Refresh details console top
+            document.getElementById("consoleTypeBadge").innerText = activeProperty.type;
+            document.getElementById("consoleTitle").innerText = activeProperty.title;
+
+            // Reset image sharing state
+            activeSelectedImages = [activeProperty.images[0]]; // Select the main property image by default
+            
+            // Render view dynamic states
+            renderInfoSharingChecks();
+            renderImageSelectorGrid();
+            updateLivePreviewText();
+        }
+
+        function renderInfoSharingChecks() {
+            const list = document.getElementById("infoRowList");
+            list.innerHTML = "";
+
+            const items = [
+                { key: "address", label: "Địa chỉ", val: activeProperty.address, icon: "🏡" },
+                { key: "propertyInfo", label: "Thông tin BĐS", val: `${activeProperty.type}, ${activeProperty.price}`, icon: "🏠" },
+                { key: "features", label: "Đặc điểm chi tiết", val: activeProperty.features, icon: "📐" },
+                { key: "direction", label: "Hướng nhà", val: activeProperty.direction, icon: "🧭" },
+                { key: "frontage", label: "Mặt tiền / Hẻm", val: activeProperty.frontage, icon: "🏘️" }
+            ];
+
+            items.forEach(item => {
+                const row = document.createElement("div");
+                row.className = "flex items-start justify-between p-3.5 bg-[#FFFFFF] hover:bg-[#F8FAFC] border border-[#E2E8F0] rounded-[12px] transition-colors duration-150 select-none cursor-pointer";
+                row.onclick = (e) => {
+                    // prevent infinite bubblings if user hits direct check
+                    if (e.target.tagName !== "INPUT") {
+                        const input = row.querySelector('input');
+                        input.checked = !input.checked;
+                        activeSelectedSections[item.key] = input.checked;
+                        updateLivePreviewText();
+                    }
+                };
+
+                row.innerHTML = `
+                    <div class="flex items-start space-x-3 pr-2">
+                        <span class="text-[20px] flex-shrink-0 mt-0.5">${item.icon}</span>
+                        <div>
+                            <span class="text-[12px] font-semibold text-[#64748B] uppercase tracking-wider block leading-none mb-1">${item.label}</span>
+                            <span class="text-[14px] text-[#0F172A] leading-relaxed block">${item.val || "Không có dữ liệu"}</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center h-full pt-1">
+                        <input type="checkbox" 
+                               ${activeSelectedSections[item.key] ? "checked" : ""} 
+                               class="w-5 h-5 rounded-[6px] text-[#2563EB] border-[#E2E8F0] focus:ring-[#2563EB] cursor-pointer"
+                               onclick="event.stopPropagation(); activeSelectedSections['${item.key}'] = this.checked; updateLivePreviewText();">
+                    </div>
+                `;
+                list.appendChild(row);
+            });
+        }
+
+        function updateLivePreviewText() {
+            const preview = document.getElementById("textPreview");
+            
+            let lines = [];
+            
+            if (activeSelectedSections.address && activeProperty.address) {
+                lines.push(`🏡 Địa chỉ: ${activeProperty.address}`);
+            }
+            if (activeSelectedSections.propertyInfo && (activeProperty.type || activeProperty.price)) {
+                lines.push(`🏠 Thông tin: ${activeProperty.type}, ${activeProperty.price}`);
+            }
+            if (activeSelectedSections.features && activeProperty.features) {
+                lines.push(`📐 Đặc điểm: ${activeProperty.features}`);
+            }
+            if (activeSelectedSections.direction && activeProperty.direction) {
+                lines.push(`🧭 Hướng: ${activeProperty.direction}`);
+            }
+            if (activeSelectedSections.frontage && activeProperty.frontage) {
+                lines.push(`🏘️ Mặt tiền/Hẻm: ${activeProperty.frontage}`);
+            }
+
+            // Exactly matching the output requirements
+            const finalString = lines.join("\n\n");
+            preview.innerText = finalString || "Vui lòng chọn ít nhất một mục thông tin ở trên để tiến hành tạo bản sao chép.";
+        }
+
+        function renderImageSelectorGrid() {
+            const grid = document.getElementById("imageSelectorGrid");
+            grid.innerHTML = "";
+
+            activeProperty.images.forEach((img, index) => {
+                const selectIndex = activeSelectedImages.indexOf(img);
+                const isSelected = selectIndex !== -1;
+                
+                const card = document.createElement("div");
+                card.className = `relative aspect-square rounded-[12px] overflow-hidden cursor-pointer select-none border-2 transition-all duration-150 ${
+                    isSelected ? "border-[#2563EB]" : "border-transparent"
+                }`;
+                card.onclick = () => toggleImageSelection(img);
+
+                card.innerHTML = `
+                    <img src="${img}" alt="Property image ${index + 1}" class="w-full h-full object-cover">
+                    <!-- Check status overlays -->
+                    <div class="absolute inset-0 bg-black/10 transition-opacity hover:opacity-100 opacity-60"></div>
+                    <div class="absolute top-2 right-2">
+                        ${
+                            isSelected 
+                            ? `<span class="w-6 h-6 rounded-full bg-[#2563EB] text-white flex items-center justify-center text-[12px] font-bold ring-2 ring-white">${selectIndex + 1}</span>`
+                            : `<span class="w-6 h-6 rounded-full bg-black/40 border border-white flex items-center justify-center text-[12px] font-normal text-white"></span>`
+                        }
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+
+            // Update badges/headers
+            document.getElementById("imageCounter").innerText = `Đã chọn: ${activeSelectedImages.length}/10`;
+            const badge = document.getElementById("selectedImagesCountBadge");
+            if (activeSelectedImages.length > 0) {
+                badge.classList.remove("hidden");
+                badge.innerText = activeSelectedImages.length;
+            } else {
+                badge.classList.add("hidden");
+            }
+        }
+
+        function toggleImageSelection(img) {
+            const index = activeSelectedImages.indexOf(img);
+            if (index !== -1) {
+                // remove image
+                activeSelectedImages.splice(index, 1);
+            } else {
+                // check 10 images boundary rule
+                if (activeSelectedImages.length >= 10) {
+                    showToast("Chỉ có thể chọn tối đa 10 hình", "warning");
+                    return;
+                }
+                activeSelectedImages.push(img);
+            }
+            renderImageSelectorGrid();
+        }
+
+        function handleCopyText() {
+            const previewText = document.getElementById("textPreview").innerText;
+            if (!previewText || previewText.startsWith("Vui lòng")) {
+                showToast("Không có nội dung được lựa chọn để copy!", "error");
+                return;
+            }
+
+            const buffer = document.getElementById("clipboardBuffer");
+            buffer.value = previewText;
+            buffer.select();
+            buffer.setSelectionRange(0, 99999); // for mobile support
+
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    showToast("Đã sao chép thông tin thành công!");
+                } else {
+                    showToast("Không thể sao chép", "error");
+                }
+            } catch (err) {
+                showToast("Không thể sao chép", "error");
+            }
+        }
+
+        function handleShareImages() {
+            if (activeSelectedImages.length === 0) {
+                showToast("Bạn cần chọn tối thiểu 1 hình để chia sẻ!", "warning");
+                return;
+            }
+            
+            // Try Native Web Share API if environment permits
+            if (navigator.share) {
+                // Attempt direct share payload
+                navigator.share({
+                    title: activeProperty.title,
+                    text: `Xem ${activeSelectedImages.length} hình ảnh về bất động sản tại ${activeProperty.address}`,
+                    url: activeSelectedImages[0] // fallback url links
+                })
+                .then(() => {
+                    showToast("Chia sẻ hình ảnh thành công!");
+                })
+                .catch((error) => {
+                    // Fall back to modal if sharing gets cancelled or rejected by browser policy
+                    openShareModal();
+                });
+            } else {
+                // Open simulated/native fallback panel directly
+                openShareModal();
+            }
+        }
+
+        function openShareModal() {
+            const modal = document.getElementById("shareModal");
+            const modalContent = document.getElementById("shareModalContent");
+            document.getElementById("modalSelectedCount").innerText = `${activeSelectedImages.length} ảnh`;
+            
+            modal.classList.remove("hidden");
+            setTimeout(() => {
+                modalContent.classList.remove("scale-95", "opacity-0");
+                modalContent.classList.add("scale-100", "opacity-100");
+            }, 10);
+        }
+
+        function closeShareModal() {
+            const modal = document.getElementById("shareModal");
+            const modalContent = document.getElementById("shareModalContent");
+            
+            modalContent.classList.remove("scale-100", "opacity-100");
+            modalContent.classList.add("scale-95", "opacity-0");
+            
+            setTimeout(() => {
+                modal.classList.add("hidden");
+            }, 150);
+        }
+
+        function simulateChannelShare(channel) {
+            showToast(`Đang chuẩn bị gửi ${activeSelectedImages.length} ảnh qua ứng dụng ${channel}...`);
+            setTimeout(() => {
+                closeShareModal();
+                showToast("Hình ảnh đã được chuyển tiếp thành công!");
+            }, 1200);
+        }
+
+        function simulateCopyImageLinks() {
+            const joinedLinks = activeSelectedImages.join("\n");
+            const buffer = document.getElementById("clipboardBuffer");
+            buffer.value = joinedLinks;
+            buffer.select();
+            buffer.setSelectionRange(0, 99999);
+            
+            try {
+                document.execCommand('copy');
+                showToast(`Đã sao chép ${activeSelectedImages.length} đường dẫn ảnh!`);
+                closeShareModal();
+            } catch (err) {
+                showToast("Không thể chia sẻ hình ảnh", "error");
+            }
+        }
+
+        function nativeShareFilesFallback() {
+            showToast("Đang kích hoạt cổng chia sẻ hệ điều hành...");
+            setTimeout(() => {
+                closeShareModal();
+                showToast("Đã đồng bộ hình ảnh lên bộ nhớ tạm!");
+            }, 1000);
+        }
+
+        window.onload = function() {
+            loadPropertyList();
+            selectProperty(propertiesData[0].id);
+            lucide.createIcons();
+        };
+    </script>
+</body>
+</html>

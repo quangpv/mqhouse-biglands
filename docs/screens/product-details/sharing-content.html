@@ -1,0 +1,298 @@
+<style>
+    .sc-card { border-radius: 16px; border: 1px solid #E2E8F0; background: #fff; }
+    .sc-btn-primary { background: #2563EB; color: #fff; border-radius: 12px; transition: all 150ms ease; }
+    .sc-btn-primary:hover { background: #1D4ED8; }
+    .sc-input { border-radius: 10px; border: 1px solid #E2E8F0; outline: none; }
+    .sc-input:focus { border-color: #2563EB; box-shadow: 0 0 0 2px rgba(37,99,235,0.1); }
+</style>
+
+<div class="flex flex-col h-full">
+    <!-- Header -->
+    <div class="p-5 border-b border-[#E2E8F0]">
+        <span id="sc-typeBadge" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-blue-100 text-[#2563EB] mb-1.5"></span>
+        <h2 id="sc-title" class="text-lg font-bold text-[#0F172A] leading-tight"></h2>
+        <p class="text-[12px] text-[#64748B] mt-1">Chọn thông tin cần chia sẻ bên dưới</p>
+        <div class="flex mt-3 bg-[#F8FAFC] p-0.5 rounded-[10px] border border-[#E2E8F0]">
+            <button id="sc-tabText" onclick="window.scSwitchTab && scSwitchTab('text')" class="flex-1 py-1.5 text-[13px] font-medium rounded-[8px] transition-all flex items-center justify-center gap-1.5 bg-white text-[#2563EB] shadow-sm">
+                <i data-lucide="copy" class="w-3.5 h-3.5"></i> V\u0103n b\u1ea3n
+            </button>
+            <button id="sc-tabImages" onclick="window.scSwitchTab && scSwitchTab('images')" class="flex-1 py-1.5 text-[13px] font-medium rounded-[8px] transition-all flex items-center justify-center gap-1.5 text-[#64748B] hover:text-[#0F172A]">
+                <i data-lucide="image" class="w-3.5 h-3.5"></i> H\u00ecnh \u1ea3nh
+                <span id="sc-imgCountBadge" class="hidden ml-0.5 px-1 py-0.5 text-[10px] font-bold bg-[#2563EB] text-white rounded-full">0</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Text View -->
+    <div id="sc-textView" class="p-5 space-y-4 flex-1 overflow-y-auto">
+        <div class="space-y-1.5" id="sc-infoList"></div>
+        <div class="bg-[#F8FAFC] border border-[#E2E8F0] rounded-[14px] p-4">
+            <div class="flex items-center justify-between mb-2">
+                <h3 class="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Xem tr\u01b0\u1edbc</h3>
+                <span class="text-[10px] text-[#2563EB] bg-blue-50 px-2 py-0.5 rounded-full font-medium">T\u1ef1 \u0111\u1ed9ng</span>
+            </div>
+            <pre id="sc-textPreview" class="text-[13px] font-mono text-[#0F172A] whitespace-pre-wrap break-words leading-relaxed bg-white border border-[#E2E8F0] p-3 rounded-[10px] min-h-[100px] max-h-[200px] overflow-y-auto"></pre>
+        </div>
+    </div>
+
+    <!-- Images View -->
+    <div id="sc-imagesView" class="p-5 space-y-3 flex-1 overflow-y-auto hidden">
+        <div class="flex items-center justify-between">
+            <p class="text-[12px] text-[#64748B]">Ch\u1ecdn h\u00ecnh \u1ea3nh (t\u1ed1i \u0111a 10)</p>
+            <span class="text-[13px] font-semibold text-[#2563EB]" id="sc-imageCounter">0/10</span>
+        </div>
+        <div id="sc-imageGrid" class="grid grid-cols-3 gap-2"></div>
+    </div>
+
+    <!-- Footer -->
+    <div class="p-4 border-t border-[#E2E8F0] flex items-center justify-end gap-2">
+        <button id="sc-copyBtn" onclick="window.scHandleCopyText && scHandleCopyText()" class="sc-btn-primary px-4 py-2 text-[13px] font-semibold flex items-center gap-1.5 shadow-sm">
+            <i data-lucide="copy" class="w-3.5 h-3.5"></i> Sao ch\u00e9p
+        </button>
+        <button id="sc-shareBtn" onclick="window.scHandleShareImages && scHandleShareImages()" class="sc-btn-primary px-4 py-2 text-[13px] font-semibold flex items-center gap-1.5 shadow-sm hidden">
+            <i data-lucide="share-2" class="w-3.5 h-3.5"></i> Chia s\u1ebb
+        </button>
+        <button onclick="window.closeShareModal && closeShareModal()" class="px-4 py-2 text-[13px] font-semibold text-[#64748B] hover:text-[#0F172A] rounded-[12px] border border-[#E2E8F0] hover:bg-[#F8FAFC] transition">
+            \u0110\u00f3ng
+        </button>
+    </div>
+</div>
+
+<!-- Sub Share Modal -->
+<div id="sc-shareModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[70] flex items-center justify-center p-4 hidden">
+    <div class="bg-white w-full max-w-sm rounded-[20px] shadow-xl border border-[#E2E8F0] overflow-hidden" id="sc-shareModalContent">
+        <div class="p-4 border-b border-[#E2E8F0] flex items-center justify-between">
+            <h3 class="text-[16px] font-semibold text-[#0F172A]">Chia s\u1ebb qua \u1ee9ng d\u1ee5ng</h3>
+            <button onclick="window.scCloseSubModal && scCloseSubModal()" class="text-[#64748B] hover:text-[#0F172A] p-1 rounded-full hover:bg-[#F8FAFC]">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+        </div>
+        <div class="p-5 space-y-4">
+            <div class="flex items-center justify-between bg-[#F8FAFC] p-3 rounded-[12px] border border-[#E2E8F0]">
+                <span class="text-[13px] font-medium text-[#0F172A]">S\u1ed1 h\u00ecnh \u1ea3nh:</span>
+                <span id="sc-modalCount" class="text-[13px] font-bold text-[#2563EB] bg-blue-50 px-3 py-1 rounded-full">0</span>
+            </div>
+            <div class="grid grid-cols-4 gap-3 text-center">
+                <button onclick="window.scChannelShare && scChannelShare('Zalo')" class="group">
+                    <div class="w-11 h-11 bg-blue-100 rounded-full flex items-center justify-center text-[#2563EB] mx-auto group-hover:scale-110 transition">
+                        <span class="font-bold text-[16px]">Z</span>
+                    </div>
+                    <span class="text-[11px] text-[#64748B] mt-1 block group-hover:text-[#0F172A]">Zalo</span>
+                </button>
+                <button onclick="window.scChannelShare && scChannelShare('Messenger')" class="group">
+                    <div class="w-11 h-11 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 mx-auto group-hover:scale-110 transition">
+                        <i data-lucide="message-circle" class="w-5 h-5"></i>
+                    </div>
+                    <span class="text-[11px] text-[#64748B] mt-1 block group-hover:text-[#0F172A]">Messenger</span>
+                </button>
+                <button onclick="window.scChannelShare && scChannelShare('Telegram')" class="group">
+                    <div class="w-11 h-11 bg-sky-100 rounded-full flex items-center justify-center text-sky-500 mx-auto group-hover:scale-110 transition">
+                        <i data-lucide="send" class="w-5 h-5"></i>
+                    </div>
+                    <span class="text-[11px] text-[#64748B] mt-1 block group-hover:text-[#0F172A]">Telegram</span>
+                </button>
+                <button onclick="window.scCopyLinks && scCopyLinks()" class="group">
+                    <div class="w-11 h-11 bg-slate-100 rounded-full flex items-center justify-center text-slate-700 mx-auto group-hover:scale-110 transition">
+                        <i data-lucide="link-2" class="w-5 h-5"></i>
+                    </div>
+                    <span class="text-[11px] text-[#64748B] mt-1 block group-hover:text-[#0F172A]">Copy links</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<textarea id="sc-clipboard" class="absolute -top-[9999px] left-0 pointer-events-none opacity-0"></textarea>
+
+<script>
+var scSelectedSections = {
+    address: true,
+    propertyInfo: true,
+    features: true,
+    direction: true,
+    frontage: true
+};
+var scSelectedImages = [];
+
+function scInit() {
+    var prop = window.__shareProperty;
+    if (!prop) return;
+
+    document.getElementById('sc-typeBadge').textContent = (prop.type || '') + (prop.category ? ' ' + prop.category : '');
+    document.getElementById('sc-title').textContent = prop.title;
+
+    scSelectedImages = prop.images && prop.images.length > 0 ? [prop.images[0]] : [];
+
+    scRenderInfoList();
+    scRenderImageGrid();
+    scUpdatePreview();
+    lucide.createIcons();
+}
+
+function scSwitchTab(tab) {
+    document.getElementById('sc-tabText').className = 'flex-1 py-1.5 text-[13px] font-medium rounded-[8px] transition-all flex items-center justify-center gap-1.5 ' + (tab === 'text' ? 'bg-white text-[#2563EB] shadow-sm' : 'text-[#64748B] hover:text-[#0F172A]');
+    document.getElementById('sc-tabImages').className = 'flex-1 py-1.5 text-[13px] font-medium rounded-[8px] transition-all flex items-center justify-center gap-1.5 ' + (tab === 'images' ? 'bg-white text-[#2563EB] shadow-sm' : 'text-[#64748B] hover:text-[#0F172A]');
+
+    document.getElementById('sc-textView').classList.toggle('hidden', tab !== 'text');
+    document.getElementById('sc-imagesView').classList.toggle('hidden', tab !== 'images');
+    document.getElementById('sc-copyBtn').classList.toggle('hidden', tab !== 'text');
+    document.getElementById('sc-shareBtn').classList.toggle('hidden', tab !== 'images');
+}
+
+function scRenderInfoList() {
+    var prop = window.__shareProperty;
+    if (!prop) return;
+
+    var items = [
+        { key: 'address', label: '\u0110\u1ecba ch\u1ec9', val: prop.address, icon: '\U0001f3e1' },
+        { key: 'propertyInfo', label: 'Th\u00f4ng tin', val: (prop.type || '') + ', ' + (prop.price || ''), icon: '\U0001f3e0' },
+        { key: 'features', label: '\u0110\u1eb7c \u0111i\u1ec3m', val: (prop.area || '') + (prop.bedrooms || prop.bathrooms ? ' - ' + (prop.bedrooms || '') + ' PN, ' + (prop.bathrooms || '') + ' WC' : ''), icon: '\U0001f4d0' },
+        { key: 'direction', label: 'H\u01b0\u1edbng', val: prop.orientation || '', icon: '\U0001f9ed' },
+        { key: 'frontage', label: 'M\u1eb7t ti\u1ec1n', val: prop.roadInfo || '', icon: '\U0001f3d8\ufe0f' }
+    ];
+
+    var list = document.getElementById('sc-infoList');
+    list.innerHTML = items.map(function(item) {
+        return '<div class="flex items-start justify-between p-2.5 bg-white hover:bg-[#F8FAFC] border border-[#E2E8F0] rounded-[10px] transition cursor-pointer" onclick="var c = this.querySelector(\'input\'); c.checked = !c.checked; scSelectedSections[\'' + item.key + '\'] = c.checked; scUpdatePreview();">' +
+            '<div class="flex items-start gap-2">' +
+                '<span class="text-[16px]">' + item.icon + '</span>' +
+                '<div>' +
+                    '<span class="text-[10px] font-semibold text-[#64748B] uppercase block">' + item.label + '</span>' +
+                    '<span class="text-[13px] text-[#0F172A]">' + (item.val || '\u2014') + '</span>' +
+                '</div>' +
+            '</div>' +
+            '<input type="checkbox" ' + (scSelectedSections[item.key] ? 'checked' : '') + ' class="w-4 h-4 rounded-[4px] text-[#2563EB] border-[#E2E8F0] focus:ring-[#2563EB] cursor-pointer" onclick="event.stopPropagation(); scSelectedSections[\'' + item.key + '\'] = this.checked; scUpdatePreview();">' +
+        '</div>';
+    }).join('');
+}
+
+function scUpdatePreview() {
+    var prop = window.__shareProperty;
+    if (!prop) return;
+
+    var lines = [];
+    if (scSelectedSections.address && prop.address) lines.push('\U0001f4cd ' + prop.address);
+    if (scSelectedSections.propertyInfo) lines.push('\U0001f4b0 ' + (prop.price || '') + (prop.unitPrice ? ' (' + prop.unitPrice + ')' : ''));
+    if (scSelectedSections.features) lines.push('\U0001f4d0 ' + (prop.area || '') + (prop.bedrooms || prop.bathrooms ? ' - ' + (prop.bedrooms || '') + ' PN, ' + (prop.bathrooms || '') + ' WC' : ''));
+    if (scSelectedSections.direction && prop.orientation) lines.push('\U0001f9ed H\u01b0\u1edbng: ' + prop.orientation);
+    if (scSelectedSections.frontage && prop.roadInfo) lines.push('\U0001f3d8\ufe0f ' + prop.roadInfo);
+
+    document.getElementById('sc-textPreview').textContent = lines.length > 0 ? lines.join('\n') : 'Ch\u1ecdn \u00edt nh\u1ea5t m\u1ed9t m\u1ee5c th\u00f4ng tin.';
+}
+
+function scRenderImageGrid() {
+    var prop = window.__shareProperty;
+    if (!prop || !prop.images) return;
+
+    var grid = document.getElementById('sc-imageGrid');
+    grid.innerHTML = prop.images.map(function(img, idx) {
+        var selIdx = scSelectedImages.indexOf(img);
+        var selected = selIdx !== -1;
+        return '<div class="relative aspect-square rounded-[10px] overflow-hidden cursor-pointer border-2 transition ' + (selected ? 'border-[#2563EB]' : 'border-transparent') + '" onclick="scToggleImage(\'' + img.replace(/'/g, "\\'") + '\')">' +
+            '<img src="' + img + '" class="w-full h-full object-cover">' +
+            '<div class="absolute inset-0 bg-black/10 hover:opacity-100 opacity-40 transition"></div>' +
+            '<div class="absolute top-1.5 right-1.5">' +
+                (selected ? '<span class="w-5 h-5 rounded-full bg-[#2563EB] text-white flex items-center justify-center text-[10px] font-bold ring-2 ring-white">' + (selIdx + 1) + '</span>' : '<span class="w-5 h-5 rounded-full bg-black/40 border border-white block"></span>') +
+            '</div>' +
+        '</div>';
+    }).join('');
+
+    document.getElementById('sc-imageCounter').textContent = scSelectedImages.length + '/10';
+    var badge = document.getElementById('sc-imgCountBadge');
+    if (scSelectedImages.length > 0) { badge.classList.remove('hidden'); badge.textContent = scSelectedImages.length; }
+    else { badge.classList.add('hidden'); }
+}
+
+function scToggleImage(img) {
+    var idx = scSelectedImages.indexOf(img);
+    if (idx !== -1) { scSelectedImages.splice(idx, 1); }
+    else {
+        if (scSelectedImages.length >= 10) {
+            if (window.showToast) showToast('T\u1ed1i \u0111a 10 h\u00ecnh \u1ea3nh', 'warning');
+            return;
+        }
+        scSelectedImages.push(img);
+    }
+    scRenderImageGrid();
+}
+
+function scHandleCopyText() {
+    var text = document.getElementById('sc-textPreview').textContent;
+    if (!text || text.startsWith('Ch\u1ecdn')) {
+        if (window.showToast) showToast('Kh\u00f4ng c\u00f3 n\u1ed9i dung \u0111\u1ec3 sao ch\u00e9p', 'error');
+        return;
+    }
+    var buf = document.getElementById('sc-clipboard');
+    buf.value = text;
+    buf.select();
+    buf.setSelectionRange(0, 99999);
+    try {
+        if (document.execCommand('copy')) {
+            if (window.showToast) showToast('\u0110\u00e3 sao ch\u00e9p th\u00f4ng tin!');
+        }
+    } catch(e) { if (window.showToast) showToast('L\u1ed7i sao ch\u00e9p', 'error'); }
+}
+
+function scHandleShareImages() {
+    if (scSelectedImages.length === 0) {
+        if (window.showToast) showToast('Ch\u1ecdn \u00edt nh\u1ea5t 1 h\u00ecnh', 'warning');
+        return;
+    }
+    if (navigator.share) {
+        navigator.share({
+            title: (window.__shareProperty && window.__shareProperty.title) || '',
+            text: 'Xem ' + scSelectedImages.length + ' h\u00ecnh \u1ea3nh b\u1ea5t \u0111\u1ed9ng s\u1ea3n',
+            url: scSelectedImages[0]
+        }).then(function() {
+            if (window.showToast) showToast('Chia s\u1ebb th\u00e0nh c\u00f4ng!');
+        }).catch(function() {
+            scOpenSubModal();
+        });
+    } else {
+        scOpenSubModal();
+    }
+}
+
+function scOpenSubModal() {
+    document.getElementById('sc-modalCount').textContent = scSelectedImages.length + ' \u1ea3nh';
+    var modal = document.getElementById('sc-shareModal');
+    var content = document.getElementById('sc-shareModalContent');
+    modal.classList.remove('hidden');
+    setTimeout(function() { content.classList.remove('scale-95', 'opacity-0'); content.classList.add('scale-100', 'opacity-100'); }, 10);
+    lucide.createIcons();
+}
+
+function scCloseSubModal() {
+    var modal = document.getElementById('sc-shareModal');
+    var content = document.getElementById('sc-shareModalContent');
+    content.classList.remove('scale-100', 'opacity-100');
+    content.classList.add('scale-95', 'opacity-0');
+    setTimeout(function() { modal.classList.add('hidden'); }, 150);
+}
+
+function scChannelShare(channel) {
+    if (window.showToast) showToast('\u0110ang g\u1eedi ' + scSelectedImages.length + ' \u1ea3nh qua ' + channel + '...');
+    setTimeout(function() {
+        scCloseSubModal();
+        if (window.showToast) showToast('\u0110\u00e3 chuy\u1ec3n ti\u1ebfp th\u00e0nh c\u00f4ng!');
+    }, 1000);
+}
+
+function scCopyLinks() {
+    var buf = document.getElementById('sc-clipboard');
+    buf.value = scSelectedImages.join('\n');
+    buf.select();
+    buf.setSelectionRange(0, 99999);
+    try {
+        document.execCommand('copy');
+        if (window.showToast) showToast('\u0110\u00e3 sao ch\u00e9p ' + scSelectedImages.length + ' \u0111\u01b0\u1eddng d\u1eabn!');
+        scCloseSubModal();
+    } catch(e) { if (window.showToast) showToast('L\u1ed7i sao ch\u00e9p', 'error'); }
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', scInit);
+} else {
+    scInit();
+}
+</script>
