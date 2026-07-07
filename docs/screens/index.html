@@ -389,7 +389,7 @@
                                 <p class="text-small text-textSecondary">Quản trị viên</p>
                             </div>
                             <div class="px-1 space-y-0.5">
-                                <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-[10px] text-textSecondary hover:text-textPrimary hover:bg-[#F8FAFC] transition-all-custom text-body">
+                                <a href="#" onclick="event.preventDefault(); navigate('thong-tin-ca-nhan'); document.getElementById('user-dropdown').classList.add('hidden');" class="flex items-center gap-3 px-3 py-2 rounded-[10px] text-textSecondary hover:text-textPrimary hover:bg-[#F8FAFC] transition-all-custom text-body">
                                     <i data-lucide="user" class="w-4 h-4 text-textSecondary"></i>
                                     <span>Thông tin cá nhân</span>
                                 </a>
@@ -617,6 +617,7 @@
             'sangnhuong-chot-hang': 'Sang nhượng - Chốt hàng',
             'sangnhuong-het-hang': 'Sang nhượng - Hết hàng',
             'cau-hinh-he-thong': 'Cấu hình hệ thống',
+            'thong-tin-ca-nhan': 'Thông tin cá nhân',
         };
 
         var selectedProductId = null;
@@ -683,6 +684,7 @@
                 'chi-tiet-san-pham': 'product-details/product-details-content.html',
                 'them-hang': 'create-product/create-product-content.html',
                 'cau-hinh-he-thong': 'config-system/config-system.content.html',
+                'thong-tin-ca-nhan': 'user-profile/user-profile-content.html',
             };
 
             const url = routeMap[route];

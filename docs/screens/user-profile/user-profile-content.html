@@ -1,0 +1,410 @@
+<!-- PAGE: Thông tin cá nhân -->
+<style>
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #F8FAFC;
+    color: #0F172A;
+}
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: #E2E8F0;
+    border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #CBD5E1;
+}
+</style>
+
+<div class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col gap-6">
+    
+
+
+    <!-- Profile Detail Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+        
+        <!-- Card 1: Banner / Primary Info -->
+            <div class="bg-white border border-[#E2E8F0] rounded-2xl p-6 shadow-soft relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#2563EB] to-[#1D4ED8]"></div>
+                
+                <div class="flex flex-col md:flex-row items-center md:items-start justify-between gap-6 pt-2">
+                    <div class="flex flex-col md:flex-row items-center gap-5 text-center md:text-left">
+                        <div class="relative">
+                            <img id="profile-avatar" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=256&auto=format&fit=crop" alt="Avatar" class="w-24 h-24 rounded-full object-cover border-4 border-white shadow-md bg-slate-100">
+                            <span id="status-badge" class="absolute bottom-1 right-1 w-5 h-5 rounded-full border-2 border-white flex items-center justify-center shadow-sm">
+                                <span class="w-2.5 h-2.5 rounded-full"></span>
+                            </span>
+                        </div>
+                        <div>
+                            <div class="flex flex-wrap items-center justify-center md:justify-start gap-2 mb-1.5">
+                                <h2 id="profile-name" class="text-[24px] font-semibold text-[#0F172A] leading-snug">---</h2>
+                                <span id="profile-status-text" class="px-2.5 py-0.5 text-xs font-medium rounded-full border">---</span>
+                            </div>
+                            <p id="profile-role" class="text-[14px] text-[#2563EB] font-medium mb-1">---</p>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 5: Activity & Audit Logs -->
+            <div class="bg-white border border-[#E2E8F0] rounded-2xl p-6 shadow-soft">
+                <h3 class="text-[18px] font-semibold text-[#0F172A] mb-4 pb-2 border-b border-[#E2E8F0] flex items-center gap-2">
+                    <i data-lucide="history" class="w-5 h-5 text-[#2563EB]"></i>
+                    <span>Thông tin hoạt động</span>
+                </h3>
+
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center text-[13px]">
+                        <span class="text-[#64748B] flex items-center gap-1.5">
+                            <i data-lucide="log-in" class="w-4 h-4 text-[#64748B]"></i>
+                            <span>Đăng nhập lần cuối</span>
+                        </span>
+                        <span id="audit-last-login" class="font-semibold text-[#0F172A] text-right">---</span>
+                    </div>
+                    <div class="flex justify-between items-center text-[13px]">
+                        <span class="text-[#64748B] flex items-center gap-1.5">
+                            <i data-lucide="smartphone" class="w-4 h-4 text-[#64748B]"></i>
+                            <span>Thiết bị đăng nhập</span>
+                        </span>
+                        <span id="audit-last-device" class="font-semibold text-[#0F172A] truncate max-w-[180px] sm:max-w-none text-right">---</span>
+                    </div>
+                    <div class="flex justify-between items-center text-[13px]">
+                        <span class="text-[#64748B] flex items-center gap-1.5">
+                            <i data-lucide="refresh-cw" class="w-4 h-4 text-[#64748B]"></i>
+                            <span>Cập nhật gần nhất</span>
+                        </span>
+                        <span id="audit-updated-at" class="font-semibold text-[#0F172A] text-right">---</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 2: User Details Fields -->
+            <div class="bg-white border border-[#E2E8F0] rounded-2xl p-6 shadow-soft">
+                <h3 class="text-[18px] font-semibold text-[#0F172A] mb-4 pb-2 border-b border-[#E2E8F0] flex items-center gap-2">
+                    <i data-lucide="user" class="w-5 h-5 text-[#2563EB]"></i>
+                    <span>Thông tin tài khoản cơ bản</span>
+                </h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Full Name -->
+                    <div>
+                        <label class="block text-[12px] font-semibold text-[#64748B] uppercase tracking-wider mb-2">Họ và tên</label>
+                        <div class="flex items-center gap-3 px-3.5 py-2.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[10px]">
+                            <i data-lucide="user" class="w-4.5 h-4.5 text-[#64748B] flex-shrink-0"></i>
+                            <span id="field-fullname" class="text-[14px] text-[#0F172A]">---</span>
+                        </div>
+                    </div>
+
+                    <!-- Username -->
+                    <div>
+                        <label class="block text-[12px] font-semibold text-[#64748B] uppercase tracking-wider mb-2">Tên đăng nhập (Username)</label>
+                        <div class="flex items-center gap-3 px-3.5 py-2.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[10px]">
+                            <i data-lucide="at-sign" class="w-4.5 h-4.5 text-[#64748B] flex-shrink-0"></i>
+                            <span id="field-username" class="text-[14px] text-[#0F172A]">---</span>
+                        </div>
+                    </div>
+
+                    <!-- Email -->
+                    <div>
+                        <label class="block text-[12px] font-semibold text-[#64748B] uppercase tracking-wider mb-2">Địa chỉ Email</label>
+                        <div class="flex items-center gap-3 px-3.5 py-2.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[10px]">
+                            <i data-lucide="mail" class="w-4.5 h-4.5 text-[#64748B] flex-shrink-0"></i>
+                            <span id="field-email" class="text-[14px] text-[#0F172A]">---</span>
+                        </div>
+                    </div>
+
+                    <!-- Phone Number -->
+                    <div>
+                        <label class="block text-[12px] font-semibold text-[#64748B] uppercase tracking-wider mb-2">Số điện thoại</label>
+                        <div id="field-phone-container" class="flex items-center gap-3 px-3.5 py-2.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[10px]">
+                            <i data-lucide="phone" class="w-4.5 h-4.5 text-[#64748B] flex-shrink-0"></i>
+                            <span id="field-phone" class="text-[14px] text-[#0F172A]">---</span>
+                        </div>
+                    </div>
+
+
+                </div>
+            </div>
+
+            <!-- Card 4: Security Section & Device Restriction -->
+            <div class="bg-white border border-[#E2E8F0] rounded-2xl p-6 shadow-soft">
+                <h3 class="text-[18px] font-semibold text-[#0F172A] mb-4 pb-2 border-b border-[#E2E8F0] flex items-center gap-2">
+                    <i data-lucide="fingerprint" class="w-5 h-5 text-[#2563EB]"></i>
+                    <span>Cài đặt bảo mật & Thiết bị</span>
+                </h3>
+
+                <div class="flex flex-col md:flex-row items-start justify-between gap-6">
+                    <div class="flex-grow max-w-xl">
+                        <div class="flex items-center gap-2 mb-1">
+                            <h4 class="text-[14px] font-semibold text-[#0F172A]">Giới hạn thiết bị truy cập</h4>
+                            <span class="px-1.5 py-0.5 text-[10px] bg-[#E2E8F0] text-[#64748B] rounded flex items-center gap-0.5 font-medium">
+                                <i data-lucide="lock" class="w-2.5 h-2.5"></i>Khóa cấu hình
+                            </span>
+                        </div>
+                        <p id="device-restriction-description" class="text-[13px] text-[#64748B] leading-relaxed">---</p>
+                    </div>
+                    
+                    <!-- Toggle Visual (Locked/Disabled) -->
+                    <div class="flex items-center gap-3 bg-slate-50 border border-slate-200 p-2.5 rounded-xl self-end md:self-center">
+                        <button id="device-restriction-toggle" disabled class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-not-allowed rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none">
+                            <span id="device-restriction-slider" class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"></span>
+                        </button>
+                        <span id="device-restriction-badge" class="text-xs font-semibold px-2 py-0.5 rounded">---</span>
+                    </div>
+                </div>
+
+
+            </div>
+
+            <!-- Card 3: Permission & Access Section -->
+            <div class="bg-white border border-[#E2E8F0] rounded-2xl p-6 shadow-soft lg:col-span-2">
+                <h3 class="text-[18px] font-semibold text-[#0F172A] mb-2 flex items-center gap-2">
+                    <i data-lucide="key-round" class="w-5 h-5 text-[#2563EB]"></i>
+                    <span>Phân quyền</span>
+                </h3>
+                <p class="text-[12px] text-[#64748B] mb-5 border-b border-[#E2E8F0] pb-3">Phạm vi nghiệp vụ được cấp phép hoạt động trong hệ thống dữ liệu khách hàng.</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Transaction Types Permitted -->
+                    <div>
+                        <h4 class="text-[14px] font-semibold text-[#0F172A] mb-3 flex items-center gap-1.5">
+                            <i data-lucide="arrow-left-right" class="w-4 h-4 text-[#64748B]"></i>
+                            <span>Loại giao dịch</span>
+                        </h4>
+                        <div class="space-y-2" id="transaction-list-container">
+                            <!-- Dynamic transactions render -->
+                        </div>
+                    </div>
+
+                    <!-- Property Types Permitted -->
+                    <div>
+                        <h4 class="text-[14px] font-semibold text-[#0F172A] mb-3 flex items-center gap-1.5">
+                            <i data-lucide="home" class="w-4 h-4 text-[#64748B]"></i>
+                            <span>Phân loại bất động sản</span>
+                        </h4>
+                        <div class="space-y-2" id="property-list-container">
+                            <!-- Dynamic properties render -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+    </div>
+</div>
+
+<script>
+    (function() {
+        const currentUser = {
+            id: 1,
+            name: "Nguyễn Minh Đức",
+            username: "duc.nguyenminh",
+            avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=150&auto=format&fit=crop",
+            email: "duc.nguyen@nhadatviet.vn",
+            phone: "0908 123 456",
+            role: "Trưởng phòng kinh doanh",
+            org: "Chi nhánh Quận 1 - Đất Việt Land",
+            status: "active",
+            transactions: {
+                ban: true,
+                chothue: true,
+                chomuon: false,
+                chuyennhuong: true
+            },
+            properties: {
+                chungcu: true,
+                dichvu: false,
+                nhadat: true,
+                nhatro: false
+            },
+            deviceRestriction: true,
+            twoFA: "Đã kích hoạt",
+            lastLogin: "18:24 - 05/07/2026",
+            lastDevice: "iPhone 15 Pro Max (Chrome Mobile)",
+            createdAt: "15/01/2025",
+            createdBy: "Quản trị viên hệ thống",
+            updatedAt: "01/07/2026",
+            updatedBy: "Trần Thị Thanh"
+        };
+
+        ;(function init() {
+            console.log('[Profile] init started');
+            try {
+                renderProfile();
+                lucide.createIcons();
+                console.log('[Profile] init completed');
+            } catch (e) {
+                console.error('[Profile] init error:', e);
+            }
+        })();
+
+        function getStatusColors(status) {
+            switch(status) {
+                case 'active':
+                    return {
+                        dotClass: 'bg-[#16A34A]',
+                        bgClass: 'bg-[#16A34A]/10',
+                        textClass: 'text-[#16A34A] border-[#16A34A]/20',
+                        label: 'Đang hoạt động'
+                    };
+                case 'pending':
+                    return {
+                        dotClass: 'bg-[#F59E0B]',
+                        bgClass: 'bg-[#F59E0B]/10',
+                        textClass: 'text-[#F59E0B] border-[#F59E0B]/20',
+                        label: 'Chờ kích hoạt'
+                    };
+                case 'suspended':
+                    return {
+                        dotClass: 'bg-[#DC2626]',
+                        bgClass: 'bg-[#DC2626]/10',
+                        textClass: 'text-[#DC2626] border-[#DC2626]/20',
+                        label: 'Tạm khóa'
+                    };
+                default:
+                    return {
+                        dotClass: 'bg-[#64748B]',
+                        bgClass: 'bg-slate-100',
+                        textClass: 'text-slate-600 border-slate-200',
+                        label: 'Không rõ'
+                    };
+            }
+        }
+
+        function renderProfile() {
+            const user = currentUser;
+
+            function $id(id) {
+                const el = document.getElementById(id);
+                if (!el) console.warn('[Profile] element not found:', id);
+                return el;
+            }
+
+            const av = $id("profile-avatar");
+            if (av) av.src = user.avatar;
+            
+            const nm = $id("profile-name"); if (nm) nm.innerText = user.name;
+            const rl = $id("profile-role"); if (rl) rl.innerText = user.role;
+
+            const statusTheme = getStatusColors(user.status);
+            const si = $id("status-badge");
+            if (si) si.className = `absolute bottom-1 right-1 w-5 h-5 rounded-full border-2 border-white flex items-center justify-center shadow-sm ${statusTheme.dotClass}`;
+            
+            const st = $id("profile-status-text");
+            if (st) {
+                st.innerText = statusTheme.label;
+                st.className = `px-2.5 py-0.5 text-xs font-semibold rounded-full border ${statusTheme.bgClass} ${statusTheme.textClass}`;
+            }
+
+            const ff = $id("field-fullname"); if (ff) ff.innerText = user.name || "Chưa cập nhật";
+            const fu = $id("field-username"); if (fu) fu.innerText = user.username ? `@${user.username}` : "Chưa cập nhật";
+            const fe = $id("field-email"); if (fe) fe.innerText = user.email || "Chưa cập nhật";
+            
+            const phoneField = $id("field-phone");
+            const phoneContainer = $id("field-phone-container");
+            const existingWarn = $id("phone-warn-msg");
+            if (existingWarn) existingWarn.remove();
+
+            if (phoneField && phoneContainer) {
+                if (user.phone) {
+                    phoneField.innerText = user.phone;
+                    phoneField.className = "text-[14px] text-[#0F172A]";
+                } else {
+                    phoneField.innerText = "Chưa cập nhật";
+                    phoneField.className = "text-[14px] text-rose-500 italic";
+                    
+                    phoneContainer.insertAdjacentHTML('beforeend', `
+                        <span id="phone-warn-msg" class="px-2 py-0.5 text-[10px] bg-red-50 text-[#DC2626] font-medium rounded flex items-center gap-0.5">
+                            Thiếu thông tin
+                        </span>
+                    `);
+                }
+            }
+
+            const transactionContainer = $id("transaction-list-container");
+            if (!transactionContainer) return;
+            transactionContainer.innerHTML = "";
+            const transactionLabels = {
+                ban: "Bán bất động sản",
+                chothue: "Cho thuê bất động sản",
+                chomuon: "Cho mượn mặt bằng",
+                chuyennhuong: "Chuyển nhượng quyền sử dụng"
+            };
+
+            Object.keys(transactionLabels).forEach(key => {
+                const hasPerm = user.transactions[key];
+                const itemHtml = `
+                    <div class="flex items-center justify-between p-2.5 rounded-[10px] border text-xs transition-colors duration-150 ${hasPerm ? 'bg-blue-50/50 border-[#2563EB]/20 text-[#0F172A]' : 'bg-slate-50/50 border-slate-200 text-slate-400' }">
+                        <span class="font-medium ${hasPerm ? '' : 'line-through decoration-slate-300'}">${transactionLabels[key]}</span>
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-[10px] uppercase tracking-wider font-semibold">${hasPerm ? 'Cho phép' : 'Khóa'}</span>
+                            <div class="p-0.5 rounded-full ${hasPerm ? 'bg-blue-100 text-[#2563EB]' : 'bg-slate-200 text-slate-400'}">
+                                <i data-lucide="${hasPerm ? 'check' : 'minus'}" class="w-3.5 h-3.5"></i>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                transactionContainer.insertAdjacentHTML('beforeend', itemHtml);
+            });
+
+            const propertyContainer = $id("property-list-container");
+            if (!propertyContainer) return;
+            propertyContainer.innerHTML = "";
+            const propertyLabels = {
+                chungcu: "Căn hộ chung cư / Penthouse",
+                dichvu: "Bất động sản dịch vụ / Shophouse",
+                nhadat: "Nhà phố / Đất nền thổ cư",
+                nhatro: "Nhà trọ / Phòng cho thuê gia đình"
+            };
+
+            Object.keys(propertyLabels).forEach(key => {
+                const hasPerm = user.properties[key];
+                const itemHtml = `
+                    <div class="flex items-center justify-between p-2.5 rounded-[10px] border text-xs transition-colors duration-150 ${hasPerm ? 'bg-blue-50/50 border-[#2563EB]/20 text-[#0F172A]' : 'bg-slate-50/50 border-slate-200 text-slate-400' }">
+                        <span class="font-medium ${hasPerm ? '' : 'line-through decoration-slate-300'}">${propertyLabels[key]}</span>
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-[10px] uppercase tracking-wider font-semibold">${hasPerm ? 'Cho phép' : 'Khóa'}</span>
+                            <div class="p-0.5 rounded-full ${hasPerm ? 'bg-blue-100 text-[#2563EB]' : 'bg-slate-200 text-slate-400'}">
+                                <i data-lucide="${hasPerm ? 'check' : 'minus'}" class="w-3.5 h-3.5"></i>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                propertyContainer.insertAdjacentHTML('beforeend', itemHtml);
+            });
+
+            const toggleBtn = $id("device-restriction-toggle");
+            const toggleSlider = $id("device-restriction-slider");
+            const toggleBadge = $id("device-restriction-badge");
+            const deviceDescription = $id("device-restriction-description");
+
+            if (toggleBtn && toggleSlider && toggleBadge && deviceDescription && user.deviceRestriction) {
+                toggleBtn.className = "relative inline-flex h-6 w-11 flex-shrink-0 cursor-not-allowed rounded-full border-2 border-transparent bg-[#2563EB]/40 transition-colors duration-200 ease-in-out focus:outline-none";
+                toggleSlider.className = "pointer-events-none inline-block h-5 w-5 transform translate-x-5 rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out";
+                toggleBadge.innerText = "Đang giới hạn";
+                toggleBadge.className = "text-xs font-semibold px-2 py-0.5 rounded bg-blue-50 text-[#2563EB] border border-[#2563EB]/20";
+                deviceDescription.innerText = "Tài khoản đang bị giới hạn thiết bị. Chỉ có thể truy cập bằng thiết bị chính chủ đã đăng ký hệ thống từ trước.";
+            } else if (toggleBtn && toggleSlider && toggleBadge && deviceDescription) {
+                toggleBtn.className = "relative inline-flex h-6 w-11 flex-shrink-0 cursor-not-allowed rounded-full border-2 border-transparent bg-slate-200 transition-colors duration-200 ease-in-out focus:outline-none";
+                toggleSlider.className = "pointer-events-none inline-block h-5 w-5 transform translate-x-0 rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out";
+                toggleBadge.innerText = "Không giới hạn";
+                toggleBadge.className = "text-xs font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-500 border border-slate-200";
+                deviceDescription.innerText = "Không giới hạn thiết bị đăng nhập. Tài khoản được phép linh hoạt truy cập từ nhiều trình duyệt và phần cứng khác nhau.";
+            }
+
+
+            const all = $id("audit-last-login"); if (all) all.innerText = user.lastLogin || "Không có dữ liệu đăng nhập";
+            const ald = $id("audit-last-device"); if (ald) ald.innerText = user.lastDevice || "Không xác định";
+            const aua = $id("audit-updated-at"); if (aua) aua.innerText = `Cập nhật: ${user.updatedAt}`;
+
+            lucide.createIcons();
+        }
+    })();
+</script>

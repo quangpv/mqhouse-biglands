@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thông tin nhân sự - CRM Đất Việt Land</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#2563EB',
+                        background: '#F8FAFC',
+                        surface: '#FFFFFF',
+                        borderColor: '#E2E8F0',
+                        textPrimary: '#0F172A',
+                        textSecondary: '#64748B',
+                        success: '#16A34A',
+                        warning: '#F59E0B',
+                        error: '#DC2626'
+                    },
+                    boxShadow: {
+                        soft: '0 2px 8px -1px rgba(15, 23, 42, 0.05), 0 1px 3px -1px rgba(15, 23, 42, 0.03)',
+                    },
+                    borderRadius: {
+                        'card': '16px',
+                        'btn': '12px',
+                        'input': '10px',
+                        'modal': '20px'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F8FAFC;
+            color: #0F172A;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #E2E8F0;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #CBD5E1;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased">
+
+    <!-- Top Navigation Header -->
+    <header class="sticky top-0 z-30 bg-white border-b border-[#E2E8F0] px-4 py-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="p-2 bg-[#2563EB]/10 rounded-xl">
+                    <i data-lucide="shield-check" class="w-6 h-6 text-[#2563EB]"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-semibold text-[#2563EB] tracking-wider uppercase">Hệ thống Quản trị</span>
+                        <span class="px-1.5 py-0.5 text-[10px] font-medium bg-[#E2E8F0] text-[#64748B] rounded">Chỉ đọc</span>
+                    </div>
+                    <p class="text-[12px] text-[#64748B] font-medium">Đất Việt Land CRM v4.2</p>
+                </div>
+            </div>
+            
+            <a href="#" class="flex items-center gap-2 px-4 py-2 bg-white hover:bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-xl text-[14px] font-medium transition-colors duration-150 shadow-sm focus:outline-none">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                <span>Danh sách nhân sự</span>
+            </a>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col gap-6">
+        
+        <!-- Header Page Title -->
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-[#E2E8F0] pb-6">
+            <div>
+                <h1 class="text-[32px] font-semibold text-[#0F172A] leading-tight">Thông tin người dùng</h1>
+                <p class="text-[14px] text-[#64748B] mt-1">Xem thông tin tài khoản người dùng, phân quyền truy cập và cấu hình bảo mật.</p>
+            </div>
+            <div class="flex items-center gap-2 bg-[#2563EB]/5 border border-[#2563EB]/10 rounded-xl px-4 py-3 text-xs text-[#2563EB] max-w-sm">
+                <i data-lucide="info" class="w-4 h-4 flex-shrink-0"></i>
+                <span>Tất cả dữ liệu phân quyền trên màn hình này là chỉ đọc và không thể thay đổi trực tiếp.</span>
+            </div>
+        </div>
+
+        <!-- Master-Detail responsive grid layout -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            
+            <!-- Left Sidebar / Directory Section (4 Columns on large screen) -->
+            <section class="lg:col-span-4 flex flex-col gap-4">
+                <div class="bg-white border border-[#E2E8F0] rounded-2xl p-4 shadow-soft">
+                    <div class="flex items-center justify-between mb-3">
+                        <h2 class="text-[14px] font-semibold text-[#0F172A] uppercase tracking-wider">Danh bạ nhân sự</h2>
+                        <span id="user-count-badge" class="px-2 py-0.5 text-[12px] font-semibold bg-slate-100 text-[#64748B] rounded-full">...</span>
+                    </div>
+                    
+                    <!-- Search Input Box -->
+                    <div class="relative mb-4">
+                        <input type="text" id="search-input" oninput="handleSearch(this.value)" placeholder="Tìm tên, email, vai trò..." class="w-full bg-[#F8FAFC] border border-[#E2E8F0] focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] text-[#0F172A] rounded-[10px] pl-10 pr-4 py-2.5 text-[14px] outline-none transition-all duration-150" />
+                        <i data-lucide="search" class="absolute left-3 top-3.5 w-4.5 h-4.5 text-[#64748B]"></i>
+                    </div>
+
+                    <!-- User Directory Items Wrapper -->
+                    <div id="user-list" class="flex flex-row lg:flex-col gap-2 overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0 max-h-[460px] lg:overflow-y-auto pr-1">
+                        <!-- Dynamic content injected here by script -->
+                    </div>
+                </div>
+
+                <!-- Helper Quick Summary Card -->
+                <div class="bg-slate-50 border border-[#E2E8F0] rounded-2xl p-5 shadow-soft hidden lg:block">
+                    <h3 class="text-[14px] font-semibold text-[#0F172A] mb-3 flex items-center gap-2">
+                        <i data-lucide="lock" class="w-4 h-4 text-[#64748B]"></i>
+                        <span>Nguyên tắc bảo mật CRM</span>
+                    </h3>
+                    <ul class="space-y-2.5 text-[12px] text-[#64748B]">
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-[#16A34A] mt-0.5 flex-shrink-0"></i>
+                            <span>Hạn chế ghi đè dữ liệu nhân sự ngẫu nhiên.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-[#16A34A] mt-0.5 flex-shrink-0"></i>
+                            <span>Phân tách rõ ràng giữa Loại giao dịch & Loại bất động sản được tiếp cận.</span>
+                        </li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Right Detail View Section (8 Columns on large screen) -->
+            <section class="lg:col-span-8 flex flex-col gap-6">
+                
+                <!-- Card 1: Banner / Primary Info -->
+                <div class="bg-white border border-[#E2E8F0] rounded-2xl p-6 shadow-soft relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#2563EB] to-[#1D4ED8]"></div>
+                    
+                    <div class="flex flex-col md:flex-row items-center md:items-start justify-between gap-6 pt-2">
+                        <div class="flex flex-col md:flex-row items-center gap-5 text-center md:text-left">
+                            <div class="relative">
+                                <img id="profile-avatar" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=256&auto=format&fit=crop" alt="Avatar" class="w-24 h-24 rounded-full object-cover border-4 border-white shadow-md bg-slate-100">
+                                <span id="status-badge" class="absolute bottom-1 right-1 w-5 h-5 rounded-full border-2 border-white flex items-center justify-center shadow-sm">
+                                    <span class="w-2.5 h-2.5 rounded-full"></span>
+                                </span>
+                            </div>
+                            <div>
+                                <div class="flex flex-wrap items-center justify-center md:justify-start gap-2 mb-1.5">
+                                    <h2 id="profile-name" class="text-[24px] font-semibold text-[#0F172A] leading-snug">---</h2>
+                                    <span id="profile-status-text" class="px-2.5 py-0.5 text-xs font-medium rounded-full border">---</span>
+                                </div>
+                                <p id="profile-role" class="text-[14px] text-[#2563EB] font-medium mb-1">---</p>
+                                <p id="profile-org" class="text-[12px] text-[#64748B] flex items-center justify-center md:justify-start gap-1">
+                                    <i data-lucide="building-2" class="w-3.5 h-3.5"></i>
+                                    <span>---</span>
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Read-Only Badge indicator -->
+                        <div class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 border border-slate-200 text-slate-500 rounded-xl text-xs font-medium">
+                            <i data-lucide="eye" class="w-4 h-4"></i>
+                            <span>Chế độ chỉ đọc</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2: User Details Fields -->
+                <div class="bg-white border border-[#E2E8F0] rounded-2xl p-6 shadow-soft">
+                    <h3 class="text-[18px] font-semibold text-[#0F172A] mb-4 pb-2 border-b border-[#E2E8F0] flex items-center gap-2">
+                        <i data-lucide="user" class="w-5 h-5 text-[#2563EB]"></i>
+                        <span>Thông tin tài khoản cơ bản</span>
+                    </h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Full Name -->
+                        <div>
+                            <label class="block text-[12px] font-semibold text-[#64748B] uppercase tracking-wider mb-2">Họ và tên</label>
+                            <div class="relative flex items-center">
+                                <input type="text" id="field-fullname" readonly value="---" class="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-[10px] pl-10 pr-4 py-2.5 text-[14px] cursor-not-allowed focus:outline-none">
+                                <i data-lucide="user" class="absolute left-3 w-4.5 h-4.5 text-[#64748B]"></i>
+                            </div>
+                        </div>
+
+                        <!-- Username -->
+                        <div>
+                            <label class="block text-[12px] font-semibold text-[#64748B] uppercase tracking-wider mb-2">Tên đăng nhập (Username)</label>
+                            <div class="relative flex items-center">
+                                <input type="text" id="field-username" readonly value="---" class="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-[10px] pl-10 pr-4 py-2.5 text-[14px] cursor-not-allowed focus:outline-none font-mono">
+                                <i data-lucide="at-sign" class="absolute left-3 w-4.5 h-4.5 text-[#64748B]"></i>
+                            </div>
+                        </div>
+
+                        <!-- Email -->
+                        <div>
+                            <label class="block text-[12px] font-semibold text-[#64748B] uppercase tracking-wider mb-2">Địa chỉ Email</label>
+                            <div class="relative flex items-center">
+                                <input type="text" id="field-email" readonly value="---" class="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-[10px] pl-10 pr-4 py-2.5 text-[14px] cursor-not-allowed focus:outline-none">
+                                <i data-lucide="mail" class="absolute left-3 w-4.5 h-4.5 text-[#64748B]"></i>
+                            </div>
+                        </div>
+
+                        <!-- Phone Number -->
+                        <div>
+                            <label class="block text-[12px] font-semibold text-[#64748B] uppercase tracking-wider mb-2">Số điện thoại</label>
+                            <div id="field-phone-container" class="relative flex items-center">
+                                <input type="text" id="field-phone" readonly value="---" class="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-[10px] pl-10 pr-4 py-2.5 text-[14px] cursor-not-allowed focus:outline-none">
+                                <i data-lucide="phone" class="absolute left-3 w-4.5 h-4.5 text-[#64748B]"></i>
+                            </div>
+                        </div>
+
+                        <!-- Role -->
+                        <div>
+                            <label class="block text-[12px] font-semibold text-[#64748B] uppercase tracking-wider mb-2">Vai trò hệ thống</label>
+                            <div class="relative flex items-center">
+                                <input type="text" id="field-role" readonly value="---" class="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-[10px] pl-10 pr-4 py-2.5 text-[14px] cursor-not-allowed focus:outline-none">
+                                <i data-lucide="shield" class="absolute left-3 w-4.5 h-4.5 text-[#64748B]"></i>
+                            </div>
+                        </div>
+
+                        <!-- Organization -->
+                        <div>
+                            <label class="block text-[12px] font-semibold text-[#64748B] uppercase tracking-wider mb-2">Chi nhánh / Tổ chức</label>
+                            <div class="relative flex items-center">
+                                <input type="text" id="field-org" readonly value="---" class="w-full bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-[10px] pl-10 pr-4 py-2.5 text-[14px] cursor-not-allowed focus:outline-none">
+                                <i data-lucide="building" class="absolute left-3 w-4.5 h-4.5 text-[#64748B]"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 3: Permission & Access Section -->
+                <div class="bg-white border border-[#E2E8F0] rounded-2xl p-6 shadow-soft">
+                    <h3 class="text-[18px] font-semibold text-[#0F172A] mb-2 flex items-center gap-2">
+                        <i data-lucide="key-round" class="w-5 h-5 text-[#2563EB]"></i>
+                        <span>Phân quyền & Khả năng tiếp cận</span>
+                    </h3>
+                    <p class="text-[12px] text-[#64748B] mb-5 border-b border-[#E2E8F0] pb-3">Phạm vi nghiệp vụ được cấp phép hoạt động trong hệ thống dữ liệu khách hàng.</p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Transaction Types Permitted -->
+                        <div>
+                            <h4 class="text-[14px] font-semibold text-[#0F172A] mb-3 flex items-center gap-1.5">
+                                <i data-lucide="arrow-left-right" class="w-4 h-4 text-[#64748B]"></i>
+                                <span>Loại giao dịch</span>
+                            </h4>
+                            <div class="space-y-2" id="transaction-list-container">
+                                <!-- Dynamic transactions render -->
+                            </div>
+                        </div>
+
+                        <!-- Property Types Permitted -->
+                        <div>
+                            <h4 class="text-[14px] font-semibold text-[#0F172A] mb-3 flex items-center gap-1.5">
+                                <i data-lucide="home" class="w-4 h-4 text-[#64748B]"></i>
+                                <span>Phân loại bất động sản</span>
+                            </h4>
+                            <div class="space-y-2" id="property-list-container">
+                                <!-- Dynamic properties render -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 4: Security Section & Device Restriction -->
+                <div class="bg-white border border-[#E2E8F0] rounded-2xl p-6 shadow-soft">
+                    <h3 class="text-[18px] font-semibold text-[#0F172A] mb-4 pb-2 border-b border-[#E2E8F0] flex items-center gap-2">
+                        <i data-lucide="fingerprint" class="w-5 h-5 text-[#2563EB]"></i>
+                        <span>Cài đặt bảo mật & Thiết bị</span>
+                    </h3>
+
+                    <div class="flex flex-col md:flex-row items-start justify-between gap-6">
+                        <div class="flex-grow max-w-xl">
+                            <div class="flex items-center gap-2 mb-1">
+                                <h4 class="text-[14px] font-semibold text-[#0F172A]">Giới hạn thiết bị truy cập</h4>
+                                <span class="px-1.5 py-0.5 text-[10px] bg-[#E2E8F0] text-[#64748B] rounded flex items-center gap-0.5 font-medium">
+                                    <i data-lucide="lock" class="w-2.5 h-2.5"></i>Khóa cấu hình
+                                </span>
+                            </div>
+                            <p id="device-restriction-description" class="text-[13px] text-[#64748B] leading-relaxed">---</p>
+                        </div>
+                        
+                        <!-- Toggle Visual (Locked/Disabled) -->
+                        <div class="flex items-center gap-3 bg-slate-50 border border-slate-200 p-2.5 rounded-xl self-end md:self-center">
+                            <button id="device-restriction-toggle" disabled class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-not-allowed rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none">
+                                <span id="device-restriction-slider" class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"></span>
+                            </button>
+                            <span id="device-restriction-badge" class="text-xs font-semibold px-2 py-0.5 rounded">---</span>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 pt-5 border-t border-[#E2E8F0] grid grid-cols-1 sm:grid-cols-2 gap-4 text-[13px]">
+                        <div class="flex items-center justify-between p-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl">
+                            <span class="text-[#64748B] font-medium">Xác thực 2 lớp (2FA)</span>
+                            <span id="profile-2fa" class="font-semibold flex items-center gap-1">---</span>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl">
+                            <span class="text-[#64748B] font-medium">Chính sách bảo mật</span>
+                            <span class="font-semibold text-[#2563EB] flex items-center gap-1">Chặt chẽ</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 5: Activity & Audit Logs -->
+                <div class="bg-white border border-[#E2E8F0] rounded-2xl p-6 shadow-soft">
+                    <h3 class="text-[18px] font-semibold text-[#0F172A] mb-4 pb-2 border-b border-[#E2E8F0] flex items-center gap-2">
+                        <i data-lucide="history" class="w-5 h-5 text-[#2563EB]"></i>
+                        <span>Thông tin hoạt động & Nhật ký kiểm duyệt</span>
+                    </h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Activity Column -->
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center text-[13px]">
+                                <span class="text-[#64748B] flex items-center gap-1.5">
+                                    <i data-lucide="log-in" class="w-4 h-4 text-[#64748B]"></i>
+                                    <span>Đăng nhập lần cuối</span>
+                                </span>
+                                <span id="audit-last-login" class="font-semibold text-[#0F172A] text-right">---</span>
+                            </div>
+                            <div class="flex justify-between items-center text-[13px]">
+                                <span class="text-[#64748B] flex items-center gap-1.5">
+                                    <i data-lucide="smartphone" class="w-4 h-4 text-[#64748B]"></i>
+                                    <span>Thiết bị đăng nhập</span>
+                                </span>
+                                <span id="audit-last-device" class="font-semibold text-[#0F172A] truncate max-w-[180px] sm:max-w-none text-right">---</span>
+                            </div>
+                        </div>
+
+                        <!-- Audit Column -->
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center text-[13px]">
+                                <span class="text-[#64748B] flex items-center gap-1.5">
+                                    <i data-lucide="plus-circle" class="w-4 h-4 text-[#64748B]"></i>
+                                    <span>Khởi tạo bởi</span>
+                                </span>
+                                <div class="text-right">
+                                    <span id="audit-created-by" class="font-semibold text-[#0F172A]">---</span>
+                                    <div id="audit-created-at" class="text-[11px] text-[#64748B] font-mono">---</div>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center text-[13px]">
+                                <span class="text-[#64748B] flex items-center gap-1.5">
+                                    <i data-lucide="edit-3" class="w-4 h-4 text-[#64748B]"></i>
+                                    <span>Cập nhật cuối bởi</span>
+                                </span>
+                                <div class="text-right">
+                                    <span id="audit-updated-by" class="font-semibold text-[#0F172A]">---</span>
+                                    <div id="audit-updated-at" class="text-[11px] text-[#64748B] font-mono">---</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+
+        </div>
+    </main>
+
+    <!-- Footer of the CRM application -->
+    <footer class="bg-white border-t border-[#E2E8F0] mt-auto py-6 px-4">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-[#64748B]">
+            <p>© 2026 Đất Việt Land CRM. Bảo lưu mọi quyền hệ thống.</p>
+            <div class="flex items-center gap-4">
+                <span class="hover:underline cursor-pointer">Điều khoản sử dụng</span>
+                <span class="hover:underline cursor-pointer">Chính sách bảo mật thông tin</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // High quality Unsplash URLs
+        const usersData = [
+            {
+                id: 1,
+                name: "Nguyễn Minh Đức",
+                username: "duc.nguyenminh",
+                avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=150&auto=format&fit=crop",
+                email: "duc.nguyen@nhadatviet.vn",
+                phone: "0908 123 456",
+                role: "Trưởng phòng kinh doanh",
+                org: "Chi nhánh Quận 1 - Đất Việt Land",
+                status: "active",
+                transactions: {
+                    ban: true,
+                    chothue: true,
+                    chomuon: false,
+                    chuyennhuong: true
+                },
+                properties: {
+                    chungcu: true,
+                    dichvu: false,
+                    nhadat: true,
+                    nhatro: false
+                },
+                deviceRestriction: true,
+                twoFA: "Đã kích hoạt",
+                lastLogin: "18:24 - 05/07/2026",
+                lastDevice: "iPhone 15 Pro Max (Chrome Mobile)",
+                createdAt: "15/01/2025",
+                createdBy: "Quản trị viên hệ thống",
+                updatedAt: "01/07/2026",
+                updatedBy: "Trần Thị Thanh"
+            },
+            {
+                id: 2,
+                name: "Lê Thị Thu Thảo",
+                username: "thao.lethu",
+                avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=150&auto=format&fit=crop",
+                email: "thao.le@nhadatviet.vn",
+                phone: "0912 987 654",
+                role: "Chuyên viên tư vấn (Sales)",
+                org: "Chi nhánh Quận 3 - Đất Việt Land",
+                status: "active",
+                transactions: {
+                    ban: true,
+                    chothue: true,
+                    chomuon: false,
+                    chuyennhuong: false
+                },
+                properties: {
+                    chungcu: true,
+                    dichvu: true,
+                    nhadat: false,
+                    nhatro: true
+                },
+                deviceRestriction: false,
+                twoFA: "Đã kích hoạt",
+                lastLogin: "09:15 - 05/07/2026",
+                lastDevice: "MacBook Pro M3 (Safari)",
+                createdAt: "10/03/2025",
+                createdBy: "Quản trị viên hệ thống",
+                updatedAt: "10/03/2025",
+                updatedBy: "Hệ thống tự động"
+            },
+            {
+                id: 3,
+                name: "Phạm Văn Nam",
+                username: "nam.phamvan",
+                avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=150&auto=format&fit=crop",
+                email: "nam.pham@nhadatviet.vn",
+                phone: "", 
+                role: "Cộng tác viên (Staff)",
+                org: "Văn phòng Thủ Đức",
+                status: "pending",
+                transactions: {
+                    ban: false,
+                    chothue: true,
+                    chomuon: false,
+                    chuyennhuong: false
+                },
+                properties: {
+                    chungcu: false,
+                    dichvu: false,
+                    nhadat: false,
+                    nhatro: true
+                },
+                deviceRestriction: false,
+                twoFA: "Chưa kích hoạt",
+                lastLogin: "", 
+                lastDevice: "", 
+                createdAt: "04/07/2026",
+                createdBy: "Nguyễn Minh Đức",
+                updatedAt: "04/07/2026",
+                updatedBy: "Nguyễn Minh Đức"
+            },
+            {
+                id: 4,
+                name: "Trần Thị Mai",
+                username: "mai.tranthi",
+                avatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=150&auto=format&fit=crop",
+                email: "mai.tran@nhadatviet.vn",
+                phone: "0933 445 566",
+                role: "Quản trị viên (Admin)",
+                org: "Hội sở chính - Đất Việt Land",
+                status: "active",
+                transactions: {
+                    ban: true,
+                    chothue: true,
+                    chomuon: true,
+                    chuyennhuong: true
+                },
+                properties: {
+                    chungcu: true,
+                    dichvu: true,
+                    nhadat: true,
+                    nhatro: true
+                },
+                deviceRestriction: true,
+                twoFA: "Đã kích hoạt",
+                lastLogin: "17:45 - 05/07/2026",
+                lastDevice: "Windows PC (Edge)",
+                createdAt: "01/01/2024",
+                createdBy: "Hệ thống cốt lõi",
+                updatedAt: "15/12/2025",
+                updatedBy: "Hệ thống"
+            },
+            {
+                id: 5,
+                name: "Hoàng Văn Lâm",
+                username: "lam.hoangvan",
+                avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=150&auto=format&fit=crop",
+                email: "lam.hoang@nhadatviet.vn",
+                phone: "0988 555 777",
+                role: "Giám đốc dự án (Manager)",
+                org: "Chi nhánh Quận 7 - Đất Việt Land",
+                status: "suspended",
+                transactions: {
+                    ban: true,
+                    chothue: false,
+                    chomuon: false,
+                    chuyennhuong: true
+                },
+                properties: {
+                    chungcu: true,
+                    dichvu: true,
+                    nhadat: true,
+                    nhatro: false
+                },
+                deviceRestriction: true,
+                twoFA: "Đã kích hoạt",
+                lastLogin: "12:00 - 30/06/2026",
+                lastDevice: "iPad Air (Chrome Mobile)",
+                createdAt: "15/02/2024",
+                createdBy: "Trần Thị Mai",
+                updatedAt: "30/06/2026",
+                updatedBy: "Trần Thị Mai"
+            },
+            {
+                id: 6,
+                name: "Đỗ Phương Linh",
+                username: "linh.dophuong",
+                avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=150&auto=format&fit=crop",
+                email: "linh.do@nhadatviet.vn",
+                phone: "0977 111 222",
+                role: "Nhân viên Pháp lý (Staff)",
+                org: "Hội sở chính - Đất Việt Land",
+                status: "active",
+                transactions: {
+                    ban: false,
+                    chothue: false,
+                    chomuon: false,
+                    chuyennhuong: true
+                },
+                properties: {
+                    chungcu: true,
+                    dichvu: false,
+                    nhadat: true,
+                    nhatro: false
+                },
+                deviceRestriction: false,
+                twoFA: "Chưa kích hoạt",
+                lastLogin: "10:30 - 04/07/2026",
+                lastDevice: "Windows PC (Chrome)",
+                createdAt: "10/11/2025",
+                createdBy: "Trần Thị Mai",
+                updatedAt: "10/11/2025",
+                updatedBy: "Hệ thống"
+            }
+        ];
+
+        let selectedUserId = 1;
+        let searchQuery = "";
+
+        window.onload = function() {
+            renderUserList();
+            renderProfile(selectedUserId);
+            lucide.createIcons();
+        }
+
+        function handleSearch(query) {
+            searchQuery = query.trim().toLowerCase();
+            renderUserList();
+        }
+
+        function renderUserList() {
+            const listContainer = document.getElementById("user-list");
+            listContainer.innerHTML = "";
+
+            const filteredUsers = usersData.filter(user => {
+                return user.name.toLowerCase().includes(searchQuery) ||
+                       user.email.toLowerCase().includes(searchQuery) ||
+                       user.role.toLowerCase().includes(searchQuery);
+            });
+
+            document.getElementById("user-count-badge").innerText = `${filteredUsers.length} nhân sự`;
+
+            if (filteredUsers.length === 0) {
+                listContainer.innerHTML = `
+                    <div class="col-span-full py-8 text-center text-[#64748B] text-xs">
+                        <i data-lucide="users" class="w-8 h-8 mx-auto mb-2 opacity-40"></i>
+                        <p>Không tìm thấy nhân viên nào phù hợp</p>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            filteredUsers.forEach(user => {
+                const isActive = user.id === selectedUserId;
+                const statusTheme = getStatusColors(user.status);
+
+                const itemHtml = `
+                    <div onclick="selectUser(${user.id})" class="flex-shrink-0 w-[240px] lg:w-full flex items-center justify-between p-3 rounded-xl border transition-all duration-150 cursor-pointer select-none ${isActive ? 'bg-[#2563EB]/5 border-[#2563EB] shadow-sm' : 'bg-white hover:bg-slate-50 border-[#E2E8F0]' }">
+                        <div class="flex items-center gap-3">
+                            <div class="relative flex-shrink-0">
+                                <img src="${user.avatar}" alt="${user.name}" class="w-10 h-10 rounded-full object-cover bg-slate-100">
+                                <span class="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${statusTheme.dotClass}"></span>
+                            </div>
+                            <div class="text-left">
+                                <h4 class="text-[13px] font-semibold text-[#0F172A] line-clamp-1">${user.name}</h4>
+                                <p class="text-[11px] text-[#64748B] line-clamp-1">${user.role}</p>
+                            </div>
+                        </div>
+                        <i data-lucide="chevron-right" class="w-4 h-4 text-[#64748B] hidden lg:block ${isActive ? 'text-[#2563EB] translate-x-1' : ''} transition-transform"></i>
+                    </div>
+                `;
+                listContainer.insertAdjacentHTML('beforeend', itemHtml);
+            });
+
+            lucide.createIcons();
+        }
+
+        function selectUser(id) {
+            selectedUserId = id;
+            renderUserList();
+            renderProfile(id);
+        }
+
+        function getStatusColors(status) {
+            switch(status) {
+                case 'active':
+                    return {
+                        dotClass: 'bg-[#16A34A]',
+                        bgClass: 'bg-[#16A34A]/10',
+                        textClass: 'text-[#16A34A] border-[#16A34A]/20',
+                        label: 'Đang hoạt động'
+                    };
+                case 'pending':
+                    return {
+                        dotClass: 'bg-[#F59E0B]',
+                        bgClass: 'bg-[#F59E0B]/10',
+                        textClass: 'text-[#F59E0B] border-[#F59E0B]/20',
+                        label: 'Chờ kích hoạt'
+                    };
+                case 'suspended':
+                    return {
+                        dotClass: 'bg-[#DC2626]',
+                        bgClass: 'bg-[#DC2626]/10',
+                        textClass: 'text-[#DC2626] border-[#DC2626]/20',
+                        label: 'Tạm khóa'
+                    };
+                default:
+                    return {
+                        dotClass: 'bg-[#64748B]',
+                        bgClass: 'bg-slate-100',
+                        textClass: 'text-slate-600 border-slate-200',
+                        label: 'Không rõ'
+                    };
+            }
+        }
+
+        function renderProfile(id) {
+            const user = usersData.find(u => u.id === id);
+            if (!user) return;
+
+            document.getElementById("profile-avatar").src = user.avatar;
+            document.getElementById("profile-name").innerText = user.name;
+            document.getElementById("profile-role").innerText = user.role;
+            document.getElementById("profile-org").querySelector("span").innerText = user.org;
+
+            const statusTheme = getStatusColors(user.status);
+            const statusIndicator = document.getElementById("status-badge");
+            statusIndicator.className = `absolute bottom-1 right-1 w-5 h-5 rounded-full border-2 border-white flex items-center justify-center shadow-sm ${statusTheme.dotClass}`;
+            
+            const statusText = document.getElementById("profile-status-text");
+            statusText.innerText = statusTheme.label;
+            statusText.className = `px-2.5 py-0.5 text-xs font-semibold rounded-full border ${statusTheme.bgClass} ${statusTheme.textClass}`;
+
+            document.getElementById("field-fullname").value = user.name || "Chưa cập nhật";
+            document.getElementById("field-username").value = user.username ? `@${user.username}` : "Chưa cập nhật";
+            document.getElementById("field-email").value = user.email || "Chưa cập nhật";
+            
+            const phoneField = document.getElementById("field-phone");
+            const phoneContainer = document.getElementById("field-phone-container");
+            const existingWarn = document.getElementById("phone-warn-msg");
+            if (existingWarn) existingWarn.remove();
+
+            if (user.phone) {
+                phoneField.value = user.phone;
+                phoneField.classList.remove("text-rose-500", "italic");
+                phoneField.classList.add("text-[#0F172A]");
+            } else {
+                phoneField.value = "Chưa cập nhật";
+                phoneField.classList.add("text-rose-500", "italic");
+                phoneField.classList.remove("text-[#0F172A]");
+                
+                phoneContainer.insertAdjacentHTML('beforeend', `
+                    <span id="phone-warn-msg" class="absolute right-3 px-2 py-0.5 text-[10px] bg-red-50 text-[#DC2626] font-medium rounded flex items-center gap-0.5">
+                        Thiếu thông tin
+                    </span>
+                `);
+            }
+
+            document.getElementById("field-role").value = user.role || "Chưa cập nhật";
+            document.getElementById("field-org").value = user.org || "Chưa cập nhật";
+
+            const transactionContainer = document.getElementById("transaction-list-container");
+            transactionContainer.innerHTML = "";
+            const transactionLabels = {
+                ban: "Bán bất động sản",
+                chothue: "Cho thuê bất động sản",
+                chomuon: "Cho mượn mặt bằng",
+                chuyennhuong: "Chuyển nhượng quyền sử dụng"
+            };
+
+            Object.keys(transactionLabels).forEach(key => {
+                const hasPerm = user.transactions[key];
+                const itemHtml = `
+                    <div class="flex items-center justify-between p-2.5 rounded-[10px] border text-xs transition-colors duration-150 ${hasPerm ? 'bg-blue-50/50 border-[#2563EB]/20 text-[#0F172A]' : 'bg-slate-50/50 border-slate-200 text-slate-400' }">
+                        <span class="font-medium ${hasPerm ? '' : 'line-through decoration-slate-300'}">${transactionLabels[key]}</span>
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-[10px] uppercase tracking-wider font-semibold">${hasPerm ? 'Cho phép' : 'Khóa'}</span>
+                            <div class="p-0.5 rounded-full ${hasPerm ? 'bg-blue-100 text-[#2563EB]' : 'bg-slate-200 text-slate-400'}">
+                                <i data-lucide="${hasPerm ? 'check' : 'minus'}" class="w-3.5 h-3.5"></i>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                transactionContainer.insertAdjacentHTML('beforeend', itemHtml);
+            });
+
+            const propertyContainer = document.getElementById("property-list-container");
+            propertyContainer.innerHTML = "";
+            const propertyLabels = {
+                chungcu: "Căn hộ chung cư / Penthouse",
+                dichvu: "Bất động sản dịch vụ / Shophouse",
+                nhadat: "Nhà phố / Đất nền thổ cư",
+                nhatro: "Nhà trọ / Phòng cho thuê gia đình"
+            };
+
+            Object.keys(propertyLabels).forEach(key => {
+                const hasPerm = user.properties[key];
+                const itemHtml = `
+                    <div class="flex items-center justify-between p-2.5 rounded-[10px] border text-xs transition-colors duration-150 ${hasPerm ? 'bg-blue-50/50 border-[#2563EB]/20 text-[#0F172A]' : 'bg-slate-50/50 border-slate-200 text-slate-400' }">
+                        <span class="font-medium ${hasPerm ? '' : 'line-through decoration-slate-300'}">${propertyLabels[key]}</span>
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-[10px] uppercase tracking-wider font-semibold">${hasPerm ? 'Cho phép' : 'Khóa'}</span>
+                            <div class="p-0.5 rounded-full ${hasPerm ? 'bg-blue-100 text-[#2563EB]' : 'bg-slate-200 text-slate-400'}">
+                                <i data-lucide="${hasPerm ? 'check' : 'minus'}" class="w-3.5 h-3.5"></i>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                propertyContainer.insertAdjacentHTML('beforeend', itemHtml);
+            });
+
+            const toggleBtn = document.getElementById("device-restriction-toggle");
+            const toggleSlider = document.getElementById("device-restriction-slider");
+            const toggleBadge = document.getElementById("device-restriction-badge");
+            const deviceDescription = document.getElementById("device-restriction-description");
+
+            if (user.deviceRestriction) {
+                toggleBtn.className = "relative inline-flex h-6 w-11 flex-shrink-0 cursor-not-allowed rounded-full border-2 border-transparent bg-[#2563EB]/40 transition-colors duration-200 ease-in-out focus:outline-none";
+                toggleSlider.className = "pointer-events-none inline-block h-5 w-5 transform translate-x-5 rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out";
+                toggleBadge.innerText = "Đang giới hạn";
+                toggleBadge.className = "text-xs font-semibold px-2 py-0.5 rounded bg-blue-50 text-[#2563EB] border border-[#2563EB]/20";
+                deviceDescription.innerText = "Tài khoản đang bị giới hạn thiết bị. Chỉ có thể truy cập bằng thiết bị chính chủ đã đăng ký hệ thống từ trước.";
+            } else {
+                toggleBtn.className = "relative inline-flex h-6 w-11 flex-shrink-0 cursor-not-allowed rounded-full border-2 border-transparent bg-slate-200 transition-colors duration-200 ease-in-out focus:outline-none";
+                toggleSlider.className = "pointer-events-none inline-block h-5 w-5 transform translate-x-0 rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out";
+                toggleBadge.innerText = "Không giới hạn";
+                toggleBadge.className = "text-xs font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-500 border border-slate-200";
+                deviceDescription.innerText = "Không giới hạn thiết bị đăng nhập. Tài khoản được phép linh hoạt truy cập từ nhiều trình duyệt và phần cứng khác nhau.";
+            }
+
+            const profile2fa = document.getElementById("profile-2fa");
+            if (user.twoFA === "Đã kích hoạt") {
+                profile2fa.innerText = "Đã kích hoạt";
+                profile2fa.className = "font-semibold text-[#16A34A] flex items-center gap-1";
+            } else {
+                profile2fa.innerText = "Chưa kích hoạt";
+                profile2fa.className = "font-semibold text-[#DC2626] flex items-center gap-1";
+            }
+
+            document.getElementById("audit-last-login").innerText = user.lastLogin || "Không có dữ liệu đăng nhập";
+            document.getElementById("audit-last-device").innerText = user.lastDevice || "Không xác định";
+            document.getElementById("audit-created-by").innerText = user.createdBy || "Hệ thống";
+            document.getElementById("audit-created-at").innerText = `Khởi tạo: ${user.createdAt}`;
+            document.getElementById("audit-updated-by").innerText = user.updatedBy || "---";
+            document.getElementById("audit-updated-at").innerText = `Cập nhật: ${user.updatedAt}`;
+
+            lucide.createIcons();
+        }
+    </script>
+</body>
+</html>
