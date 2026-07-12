@@ -9,38 +9,61 @@ See [types.md](./types.md) for request/response schemas. See [README.md](./READM
 ## Global Rules
 
 ### Draft Visibility
-- Draft properties are only visible to their owner
-- List endpoint filters out other users' drafts at the query level
-- Detail endpoint returns 403 "Draft properties are only visible to their owner" for other users' drafts
+- Draft properties are only visible to the person who created them.
+- When listing properties, other users' drafts are automatically hidden.
+- When viewing a specific property that is a draft created by someone else, access is denied.
 
-### SALE Transaction/Property Type Guard
-- On create and update: if user is SALE, `transaction_type_id` must be in the user's assigned `transaction_types`, and `property_type_id` must be in the user's assigned `property_types`
-- Returns 403 if mismatch
+### Sales Staff Type Guard
+- When creating or updating a property, Sales staff can only choose from the property types and transaction types they are assigned to.
+- If the selected types are not in the staff member's assignments, the request is denied.
 
-### Phone Masking
-- For SALE users viewing properties they did NOT create: `creator.phone` and `owner_phone` are masked (first 4 digits + `****`)
-- ADMIN/APPROVER and property owners always see full numbers
+### Phone Number Privacy
+- Sales staff see masked phone numbers (first 4 digits + `****`) for properties they did not create.
+- Admins, approvers, and property owners always see full phone numbers.
 
-### Code Generation
-- Format: `YYMMDD` + 7-digit zero-padded random = 14 characters
+### Property Code
+- Each property is assigned a unique 14-character code: date prefix (YYMMDD) + 7-digit random number.
 
-### Price Per M2
-- Computed as `price / total_area`, quantized to 2 decimal places
-- Returns null if either value is missing or zero
+### Price Per Square Meter
+- Automatically calculated as price divided by total area, rounded to 2 decimal places.
+- Returns empty if either value is missing or zero.
+
+### Auto-Rejection Cascade
+- When any user acts on a property that already has a pending approval, the existing approval is automatically rejected.
+- This applies to all status transitions (deposit, sold out, cancel, complete, reopen) and edits.
+- The auto-rejected approval is recorded as rejected in the approval history.
+
+### First Image as Primary
+- When creating or updating a property, the first image in the list is automatically set as the primary image.
+
+### Terminal Statuses
+- DEPOSITED, SOLDOUT, EXPIRED, and COMPLETED are terminal statuses.
+- Terminal statuses can only be soft-deleted (moved to trash), not hard-deleted.
+- The only way out of a terminal status is through the reopen flow.
 
 ---
 
 ## POST /properties
 
-Desc: Create property.
+Desc: Create a property listing.
 
-**Access:** Authenticated
+**Access:** Requires sign-in
 
 **Rules:**
-- `is_draft=true` (default): status = DRAFT, no transition, no approval, no notification
-- `is_draft=false` + SALE: status = POST_PENDING, creates approval + transition, notifies admins/approvers
-- `is_draft=false` + ADMIN/APPROVER: status = AVAILABLE directly, no approval/transition/notification
-- SALE transaction/property type guard applies
+- Saving as draft (`is_draft=true`, default): listing is saved privately; no approval needed; no one is notified.
+- Publishing immediately (`is_draft=false`) by Sales staff: listing goes to approval queue; admins and approvers are notified.
+- Publishing immediately (`is_draft=false`) by Admin/Approver: listing is published right away; no approval needed; no one is notified.
+- Sales staff type guard applies (see Global Rules).
+
+**Required fields for publish:**
+- Title: minimum 1 character.
+- Description: minimum 30 characters.
+- At least 1 image is required.
+- Property type and transaction type must be selected.
+
+**Draft vs. Publish:**
+- Saving as draft only requires a subset of fields (title, types, location, price, phone, description). Images are not required for drafts.
+- Once a draft is published, it cannot be re-published. Only save changes is available.
 
 **Request:** `CreatePropertyRequest`
 **Response:** `PropertyResponse`
@@ -49,14 +72,14 @@ Desc: Create property.
 
 ## GET /properties
 
-Desc: List all properties with filters.
+Desc: View all property listings with filters.
 
-**Access:** Authenticated
+**Access:** Requires sign-in
 
 **Rules:**
-- Draft properties from other users are filtered out
-- Each property includes `is_pinned` flag for the current user
-- Phone masking applies for SALE users
+- Draft properties created by other users are automatically hidden.
+- Each property indicates whether you have pinned it.
+- Phone number masking applies for Sales staff viewing properties they did not create.
 
 **Query Params:** `PropertyListParams`
 **Response:** `PropertyListResponse`
@@ -67,13 +90,13 @@ Desc: List all properties with filters.
 
 Desc: Get property counts by category.
 
-**Access:** Authenticated
+**Access:** Requires sign-in
 
 **Rules:**
-- Returns three counts: `all_count`, `hot_count`, `pinned_count`
-- All counts respect the same filters as listing
-- `pinned_count` is per-user
-- Draft visibility filtering applies
+- Returns three counts: total, hot (featured), and pinned.
+- All counts respect the same filters as property listing.
+- Pinned count is per-user (each user sees how many properties they have pinned).
+- Draft visibility filtering applies.
 
 **Response:** `PropertyCountResponse`
 
@@ -81,14 +104,14 @@ Desc: Get property counts by category.
 
 ## GET /properties/{property_id}
 
-Desc: Get property detail.
+Desc: View property details.
 
-**Access:** Authenticated
+**Access:** Requires sign-in
 
 **Rules:**
-- Draft properties: returns 403 if viewer is not the owner
-- Includes `is_pinned` flag
-- Phone masking applies
+- Draft properties: access is denied if you are not the person who created the listing.
+- Indicates whether you have pinned this property.
+- Phone number masking applies for Sales staff viewing properties they did not create.
 
 **Response:** `PropertyResponse`
 
@@ -96,31 +119,31 @@ Desc: Get property detail.
 
 ## PUT /properties/{property_id}
 
-Desc: Update property.
+Desc: Update a property listing.
 
-**Access:** Authenticated
+**Access:** Requires sign-in
 
 **Rules:**
 
 | Current Status | Who | Changes Applied? | New Status | Approval Needed? | Notifications |
 |---|---|---|---|---|---|
 | DRAFT | Owner | Yes, immediately | DRAFT | No | None |
-| POST_PENDING | Owner (SALE) | Yes, immediately | POST_PENDING | No | None |
-| POST_PENDING | Admin/Approver | Yes, immediately | POST_PENDING | No | Owner notified (LISTING_UPDATED) |
-| AVAILABLE | SALE | No (deferred) | EDIT_PENDING | Yes (new) | Admins/approvers notified |
+| POST_PENDING | Owner (Sales) | Yes, immediately | POST_PENDING | No | None |
+| POST_PENDING | Admin/Approver | Yes, immediately | POST_PENDING | No | Owner notified (listing updated) |
+| AVAILABLE | Sales | No (deferred) | EDIT_PENDING | Yes (new) | Admins/approvers notified |
 | AVAILABLE | Admin/Approver | Yes, immediately | AVAILABLE | No | None |
-| EDIT_PENDING | Owner (SALE) | No (overwrites approval diff) | EDIT_PENDING | Overwrites existing | None |
-| EDIT_PENDING | Non-owner Admin/Approver | No (overwrites approval diff) | EDIT_PENDING | Overwrites existing | Owner notified (LISTING_UPDATED) |
+| EDIT_PENDING | Owner (Sales) | No (overwrites approval diff) | EDIT_PENDING | Overwrites existing | None |
+| EDIT_PENDING | Non-owner Admin/Approver | No (overwrites approval diff) | EDIT_PENDING | Overwrites existing | Owner notified (listing updated) |
 
-**Conflict rules (409):**
-- SALE editing AVAILABLE: if pending approval exists → 409
-- Editing EDIT_PENDING: if no pending approval exists → 409
+**Conflict rules:**
+- Sales staff editing an AVAILABLE listing: if there is already a pending edit request, the update is rejected.
+- Editing an EDIT_PENDING listing: if there is no pending approval record, the update is rejected.
 
 **Other rules:**
-- SALE can only update own properties
-- Allowed statuses: DRAFT, POST_PENDING, AVAILABLE, EDIT_PENDING
-- Tag handling: `null` = unchanged, `[]` = clear, `[...]` = replace
-- Change snapshot computed for each changed field
+- Sales staff can only update their own properties.
+- Only listings in the following statuses can be edited: DRAFT, POST_PENDING, AVAILABLE, EDIT_PENDING.
+- Tag handling: `null` = leave unchanged, `[]` = clear all tags, `[...]` = replace with new set.
+- A snapshot of changes is recorded for each modified field.
 
 **Request:** `UpdatePropertyRequest`
 **Response:** `PropertyResponse`
@@ -129,15 +152,15 @@ Desc: Update property.
 
 ## DELETE /properties/{property_id}
 
-Desc: Delete property.
+Desc: Delete a property listing.
 
-**Access:** Authenticated
+**Access:** Requires sign-in
 
 **Rules:**
-- ADMIN can delete any property
-- Non-admin can only delete own properties
-- Hard delete for non-terminal statuses (draft, post_pending, available, edit_pending)
-- Soft delete for terminal statuses (deposited, soldout, expired, completed)
+- Admins can delete any property.
+- Non-admins can only delete their own properties.
+- Listings that are not yet finalized (draft, pending posting, available, pending edit) are permanently deleted.
+- Listings that have reached a final status (deposited, sold out, expired, completed) are soft-deleted (moved to trash).
 
 **Response:** 204 No Content
 
@@ -145,14 +168,14 @@ Desc: Delete property.
 
 ## POST /properties/{property_id}/transitions/submit
 
-Desc: Submit draft for approval/posting.
+Desc: Submit a draft listing for publication.
 
-**Access:** Authenticated (owner only)
+**Access:** Requires sign-in (owner only)
 
 **Rules:**
-- Status must be DRAFT (403 otherwise)
-- SALE: status → POST_PENDING, creates approval, notifies admins/approvers
-- ADMIN/APPROVER: status → AVAILABLE directly, no approval/notification
+- Listing must be in DRAFT status.
+- Sales staff: listing goes to approval queue; admins and approvers are notified.
+- Admin/Approver: listing is published immediately; no approval needed; no one is notified.
 
 **Request:** `NotesRequest`
 **Response:** `PropertyResponse`
@@ -161,13 +184,13 @@ Desc: Submit draft for approval/posting.
 
 ## POST /properties/{property_id}/transitions/withdraw
 
-Desc: Withdraw pending request.
+Desc: Withdraw a pending request.
 
-**Access:** SALE only
+**Access:** Sales staff only
 
 **Rules:**
-- Only SALE can withdraw (403 for ADMIN/APPROVER)
-- Only the original requester can withdraw (403 otherwise)
+- Only Sales staff can withdraw (Admins and Approvers cannot use this action).
+- Only the person who originally submitted the request can withdraw it.
 
 | From Status | Returns To |
 |---|---|
@@ -176,9 +199,9 @@ Desc: Withdraw pending request.
 | SOLDOUT_PENDING | AVAILABLE |
 | CANCEL_PENDING | DEPOSITED |
 | COMPLETE_PENDING | DEPOSITED |
-| REOPEN_PENDING | from_property_status (from approval entity) |
+| REOPEN_PENDING | Status before the original request |
 
-- Existing pending approval is marked REJECTED
+- The existing pending approval is marked as rejected.
 
 **Request:** `NotesRequest`
 **Response:** `PropertyResponse`
@@ -187,17 +210,17 @@ Desc: Withdraw pending request.
 
 ## POST /properties/{property_id}/transitions/deposit
 
-Desc: Report deposit or confirm deposit.
+Desc: Report a deposit or confirm a deposit.
 
-**Access:** Authenticated
+**Access:** Requires sign-in
 
 **Rules:**
-- Status must be AVAILABLE (403 otherwise)
-- `contract_date` must be >= today (403 "Contract date must be today or later")
-- Max 10 files (403 otherwise)
-- `customer_name` and `customer_phone` required (422 if missing)
-- SALE: status → DEPOSIT_PENDING + approval + notification
-- ADMIN/APPROVER: status → DEPOSITED directly
+- Listing must be in AVAILABLE status.
+- Contract date must be today or later.
+- Maximum of 10 supporting files allowed (including deposit images and certificate images).
+- Customer name and customer phone are required.
+- Sales staff: deposit goes to approval queue; admins and approvers are notified.
+- Admin/Approver: deposit is confirmed immediately; no approval needed.
 
 **Request:** `DepositRequest`
 **Response:** `PropertyResponse`
@@ -206,14 +229,14 @@ Desc: Report deposit or confirm deposit.
 
 ## POST /properties/{property_id}/transitions/soldout
 
-Desc: Report sold out or confirm sold out.
+Desc: Report a listing as sold out or confirm it is sold out.
 
-**Access:** Authenticated
+**Access:** Requires sign-in
 
 **Rules:**
-- Status must be AVAILABLE or DEPOSITED (403 otherwise)
-- SALE: status → SOLDOUT_PENDING + approval + notification
-- ADMIN/APPROVER: status → SOLDOUT directly
+- Listing must be in AVAILABLE or DEPOSITED status.
+- Sales staff: sold-out request goes to approval queue; admins and approvers are notified.
+- Admin/Approver: listing is marked as sold out immediately; no approval needed.
 
 **Request:** `NotesRequest`
 **Response:** `PropertyResponse`
@@ -222,14 +245,14 @@ Desc: Report sold out or confirm sold out.
 
 ## POST /properties/{property_id}/transitions/cancel
 
-Desc: Cancel deposit or confirm cancellation.
+Desc: Cancel a deposit or confirm cancellation.
 
-**Access:** Authenticated
+**Access:** Requires sign-in
 
 **Rules:**
-- Status must be DEPOSITED (403 otherwise)
-- SALE: status → CANCEL_PENDING + approval + notification
-- ADMIN/APPROVER: status → AVAILABLE directly
+- Listing must be in DEPOSITED status.
+- Sales staff: cancellation goes to approval queue; admins and approvers are notified.
+- Admin/Approver: listing is returned to AVAILABLE immediately; no approval needed.
 
 **Request:** `NotesRequest`
 **Response:** `PropertyResponse`
@@ -238,17 +261,17 @@ Desc: Cancel deposit or confirm cancellation.
 
 ## POST /properties/{property_id}/transitions/complete
 
-Desc: Complete sale or confirm completion.
+Desc: Complete a sale or confirm completion.
 
-**Access:** Authenticated
+**Access:** Requires sign-in
 
 **Rules:**
-- Status must be DEPOSITED (403 otherwise)
-- `contract_date` must be >= today (403 otherwise)
-- Max 10 files (403 otherwise)
-- `customer_name` and `customer_phone` required (422 if missing)
-- SALE: status → COMPLETE_PENDING + approval + notification
-- ADMIN/APPROVER: status → COMPLETED directly
+- Listing must be in DEPOSITED status.
+- Contract date must be today or later.
+- Maximum of 10 supporting files allowed (including completion images and certificate images).
+- Customer name and customer phone are required.
+- Sales staff: completion goes to approval queue; admins and approvers are notified.
+- Admin/Approver: listing is marked as completed immediately; no approval needed.
 
 **Request:** `CompleteRequest`
 **Response:** `PropertyResponse`
@@ -257,14 +280,14 @@ Desc: Complete sale or confirm completion.
 
 ## POST /properties/{property_id}/transitions/reopen
 
-Desc: Reopen a completed/soldout/expired property.
+Desc: Reopen a completed, sold-out, or expired listing.
 
-**Access:** Authenticated
+**Access:** Requires sign-in
 
 **Rules:**
-- Only reopenable from SOLDOUT, EXPIRED, or COMPLETED (403 otherwise)
-- SALE: must be owner, status → REOPEN_PENDING + approval + notification
-- ADMIN/APPROVER: status → AVAILABLE directly; if not owner, notifies owner (REOPEN_APPROVED)
+- Can only reopen from SOLDOUT, EXPIRED, or COMPLETED status.
+- Sales staff: must be the owner of the listing; reopen goes to approval queue; admins and approvers are notified.
+- Admin/Approver: listing is reopened immediately; if not the owner, the owner is notified.
 
 **Request:** `NotesRequest`
 **Response:** `PropertyResponse`
@@ -273,13 +296,13 @@ Desc: Reopen a completed/soldout/expired property.
 
 ## GET /properties/{property_id}/status-logs
 
-Desc: Get property status change history.
+Desc: View the status change history of a property.
 
-**Access:** Authenticated
+**Access:** Requires sign-in
 
 **Rules:**
-- Returns paginated transitions ordered by most recent first
-- 404 if property not found
+- Returns a paginated list of all status changes, most recent first.
+- Returns an error if the property is not found.
 
 **Query Params:** `page` (default 1), `size` (default 20, max 100)
 **Response:** `PropertyTransitionListResponse`
@@ -288,13 +311,13 @@ Desc: Get property status change history.
 
 ## GET /properties/{property_id}/status-logs/{log_id}
 
-Desc: Get single status log entry.
+Desc: View a single status log entry.
 
-**Access:** Authenticated
+**Access:** Requires sign-in
 
 **Rules:**
-- 404 if property or transition not found
-- Includes associated files with URLs
+- Returns an error if the property or the log entry is not found.
+- Includes any associated files with their URLs.
 
 **Response:** `PropertyTransitionResponse`
 
@@ -302,14 +325,13 @@ Desc: Get single status log entry.
 
 ## GET /properties/{property_id}/pending-approval
 
-Desc: Get pending approval for a property.
+Desc: View the pending approval request for a property.
 
-**Access:** Authenticated
+**Access:** Requires sign-in
 
 **Rules:**
-- 404 if property not found
-- 404 if no pending approval exists
-- Resolves file URLs from `changed_fields.image_ids` if present
+- Returns an error if the property is not found or if there is no pending approval.
+- Resolves file URLs from any image IDs in the change details.
 
 **Response:** `ApprovalResponse`
 

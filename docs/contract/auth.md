@@ -9,43 +9,45 @@ See [types.md](./types.md) for request/response schemas. See [README.md](./READM
 ## Global Rules
 
 ### Token Lifecycle
-- Access token TTL: 24 hours (`jwt_expire_minutes=1440`)
-- Refresh token TTL: 7 days (`jwt_refresh_expire_minutes=10080`)
-- Reset token TTL: 15 minutes (hardcoded)
-- Refresh tokens are single-use (rotation on each refresh)
-- Logout = blacklisted access token JTI + all refresh tokens revoked
-- Change password does NOT invalidate existing tokens
+- Users stay signed in for 24 hours.
+- Refresh sessions last 7 days and allow automatic re-authentication.
+- Password reset links expire after 15 minutes.
+- Each refresh session can only be used once. A new one is issued automatically after each refresh.
+- Signing out cancels the current session and all other active sessions for that user.
+- Changing your password does not invalidate existing sessions.
 
 ### Device Limit
-- Only enforced for `SALE` and `APPROVER` roles
-- `ADMIN` is always exempt (even when `device_limit_enabled=true`)
-- First login with device_limit registers `X-Device-Token` header value
-- Subsequent logins must match registered device (403 on mismatch)
-- When `device_limit_enabled=false`, header is completely ignored
+- Only enforced for Sales staff and Approvers.
+- Admins are always exempt, even when device limiting is enabled.
+- First sign-in with device limiting registers the device.
+- Subsequent sign-ins must match the registered device, otherwise access is denied.
+- When device limiting is disabled, the device check is completely ignored.
+- The device token is provided via the `X-Device-Token` header during sign-in.
+- If the device token does not match the registered device, sign-in is denied with a "Device mismatch" error.
 
 ### Password Constraints
-- Login password: min 1 character
-- Change/reset/create password: min 6 characters
-- Reset token not invalidated after use (reusable within 15-min window)
+- Sign-in password: minimum 1 character.
+- Change, reset, or create password: minimum 6 characters.
+- A password reset link can be reused multiple times within the 15-minute window.
 
 ### User Enumeration Protection
-- Login returns identical "Invalid credentials" for both wrong user and wrong password
-- Forgot-password returns 404 "User not found" for nonexistent emails (leaks existence)
+- Sign-in returns the same "Invalid credentials" message for both wrong username and wrong password.
+- Forgot-password returns "User not found" for emails that do not exist in the system (this reveals whether an email is registered).
 
 ---
 
 ## POST /auth/login
 
-Desc: Login with username or email.
+Desc: Sign in with username or email.
 
 **Access:** Public
 
 **Rules:**
-- If `username` contains `@`, looks up by email; otherwise by username
-- Returns 401 "Invalid credentials" for both wrong user and wrong password
-- Returns 401 "Account is deactivated" if `is_active=false`
-- Device limit enforcement (see Global Rules above)
-- On success: generates access + refresh tokens, stores refresh token hash in DB
+- If the input contains `@`, it is treated as an email; otherwise as a username.
+- Returns "Invalid credentials" for both wrong username/email and wrong password.
+- Returns "Account is deactivated" if the account has been deactivated.
+- Device limit enforcement applies for Sales staff and Approvers (see Global Rules).
+- On success: issues a signed-in session and a refresh session.
 
 **Request:** `LoginRequest`
 **Response:** `LoginResponse`
@@ -54,15 +56,15 @@ Desc: Login with username or email.
 
 ## POST /auth/refresh
 
-Desc: Rotate refresh token and get new access token.
+Desc: Refresh your session and get a new signed-in session.
 
-**Access:** Public (body contains refresh token)
+**Access:** Public (request body contains the refresh session token)
 
 **Rules:**
-- Decodes token, checks `purpose == "refresh"`
-- Checks token is not revoked in `refresh_tokens` table
-- Checks user exists and is active
-- On success: revokes old refresh token, issues new access + refresh pair
+- Verifies the token is a valid refresh session.
+- Checks the refresh session has not been revoked.
+- Checks the user exists and is active.
+- On success: revokes the old refresh session, issues a new signed-in session and refresh session.
 
 **Request:** `RefreshTokenRequest`
 **Response:** `RefreshTokenResponse`
@@ -71,13 +73,13 @@ Desc: Rotate refresh token and get new access token.
 
 ## POST /auth/logout
 
-Desc: Full logout — blacklist current access token + revoke all refresh tokens.
+Desc: Sign out — cancel current session and all other active sessions.
 
-**Access:** Authenticated
+**Access:** Requires sign-in
 
 **Rules:**
-- Adds current token's JTI to `token_blacklist`
-- Revokes ALL refresh tokens for the user
+- Cancels the current signed-in session.
+- Revokes all refresh sessions for the user.
 
 **Response:** `MessageResponse`
 
@@ -85,14 +87,14 @@ Desc: Full logout — blacklist current access token + revoke all refresh tokens
 
 ## POST /auth/change-password
 
-Desc: Change current user's password.
+Desc: Change your own password.
 
-**Access:** Authenticated
+**Access:** Requires sign-in
 
 **Rules:**
-- `current_password` must match stored hash (400 "Current password is incorrect")
-- `new_password` min 6 characters
-- Does NOT invalidate existing tokens
+- Current password must match the one on file, otherwise the request is rejected.
+- New password must be at least 6 characters.
+- Does not invalidate existing sessions.
 
 **Request:** `ChangePasswordRequest`
 **Response:** `MessageResponse`
@@ -101,15 +103,15 @@ Desc: Change current user's password.
 
 ## POST /auth/forgot-password
 
-Desc: Request password reset email.
+Desc: Request a password reset email.
 
 **Access:** Public
 
 **Rules:**
-- Looks up user by email; returns 404 if not found
-- Generates reset JWT (purpose=`password_reset`, 15-min TTL)
-- Sends email asynchronously if user has email; silently skips if no email
-- No rate limiting
+- Looks up the user by email; returns "User not found" if the email is not registered.
+- Generates a password reset link (valid for 15 minutes).
+- Sends the email asynchronously if the user has an email on file; silently skips if no email is set.
+- No rate limiting is applied.
 
 **Request:** `ForgotPasswordRequest`
 **Response:** `MessageResponse`
@@ -118,16 +120,16 @@ Desc: Request password reset email.
 
 ## POST /auth/reset-password
 
-Desc: Reset password with token from email.
+Desc: Reset your password using a link from your email.
 
 **Access:** Public
 
 **Rules:**
-- Validates token: must decode, must have `purpose=password_reset`
-- Returns 400 for invalid/expired tokens
-- Updates `password_hash`
-- Does NOT revoke existing tokens
-- Token reusable within 15-min window
+- The reset link must be valid and not expired (within 15-minute window).
+- Returns an error for invalid or expired links.
+- Updates the password on file.
+- Does not invalidate existing sessions.
+- The same reset link can be reused multiple times within the 15-minute window.
 
 **Request:** `ResetPasswordRequest`
 **Response:** `MessageResponse`
@@ -136,13 +138,13 @@ Desc: Reset password with token from email.
 
 ## GET /me
 
-Desc: Get current user's profile.
+Desc: View your own profile.
 
-**Access:** Authenticated
+**Access:** Requires sign-in
 
 **Rules:**
-- Always returns the caller's own data
-- Response includes: avatar_url, organization_name, property_type_ids, transaction_type_ids, device_limit_enabled
+- Always returns the current user's own data.
+- Includes: avatar, organization name, assigned property types, assigned transaction types, and device limit setting.
 
 **Response:** `ProfileResponse`
 
@@ -150,14 +152,14 @@ Desc: Get current user's profile.
 
 ## GET /me/properties
 
-Desc: List current user's properties.
+Desc: View your own properties.
 
-**Access:** Authenticated
+**Access:** Requires sign-in
 
 **Rules:**
-- Only returns properties owned by the current user
-- Supports filtering by status, district, price range, text search
-- Each property includes `is_pinned` flag
+- Only returns properties you created.
+- Supports filtering by status, district, price range, text search.
+- Each property indicates whether you have pinned it.
 
 **Query Params:** `PropertyListParams` (without `created_by_id`)
 **Response:** `PropertyListResponse`
@@ -166,13 +168,13 @@ Desc: List current user's properties.
 
 ## GET /me/hots
 
-Desc: List current user's hot properties.
+Desc: View your own hot (featured) properties.
 
-**Access:** Authenticated
+**Access:** Requires sign-in
 
 **Rules:**
-- Same as `/me/properties` but filtered to hot properties only
-- Each property includes `is_pinned` flag
+- Same as your properties, but only shows your hot (featured) properties.
+- Each property indicates whether you have pinned it.
 
 **Response:** `PropertyListResponse`
 
@@ -180,12 +182,12 @@ Desc: List current user's hot properties.
 
 ## GET /me/properties/rejected
 
-Desc: List current user's rejected properties.
+Desc: View your rejected properties.
 
-**Access:** Authenticated
+**Access:** Requires sign-in
 
 **Rules:**
-- Same scoping as `/me/properties` but filtered to rejected properties
+- Same as your properties, but only shows properties that were rejected by an approver.
 
 **Response:** `PropertyListResponse`
 
@@ -193,14 +195,14 @@ Desc: List current user's rejected properties.
 
 ## GET /me/pins
 
-Desc: List current user's pinned properties.
+Desc: View your pinned properties.
 
-**Access:** Authenticated
+**Access:** Requires sign-in
 
 **Rules:**
-- Returns properties pinned by the current user only
-- All returned properties have `is_pinned=true`
-- Supports same filters as property list
+- Returns only properties you have pinned.
+- All returned properties indicate they are pinned.
+- Supports the same filters as property listing.
 
 **Response:** `PropertyListResponse`
 
@@ -208,6 +210,6 @@ Desc: List current user's pinned properties.
 
 ## Related
 
-- [Properties](./properties.md) — property CRUD, transitions, status logs
+- [Properties](./properties.md) — property listings, status changes, history
 - [Users](./users.md) — admin user management
 - [Notifications](./notifications.md) — notification preferences

@@ -12,12 +12,12 @@ See [types.md](./types.md) for request/response schemas. See [README.md](./READM
 
 Desc: Pin a property.
 
-**Access:** Authenticated
+**Access:** Requires sign-in
 
 **Rules:**
-- 404 if property not found
-- 409 "Property already pinned" if already pinned (NOT a toggle)
-- One pin per user per property (DB composite PK)
+- The property must exist in the system.
+- A property can only be pinned once per user. If already pinned, the request is rejected.
+- One pin per user per property.
 
 **Response:** `MessageResponse` (201)
 
@@ -25,23 +25,23 @@ Desc: Pin a property.
 
 Desc: Unpin a property.
 
-**Access:** Authenticated
+**Access:** Requires sign-in
 
 **Rules:**
-- 404 "Property not pinned" if not pinned (NOT a no-op)
+- The property must currently be pinned. If not pinned, the request is rejected (not a no-op).
 
 **Response:** 204 No Content
 
 ### GET /me/pins
 
-Desc: List my pinned properties.
+Desc: View your pinned properties.
 
-**Access:** Authenticated
+**Access:** Requires sign-in
 
 **Rules:**
-- Returns only the current user's pins
-- All returned properties have `is_pinned=true`
-- Supports same filters as property list
+- Returns only properties you have pinned.
+- All returned properties indicate they are pinned.
+- Supports the same filters as property listing.
 
 **Response:** `PropertyListResponse`
 
@@ -51,44 +51,42 @@ Desc: List my pinned properties.
 
 ### GET /properties/hots
 
-Desc: List hot properties.
+Desc: View hot (featured) properties.
 
-**Access:** Authenticated
+**Access:** Requires sign-in
 
 **Rules:**
-- Returns properties with `is_hot=true`
-- Includes `is_pinned` flag per user
-- Includes `hot_order` for ordering
-- Supports same filters as property list
+- Returns properties that are marked as hot (featured).
+- Each property indicates whether you have pinned it.
+- Returns the display order for hot properties.
+- Supports the same filters as property listing.
 
 **Response:** `PropertyListResponse`
 
 ### POST /properties/{property_id}/hots
 
-Desc: Promote property to hot.
+Desc: Feature a property as hot.
 
-**Access:** ADMIN only
+**Access:** Admin only
 
 **Rules:**
-- 404 if property not found
-- 409 if property already hot
-- 409 if property has pending approvals
-- Sets `is_hot=true` and `hot_order=max+1` on property
+- The property must exist in the system.
+- The property cannot already be featured as hot.
+- The property cannot have any pending approval requests.
+- Sets the property as hot and assigns it the next display order position.
 
 **Request:** `PromoteToHotRequest`
 **Response:** `HotPropertyResponse` (201)
 
 ### DELETE /properties/{property_id}/hots
 
-Desc: Remove property from hot.
+Desc: Remove a property from hot (featured) status.
 
-**Access:** ADMIN only
+**Access:** Admin only
 
 **Rules:**
-- 404 if property is not hot
-- Clears `is_hot=false` and `hot_order=null` on property
-
-**Response:** 204 No Content
+- The property must currently be hot. If not, the request is rejected.
+- Removes the hot status and display order.
 
 ---
 
@@ -96,15 +94,15 @@ Desc: Remove property from hot.
 
 ### GET /carts/counts
 
-Desc: Count user's properties by status category.
+Desc: View your property counts by status category.
 
-**Access:** Authenticated
+**Access:** Requires sign-in
 
 **Rules:**
-- All counts scoped to `created_by_id=current_user.id`
-- Default categories (when no `statuses` param): all, pinned, hot, rejected, + all pending statuses + available, deposited, completed, soldout, expired
-- If `statuses` param provided, only returns requested categories
-- Special categories: `all` (total), `pinned`, `hot`, `rejected`
+- All counts are scoped to properties you created.
+- Default categories (when no `statuses` parameter): total, pinned, hot, rejected, plus all pending statuses and available, deposited, completed, sold out, expired.
+- If specific statuses are requested, only those categories are returned.
+- Special categories: `total` (all properties), `pinned`, `hot`, `rejected`.
 
 **Response:** `CartCountResponse` (dict of category → count)
 
@@ -112,13 +110,25 @@ Desc: Count user's properties by status category.
 
 ## Expirations (Background Job)
 
-Not an HTTP endpoint — runs as scheduled task.
+Not an HTTP endpoint — runs as a scheduled task at **midnight daily**.
 
-**Rules:**
-- Processes properties with status `DEPOSITED` or `DEPOSIT_PENDING` where `contract_date < today`
-- **DEPOSITED properties:** status → EXPIRED, transition created, notifications sent to owner + admins/approvers
-- **DEPOSIT_PENDING properties:** rolls back to `from_property_status` (typically AVAILABLE), approval marked REJECTED, DEPOSIT_REJECTED notification to owner only
-- Properties with `contract_date == today` are NOT expired (strict `<` comparison)
+**Trigger condition:**
+- Processes properties in DEPOSITED or DEPOSIT_PENDING status.
+- Uses the **most recent deposit transition's contract date** (not the property itself).
+- Expires if the contract date is **strictly before today** (no grace period).
+- Properties with a contract date of today are NOT expired.
+
+**DEPOSITED properties:**
+- Status changes to EXPIRED.
+- The system ("Hệ thống") acts as the actor for the status change.
+- Transition notes: "Hết hạn hợp đồng" (Contract expired).
+- Notifications sent to: property owner, all admins, and approvers in the same organization.
+
+**DEPOSIT_PENDING properties:**
+- The pending deposit approval is **rejected** (not cancelled).
+- Status rolls back to the **previous status before the deposit request** (stored on the approval record).
+- Transition notes: "Tự động từ chối do hết hạn hợp đồng" (Auto-rejected due to contract expiration).
+- Notification sent to: property owner only (no admin/approver notification).
 
 ---
 
@@ -126,4 +136,4 @@ Not an HTTP endpoint — runs as scheduled task.
 
 - [Properties](./properties.md) — property details, status changes
 - [Notifications](./notifications.md) — expiration triggers notifications
-- [Auth](./auth.md) — my properties, my pins
+- [Auth](./auth.md) — your properties, your pins

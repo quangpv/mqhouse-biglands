@@ -10,27 +10,27 @@ See [types.md](./types.md) for request/response schemas. See [README.md](./READM
 
 ### GET /geography/provinces
 
-Desc: List provinces.
+Desc: View all provinces.
 
-**Access:** Public (no auth required)
+**Access:** Public (no sign-in required)
 
 **Rules:**
-- Data is **static** — loaded from JSON file (`ho-chi-minh.json`), cached in memory
-- Returns all provinces with nested districts and wards
-- Province/district not found → returns empty list (no error)
+- Geography data is fixed and pre-loaded (not editable through the system).
+- Returns all provinces with nested districts and wards.
+- If a province or district is not found, an empty list is returned (no error).
 
 **Response:** `[Province]`
 
 ### GET /geography/provinces/{province_id}/districts
 
-Desc: List districts in a province.
+Desc: View districts in a province.
 
 **Access:** Public
 **Response:** `[District]`
 
 ### GET /geography/provinces/{province_id}/districts/{district_id}/wards
 
-Desc: List wards in a district.
+Desc: View wards in a district.
 
 **Access:** Public
 **Response:** `[Ward]`
@@ -41,13 +41,13 @@ Desc: List wards in a district.
 
 ### GET /master-data
 
-Desc: Get all enum values.
+Desc: View all system-wide option values.
 
-**Access:** Authenticated
+**Access:** Requires sign-in
 
 **Rules:**
-- No database call — returns Python enum values directly
-- Includes: commission_types, direction_types, statuses, actions, notification_types, approval_statuses, user_roles, entity_types
+- Returns all available options without hitting the database.
+- Includes: commission types, direction types, statuses, actions, notification types, approval statuses, user roles, entity types.
 
 **Response:** Master data object
 
@@ -57,13 +57,13 @@ Desc: Get all enum values.
 
 ### GET /supports
 
-Desc: Get support contact info.
+Desc: View support contact information.
 
-**Access:** Authenticated
+**Access:** Requires sign-in
 
 **Rules:**
-- Returns first ADMIN user's `full_name` and `phone`
-- Returns empty strings if no admins exist
+- Returns the name and phone number of the first Admin user.
+- Returns empty values if no Admin accounts exist.
 
 **Response:** `{ admin_name: string, admin_phone: string | null }`
 
@@ -73,29 +73,29 @@ Desc: Get support contact info.
 
 ### POST /backfills
 
-Desc: Rebuild search text index.
+Desc: Rebuild the search index.
 
-**Access:** ADMIN only
+**Access:** Admin only
 
 **Rules:**
-- Loads all non-deleted properties with tags, property_type, transaction_type
-- Computes `search_text` for each property
-- Updates only if changed
-- Returns `{ updated: int, total: int }`
+- Loads all active properties with their tags, property types, and transaction types.
+- Recalculates the search text for each property.
+- Updates only properties where the search text has changed.
+- Returns the number of updated properties and the total number of properties processed.
 
 **Response:** `{ updated: int, total: int }`
 
 ### GET /backfills
 
-Desc: Check search index.
+Desc: Test the search index with a sample query.
 
-**Access:** ADMIN only
+**Access:** Admin only
 
 **Rules:**
-- Normalizes search query (Vietnamese diacritics, abbreviations, number patterns)
-- Performs property search using normalized query
-- Computes `ts_rank` for each result
-- Enriches with geography names, type names, tags
+- Normalizes the search query (Vietnamese diacritics, abbreviations, number patterns).
+- Performs a property search using the normalized query.
+- Ranks each result by relevance.
+- Enriches results with geography names, type names, and tags.
 
 **Search normalization:**
 - Vietnamese diacritics → ASCII (unidecode)
@@ -112,14 +112,14 @@ Desc: Check search index.
 
 ### Connection: `ws://host/ws?token={jwt_token}`
 
-**Access:** Authenticated (JWT in query param)
+**Access:** Requires sign-in (token passed in query string)
 
 **Rules:**
-- Token decoded from `?token=` query parameter
-- If `sub` (user_id) missing from payload → closes with code 4001
-- Multiple simultaneous connections per user supported
-- Server only processes incoming text messages (keep-alive loop); no business logic from client messages
-- Dead connections auto-cleaned on send failure
+- Token is decoded from the `?token=` query parameter.
+- If the user ID is missing from the token, the connection is closed.
+- Multiple simultaneous connections per user are supported.
+- The server only processes incoming text messages (keep-alive loop); no business logic is triggered by client messages.
+- Dead connections are automatically cleaned up on send failure.
 
 **Outbound Events:**
 ```json

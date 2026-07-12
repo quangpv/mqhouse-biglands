@@ -8,21 +8,22 @@ See [types.md](./types.md) for request/response schemas. See [README.md](./READM
 
 ## Global Rules
 
-- List and Get are open to all authenticated users
-- Create, Update, Delete require `ADMIN` role
-- Update is a full replace (all fields required), not a partial patch
-- Name uniqueness enforced on create and on update (only if name actually changed)
+- Viewing organizations is available to all signed-in users.
+- Creating, updating, and deleting organizations require Admin role.
+- Updates require all fields to be provided (full replace, not partial update).
+- Organization names must be unique.
+- Organization name format: lowercase letters, numbers, and underscores only (e.g., `cong_ty_a`, `san_bat_dong_san`).
 
 ---
 
 ## GET /organizations
 
-Desc: List all organizations.
+Desc: View all organizations.
 
-**Access:** Authenticated
+**Access:** Requires sign-in
 
 **Rules:**
-- Returns ALL organizations (no pagination, no filtering)
+- Returns all organizations (no pagination or filtering).
 
 **Response:** `[Organization]`
 
@@ -30,12 +31,12 @@ Desc: List all organizations.
 
 ## GET /organizations/{org_id}
 
-Desc: Get organization detail.
+Desc: View organization details.
 
-**Access:** Authenticated
+**Access:** Requires sign-in
 
 **Rules:**
-- 404 if not found
+- Returns an error if the organization is not found.
 
 **Response:** `Organization`
 
@@ -43,13 +44,14 @@ Desc: Get organization detail.
 
 ## POST /organizations
 
-Desc: Create organization.
+Desc: Create an organization.
 
-**Access:** ADMIN only
+**Access:** Admin only
 
 **Rules:**
-- `name` must be unique (409 if duplicate)
-- `transaction_types` and `property_types` stored as junction table records
+- Organization name must be unique.
+- Organization name must match the format: lowercase letters, numbers, and underscores only.
+- Transaction types and property types are stored as linked records.
 
 **Request:** `CreateOrganizationRequest`
 **Response:** `Organization` (201)
@@ -58,13 +60,13 @@ Desc: Create organization.
 
 ## PUT /organizations/{org_id}
 
-Desc: Update organization.
+Desc: Update an organization.
 
-**Access:** ADMIN only
+**Access:** Admin only
 
 **Rules:**
-- Full replace: all `OrganizationInfo` fields required
-- Name uniqueness checked only if name actually changed
+- Full replace: all organization details must be provided.
+- Name uniqueness is checked only if the name has actually changed.
 
 **Request:** `UpdateOrganizationRequest`
 **Response:** `Organization`
@@ -73,13 +75,13 @@ Desc: Update organization.
 
 ## DELETE /organizations/{org_id}
 
-Desc: Delete organization.
+Desc: Delete an organization.
 
-**Access:** ADMIN only
+**Access:** Admin only
 
 **Rules:**
-- Cannot delete if ANY users are associated (409 "Cannot delete organization with active users")
-- Hard delete
+- Cannot delete an organization that has any users assigned to it.
+- Permanently deleted (not soft-deleted).
 
 **Response:** 204 No Content
 

@@ -8,28 +8,29 @@ See [types.md](./types.md) for request/response schemas. See [README.md](./READM
 
 ## Global Rules
 
-- All user management endpoints require `ADMIN` role
-- `ADMIN` role is protected: cannot create ADMIN, cannot delete ADMIN, cannot deactivate ADMIN, cannot change role of ADMIN, cannot upgrade anyone to ADMIN
-- Username is immutable after creation
-- Email uniqueness enforced on both create and update
-- Welcome email contains plaintext password (sent on create and reset-password)
+- All user management requires Admin role.
+- Admin accounts are protected: they cannot be created, deleted, deactivated, or have their role changed through the system.
+- No one can be promoted to Admin through the system.
+- The username cannot be changed after creation.
+- Email addresses must be unique.
+- New users receive an email with their initial password (sent on create and reset-password).
 
 ---
 
 ## POST /users
 
-Desc: Create user.
+Desc: Create a user account.
 
-**Access:** ADMIN only
+**Access:** Admin only
 
 **Rules:**
-- Cannot create ADMIN role (403)
-- Username must be unique (409)
-- Email must be unique if provided (409)
-- Password min 6 characters
-- If `organization_id` provided, org must exist (404)
-- Default `is_active=true`
-- Welcome email sent asynchronously if email provided
+- Cannot create an Admin account through this action.
+- Username must be unique.
+- Email must be unique if provided.
+- Password must be at least 6 characters.
+- If an organization is provided, it must exist.
+- New accounts are active by default.
+- A welcome email is sent asynchronously if an email is provided.
 
 **Request:** `CreateUserRequest`
 **Response:** `UserResponse` (201)
@@ -38,13 +39,13 @@ Desc: Create user.
 
 ## GET /users
 
-Desc: List users.
+Desc: View all user accounts.
 
-**Access:** ADMIN only
+**Access:** Admin only
 
 **Rules:**
-- Paginated (page default 1, size default 20, max 100)
-- Filterable by role, is_active, search, organization_id
+- Paginated (page default 1, size default 20, max 100).
+- Can filter by role, active status, search text, and organization.
 
 **Query Params:** `UserListParams`
 **Response:** `UserListResponse`
@@ -53,13 +54,13 @@ Desc: List users.
 
 ## GET /users/{user_id}
 
-Desc: Get user detail.
+Desc: View user account details.
 
-**Access:** ADMIN only
+**Access:** Admin only
 
 **Rules:**
-- Returns full user with avatar_url, organization_name, property_type_ids, transaction_type_ids
-- 404 if not found
+- Returns full user details including avatar, organization name, assigned property types, and assigned transaction types.
+- Returns an error if the user is not found.
 
 **Response:** `UserResponse`
 
@@ -67,17 +68,17 @@ Desc: Get user detail.
 
 ## PUT /users/{user_id}
 
-Desc: Update user.
+Desc: Update a user account.
 
-**Access:** ADMIN only
+**Access:** Admin only
 
 **Rules:**
-- Username is NOT updatable
-- Email uniqueness enforced if changed
-- Cannot change role of an ADMIN (403)
-- Cannot upgrade anyone to ADMIN (403)
-- `property_type_ids` and `transaction_type_ids` replaced wholesale when provided
-- Only provided (non-None) fields are updated
+- The username cannot be changed.
+- Email uniqueness is enforced if the email is changed.
+- An Admin's role cannot be changed.
+- No one can be promoted to Admin.
+- Property types and transaction types are replaced wholesale when provided.
+- Only provided (non-empty) fields are updated.
 
 **Request:** `UpdateUserRequest`
 **Response:** `UserResponse`
@@ -86,13 +87,13 @@ Desc: Update user.
 
 ## DELETE /users/{user_id}
 
-Desc: Delete user.
+Desc: Delete a user account.
 
-**Access:** ADMIN only
+**Access:** Admin only
 
 **Rules:**
-- Cannot delete ADMIN (403)
-- Hard delete (not soft delete)
+- Cannot delete an Admin account.
+- Permanently deleted (not soft-deleted).
 
 **Response:** `MessageResponse`
 
@@ -100,13 +101,13 @@ Desc: Delete user.
 
 ## PATCH /users/{user_id}/deactivate
 
-Desc: Deactivate user.
+Desc: Deactivate a user account.
 
-**Access:** ADMIN only
+**Access:** Admin only
 
 **Rules:**
-- Cannot deactivate ADMIN (403)
-- Sets `is_active=false`
+- Cannot deactivate an Admin account.
+- Sets the account to inactive.
 
 **Response:** `UserResponse`
 
@@ -114,13 +115,13 @@ Desc: Deactivate user.
 
 ## PATCH /users/{user_id}/reactivate
 
-Desc: Reactivate user.
+Desc: Reactivate a user account.
 
-**Access:** ADMIN only
+**Access:** Admin only
 
 **Rules:**
-- Sets `is_active=true`
-- No guard against reactivating ADMIN (unlike deactivate)
+- Sets the account back to active.
+- No guard against reactivating Admin accounts (unlike deactivate).
 
 **Response:** `UserResponse`
 
@@ -128,14 +129,14 @@ Desc: Reactivate user.
 
 ## POST /users/{user_id}/reset-password
 
-Desc: Generate temporary password.
+Desc: Generate a temporary password for a user.
 
-**Access:** ADMIN only
+**Access:** Admin only
 
 **Rules:**
-- Generates random 12-character temp password
-- Hashes and stores it
-- Sends email with plaintext temp password if user has email
+- Generates a random 12-character temporary password.
+- Stores the hashed password.
+- Sends an email with the temporary password if the user has an email on file.
 
 **Response:** `MessageResponse`
 
@@ -143,13 +144,13 @@ Desc: Generate temporary password.
 
 ## PATCH /users/{user_id}/change-password
 
-Desc: Admin set new password for user.
+Desc: Set a new password for a user.
 
-**Access:** ADMIN only
+**Access:** Admin only
 
 **Rules:**
-- `new_password` min 6 characters
-- Sends password-changed email if user has email
+- New password must be at least 6 characters.
+- Sends a password-changed email if the user has an email on file.
 
 **Request:** `ChangeUserPasswordRequest`
 **Response:** 204 No Content
@@ -158,13 +159,13 @@ Desc: Admin set new password for user.
 
 ## POST /users/{user_id}/reset-device
 
-Desc: Clear device binding.
+Desc: Clear a user's device binding.
 
-**Access:** ADMIN only
+**Access:** Admin only
 
 **Rules:**
-- Sets `device_id=null`
-- User can re-register device on next login
+- Clears the registered device for the user.
+- The user can re-register their device on the next sign-in.
 
 **Response:** `MessageResponse`
 
@@ -172,5 +173,5 @@ Desc: Clear device binding.
 
 ## Related
 
-- [Auth](./auth.md) — login, device limit, self-service password change
+- [Auth](./auth.md) — sign-in, device limit, self-service password change
 - [Organizations](./organizations.md) — organization assignment

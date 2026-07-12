@@ -8,23 +8,23 @@ See [types.md](./types.md) for request/response schemas. See [README.md](./READM
 
 ## Global Rules
 
-- Any authenticated user can create and view reviews
-- Multiple reviews per author per property are allowed (no one-review-per-author constraint)
-- Delete requires ownership or ADMIN role
-- Reviews cascade-delete when property is deleted
+- Any signed-in user can create and view reviews.
+- Users can leave multiple reviews on the same property (no one-review-per-author restriction).
+- Only the review author or an Admin can delete a review.
+- Reviews are automatically removed when the property is deleted.
 
 ---
 
 ## GET /properties/{property_id}/reviews
 
-Desc: List reviews for a property.
+Desc: View reviews for a property.
 
-**Access:** Authenticated
+**Access:** Requires sign-in
 
 **Rules:**
-- 404 if property not found
-- Ordered by `created_at DESC`
-- Paginated (page default 1, size default 20, max 100)
+- Returns an error if the property is not found.
+- Ordered by most recent first.
+- Paginated (page default 1, size default 20, max 100).
 
 **Response:** `ReviewListResponse`
 
@@ -32,13 +32,13 @@ Desc: List reviews for a property.
 
 ## GET /properties/{property_id}/reviews/{review_id}
 
-Desc: Get review detail.
+Desc: View review details.
 
-**Access:** Authenticated
+**Access:** Requires sign-in
 
 **Rules:**
-- 404 if review not found OR if `review.property_id != property_id`
-- Accessing a review via wrong property_id returns 404
+- Returns an error if the review is not found or if the review does not belong to the specified property.
+- Accessing a review via the wrong property ID returns an error.
 
 **Response:** `ReviewDetailResponse`
 
@@ -46,15 +46,15 @@ Desc: Get review detail.
 
 ## POST /properties/{property_id}/reviews
 
-Desc: Create review for a property.
+Desc: Create a review for a property.
 
-**Access:** Authenticated
+**Access:** Requires sign-in
 
 **Rules:**
-- 404 if property not found
-- Multiple reviews per author per property are allowed
-- If `file_ids` provided, only valid file IDs are linked (invalid IDs silently skipped)
-- `content` is required (no length constraint)
+- The property must exist in the system.
+- Users can leave multiple reviews on the same property.
+- If image IDs are provided, only valid file IDs are linked (invalid IDs are silently skipped).
+- Review content is required (no length restriction).
 
 **Request:** `CreateReviewRequest`
 **Response:** `ReviewDetailResponse` (201)
@@ -65,12 +65,12 @@ Desc: Create review for a property.
 
 Desc: Delete a review.
 
-**Access:** Authenticated
+**Access:** Requires sign-in
 
 **Rules:**
-- Only review author or ADMIN can delete (403 otherwise)
-- 404 if review not found or property_id mismatch
-- Cascade: linked `ReviewFileEntity` rows deleted
+- Only the review author or an Admin can delete the review.
+- Returns an error if the review is not found or if the review does not belong to the specified property.
+- Linked images are automatically removed when the review is deleted.
 
 **Response:** 204 No Content
 

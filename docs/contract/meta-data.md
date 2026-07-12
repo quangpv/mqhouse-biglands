@@ -10,52 +10,53 @@ See [types.md](./types.md) for request/response schemas. See [README.md](./READM
 
 ### GET /transaction-types
 
-Desc: List all transaction types.
+Desc: View all transaction types.
 
-**Access:** Authenticated
+**Access:** Requires sign-in
 **Response:** `[TransactionTypeInfo]`
 
 ### POST /transaction-types
 
-Desc: Create transaction type.
+Desc: Create a transaction type.
 
-**Access:** ADMIN only
+**Access:** Admin only
 
 **Rules:**
-- If `id` is empty/None, auto-generates slug from `display_name`
-- Uniqueness checked on ID (409 if duplicate)
+- If no ID is provided, one is automatically generated from the display name.
+- Duplicate IDs are not allowed.
+- ID format: lowercase letters, numbers, and underscores only (e.g., `ban`, `cho_thue`).
 
 **Request:** `CreateTransactionTypeRequest`
 **Response:** `TransactionTypeInfo` (201)
 
 ### GET /transaction-types/{entity_id}
 
-Desc: Get transaction type by ID.
+Desc: View a transaction type by ID.
 
-**Access:** Authenticated
+**Access:** Requires sign-in
 **Response:** `TransactionTypeInfo`
 
 ### PUT /transaction-types/{entity_id}
 
-Desc: Update transaction type.
+Desc: Update a transaction type.
 
-**Access:** ADMIN only
+**Access:** Admin only
 
 **Rules:**
-- ID is immutable; only `display_name` updated
+- The ID cannot be changed. Only the display name can be updated.
 
 **Request:** `UpdateTransactionTypeRequest`
 **Response:** `TransactionTypeInfo`
 
 ### DELETE /transaction-types/{entity_id}
 
-Desc: Delete transaction type.
+Desc: Delete a transaction type.
 
-**Access:** ADMIN only
+**Access:** Admin only
 
 **Rules:**
-- DB FK constraint may prevent deletion if in use by properties
-- User assignment links cascade-delete
+- There is no referential integrity check — transaction types can be deleted even if currently used by properties.
+- User assignment links are automatically removed.
 
 **Response:** 204 No Content
 
@@ -65,47 +66,49 @@ Desc: Delete transaction type.
 
 ### GET /property-types
 
-Desc: List all property types.
+Desc: View all property types.
 
-**Access:** Authenticated
+**Access:** Requires sign-in
 **Response:** `[PropertyTypeInfo]`
 
 ### POST /property-types
 
-Desc: Create property type.
+Desc: Create a property type.
 
-**Access:** ADMIN only
+**Access:** Admin only
 
 **Rules:**
-- Same slug auto-generation and uniqueness as transaction types
+- Same auto-generated ID and uniqueness rules as transaction types.
+- ID format: lowercase letters, numbers, and underscores only.
 
 **Request:** `CreatePropertyTypeRequest`
 **Response:** `PropertyTypeInfo` (201)
 
 ### GET /property-types/{entity_id}
 
-Desc: Get property type by ID.
+Desc: View a property type by ID.
 
-**Access:** Authenticated
+**Access:** Requires sign-in
 **Response:** `PropertyTypeInfo`
 
 ### PUT /property-types/{entity_id}
 
-Desc: Update property type.
+Desc: Update a property type.
 
-**Access:** ADMIN only
+**Access:** Admin only
 
 **Request:** `UpdatePropertyTypeRequest`
 **Response:** `PropertyTypeInfo`
 
 ### DELETE /property-types/{entity_id}
 
-Desc: Delete property type.
+Desc: Delete a property type.
 
-**Access:** ADMIN only
+**Access:** Admin only
 
 **Rules:**
-- Same cascade behavior as transaction types
+- There is no referential integrity check — property types can be deleted even if currently used by properties.
+- User assignment links are automatically removed.
 
 **Response:** 204 No Content
 
@@ -115,53 +118,55 @@ Desc: Delete property type.
 
 ### GET /tags
 
-Desc: List all tags.
+Desc: View all tags.
 
-**Access:** Authenticated
+**Access:** Requires sign-in
 **Response:** `[TagInfo]`
 
 ### POST /tags
 
-Desc: Create tag.
+Desc: Create a tag.
 
-**Access:** ADMIN only
+**Access:** Admin only
 
 **Rules:**
-- If `id` is None/empty/whitespace, auto-generates slug from `display_name`
-- Slug algorithm: unidecode → lowercase → strip whitespace → replace non-alphanumeric with hyphens → strip leading/trailing hyphens
-- Uniqueness checked on ID (409 if duplicate)
-- ID is the primary key (String(50)), immutable after creation
+- If no ID is provided, one is automatically generated from the display name.
+- ID generation: converts to ASCII, lowercases, strips whitespace, replaces non-alphanumeric characters with hyphens, and removes leading/trailing hyphens.
+- Duplicate IDs are not allowed.
+- The ID is the primary identifier and cannot be changed after creation.
+- ID format: lowercase letters, numbers, and hyphens only (e.g., `ban`, `cho-thue`). Note: tags use hyphens while other types use underscores.
 
 **Request:** `CreateTagRequest`
 **Response:** `TagInfo` (201)
 
 ### GET /tags/{tag_id}
 
-Desc: Get tag by ID.
+Desc: View a tag by ID.
 
-**Access:** Authenticated
+**Access:** Requires sign-in
 **Response:** `TagInfo`
 
 ### PUT /tags/{tag_id}
 
-Desc: Update tag.
+Desc: Update a tag.
 
-**Access:** ADMIN only
+**Access:** Admin only
 
 **Rules:**
-- Only `display_name` updated; ID immutable
+- Only the display name can be updated. The ID cannot be changed.
 
 **Request:** `UpdateTagRequest`
 **Response:** `TagInfo`
 
 ### DELETE /tags/{tag_id}
 
-Desc: Delete tag.
+Desc: Delete a tag.
 
-**Access:** ADMIN only
+**Access:** Admin only
 
 **Rules:**
-- DB FK from `property_tags` handles referential integrity
+- Tags can be deleted even if currently referenced by properties.
+- Tag associations with properties are automatically removed on deletion.
 
 **Response:** 204 No Content
 
@@ -170,4 +175,4 @@ Desc: Delete tag.
 ## Related
 
 - [Properties](./properties.md) — tags, transaction types, property types linked to properties
-- [Users](./users.md) — transaction_type_ids and property_type_ids assigned to users
+- [Users](./users.md) — transaction types and property types assigned to users
