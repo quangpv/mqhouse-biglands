@@ -18,8 +18,9 @@ See [types.md](./types.md) for request/response schemas. See [README.md](./READM
 - If the selected types are not in the staff member's assignments, the request is denied.
 
 ### Phone Number Privacy
-- Sales staff see masked phone numbers (first 4 digits + `****`) for properties they did not create.
-- Admins, approvers, and property owners always see full phone numbers.
+- Creator phone number is visible to all authenticated users.
+- House holder phone number is visible only to: the property creator, admins, and approvers.
+- Sales staff who are not the creator cannot see the house holder phone number.
 
 ### Property Code
 - Each property is assigned a unique 14-character code: date prefix (YYMMDD) + 7-digit random number.

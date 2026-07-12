@@ -64,6 +64,7 @@ Desc: View support contact information.
 **Rules:**
 - Returns the name and phone number of the first Admin user.
 - Returns empty values if no Admin accounts exist.
+- Admin phone number is visible to all authenticated users.
 
 **Response:** `{ admin_name: string, admin_phone: string | null }`
 

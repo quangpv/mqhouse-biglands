@@ -29,8 +29,9 @@ Business rules for all Biglands APIs, organized by domain.
 - Each response includes total items and total pages for navigation.
 
 ### Phone Number Privacy
-- Sales staff see masked phone numbers (first 4 digits + `****`) for properties they did not create.
-- Admins, approvers, and property owners always see full phone numbers.
+- Creator phone number is visible to all authenticated users.
+- House holder phone number is visible only to: the property creator, admins, and approvers.
+- Sales staff who are not the creator cannot see the house holder phone number.
 
 ### Auto-Rejection Cascade
 - When any user acts on a property that already has a pending approval, the existing approval is automatically rejected.
