@@ -4,3 +4,6 @@
 [submodule "frontend"]
 	path = frontend
 	url = git@github.com:quangpv/mqhouse-biglands-frontend.git
+[submodule "resize-worker"]
+	path = resize-worker
+	url = git@github.com:quangpv/mqhouse-biglands-resize-worker.git
