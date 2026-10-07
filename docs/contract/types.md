@@ -22,6 +22,7 @@ NotificationType = [listing_post_created, listing_post_approved, listing_post_re
                     reopen_requested, reopen_approved, reopen_rejected]
 ApprovalStatus = [pending, approved, rejected]
 UserRole = [SALE, APPROVER, ADMIN]
+UserPermission = [view_householder_phone, view_house_number]
 EntityType = [review, property, avatar, certificate]
 ```
 
@@ -186,8 +187,10 @@ ListDTO<T> = { data: T[], metadata: PageDTO }
   organization_name: string | null
   property_type_ids: UUID[]
   transaction_type_ids: UUID[]
+  permissions: UserPermission[]          // default []
   created_at: Date
   updated_at: Date
+  deleted_at: Date | null
 }
 ```
 
@@ -208,6 +211,7 @@ ListDTO<T> = { data: T[], metadata: PageDTO }
 {
   id: string                           // primary key, auto-generated slug
   display_name: string
+  color: string | null                 // hex color code (e.g. #FF6B6B); null means no color assigned
   created_at: Date
   updated_at: Date
 }
@@ -349,6 +353,7 @@ PropertyListParams = {
   statuses: Status[] | null
   tags: string[] | null
   is_hot: boolean | null
+  is_stale: boolean | null
   created_by_id: UUID | null
   sort_by: 'created_at' | 'price' | 'view_count' | null
   sort_order: 'asc' | 'desc' | null
@@ -411,6 +416,7 @@ CreateUserRequest = {
   organization_id: UUID | null
   property_type_ids: UUID[]          // default []
   transaction_type_ids: UUID[]       // default []
+  permissions: UserPermission[]      // default []
 }
 
 UpdateUserRequest = {
@@ -423,6 +429,7 @@ UpdateUserRequest = {
   avatar_file_id: UUID | null
   property_type_ids: UUID[] | null
   transaction_type_ids: UUID[] | null
+  permissions: UserPermission[] | null
   device_limit_enabled: boolean | null
   // username is NOT updatable
 }
@@ -444,8 +451,8 @@ UpdateOrganizationRequest = CreateOrganizationRequest  // full replace, all fiel
 
 ### Meta Data
 ```
-CreateTagRequest = { id: string | null, display_name: string }
-UpdateTagRequest = { display_name: string }
+CreateTagRequest = { id: string | null, display_name: string, color: string | null }
+UpdateTagRequest = { display_name: string, color: string | null }
 
 CreateTransactionTypeRequest = { id: string, display_name: string }
 UpdateTransactionTypeRequest = { display_name: string }
@@ -562,6 +569,11 @@ HotPropertyResponse = HotProperty
 ```
 UserListResponse = ListDTO<User>
 UserResponse = User
+```
+
+### Permissions
+```
+PermissionsResponse = { permissions: UserPermission[] }
 ```
 
 ### Organizations

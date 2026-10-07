@@ -7,3 +7,6 @@
 [submodule "resize-worker"]
 	path = resize-worker
 	url = git@github.com:quangpv/mqhouse-biglands-resize-worker.git
+[submodule "image-service"]
+	path = image-service
+	url = git@github.com:quangpv/mqhouse-biglands-image-service.git

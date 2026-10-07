@@ -12,6 +12,8 @@ See [types.md](./types.md) for request/response schemas. See [README.md](./READM
 - Approvals track pending requests from Sales staff (or admin edits that require approval).
 - Each approval records the property status before the request and the expected status after approval.
 - Approval requests can be: pending, approved, or rejected.
+- **Approvers are restricted to their assigned transaction/property types** when viewing and managing approvals. They can only see and act on approvals for properties with matching types.
+- Phone and house number privacy rules apply to approval change reviews exactly as they do in the property detail view.
 
 ---
 
@@ -23,6 +25,7 @@ Desc: View pending approval requests.
 
 **Rules:**
 - Returns a paginated list of approval requests.
+- **Approvers only see approvals for properties with matching assigned transaction/property types.**
 - Can filter by status, transaction type, property type, district, and price/area range.
 - Each item includes a summary of the property and the request details.
 
@@ -69,6 +72,7 @@ Desc: Approve a pending request.
 
 **Rules:**
 - Only pending requests can be approved (otherwise the request is rejected).
+- **Approvers can only approve requests for properties with matching assigned transaction/property types.**
 - For edit requests: applies all requested changes to the property (including tag and image updates).
 - Sets the property status to the expected status recorded in the approval.
 - Records a status change in the property's history.
@@ -111,6 +115,7 @@ Desc: Reject a pending request.
 
 **Rules:**
 - Only pending requests can be rejected (otherwise the request is rejected).
+- **Approvers can only reject requests for properties with matching assigned transaction/property types.**
 - No changes are applied to the property (unlike approve).
 - The property reverts to the status it had before the request was made.
 - Records a status change in the property's history.

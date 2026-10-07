@@ -1,6 +1,6 @@
 # System
 
-Geography, Master Data, Supports, Backfills, WebSocket.
+Geography, Master Data, Permissions, Supports, Backfills, WebSocket.
 
 See [types.md](./types.md) for request/response schemas. See [README.md](./README.md) for RBAC matrix.
 
@@ -50,6 +50,25 @@ Desc: View all system-wide option values.
 - Includes: commission types, direction types, statuses, actions, notification types, approval statuses, user roles, entity types.
 
 **Response:** Master data object
+
+---
+
+## Permissions
+
+### GET /permissions
+
+Desc: View the catalog of available user permissions.
+
+**Access:** Requires sign-in
+
+**Rules:**
+- Returns the static list of available user permission **codes**.
+- Used by the User Management UI to render the permission toggles for Sales users; the UI maps each code to its display label.
+- Currently includes two permission codes:
+  - `view_householder_phone` — allows a Sales user to see the house holder phone (`owner_phone`) of properties they did not create.
+  - `view_house_number` — allows a Sales user to see the house number of properties they did not create.
+
+**Response:** `PermissionsResponse`
 
 ---
 
@@ -146,3 +165,4 @@ Desc: Test the search index with a sample query.
 
 - [Notifications](./notifications.md) — WebSocket delivers notification events
 - [Properties](./properties.md) — geography used in property search, search text backfill
+- [Users](./users.md) — user permissions stored on the user account

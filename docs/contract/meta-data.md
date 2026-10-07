@@ -135,6 +135,7 @@ Desc: Create a tag.
 - Duplicate IDs are not allowed.
 - The ID is the primary identifier and cannot be changed after creation.
 - ID format: lowercase letters, numbers, and hyphens only (e.g., `ban`, `cho-thue`). Note: tags use hyphens while other types use underscores.
+- **Color:** Optional hex color code (e.g. `#FF6B6B`). If omitted or null, no color is assigned and the tag uses a neutral default appearance.
 
 **Request:** `CreateTagRequest`
 **Response:** `TagInfo` (201)
@@ -153,7 +154,8 @@ Desc: Update a tag.
 **Access:** Admin only
 
 **Rules:**
-- Only the display name can be updated. The ID cannot be changed.
+- Only the display name and color can be updated. The ID cannot be changed.
+- **Color:** Optional hex color code. If omitted or null, the color is cleared and the tag uses a neutral default appearance.
 
 **Request:** `UpdateTagRequest`
 **Response:** `TagInfo`

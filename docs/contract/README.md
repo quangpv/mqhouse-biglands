@@ -13,7 +13,7 @@ Business rules for all Biglands APIs, organized by domain.
 ### Authorization
 - Three roles exist: **Sales**, **Approver**, and **Admin**.
 - Actions are restricted by role. If a user's role is not in the allowed list, the action is denied.
-- Deactivated users cannot access any action that requires a signed-in session.
+- Deactivated or deleted users cannot access any action that requires a signed-in session.
 
 ### Error Responses
 | Situation | What Happens |
@@ -30,20 +30,43 @@ Business rules for all Biglands APIs, organized by domain.
 
 ### Phone Number Privacy
 - Creator phone number is visible to all authenticated users.
-- House holder phone number is visible only to: the property creator, admins, and approvers.
-- Sales staff who are not the creator cannot see the house holder phone number.
+- House holder phone number (`owner_phone`) visibility:
+  - **Admin:** Always visible.
+  - **Approver:** Visible if the property's transaction type AND property type are in the approver's assigned types; otherwise masked.
+  - **Sales staff:** Visible if they are the creator of the property; otherwise visible **only if** the sales user holds the `view_householder_phone` permission; otherwise hidden (masked).
+
+### House Number Privacy
+- House number visibility follows the same rules as house holder phone number visibility.
+- For **Sales staff** viewing a property they did not create, the house number is returned **only if** the sales user holds the `view_house_number` permission; otherwise it is `null`.
+
+### Sales User Permissions
+- Two optional permissions exist for **Sales users only**: `view_householder_phone` and `view_house_number`.
+- These permissions are configured per user by an administrator and control whether that sales user can see the corresponding field on properties they did **not** create.
+- A sales user who created a property always sees the full owner phone and house number of that property, regardless of these permissions.
+- These permissions do **not** affect Admin or Approver visibility, which follow their own role-based rules above.
 
 ### Auto-Rejection Cascade
 - When any user acts on a property that already has a pending approval, the existing approval is automatically rejected.
 - This applies to all status transitions (deposit, sold out, cancel, complete, reopen) and edits.
 - The auto-rejected approval is recorded as rejected in the approval history.
 
-### Organization-Scoped Notifications
-- When a Sales staff member submits a property for approval, only admins and approvers within the same organization are notified.
-- This ensures notifications are relevant to the user's team.
+### Type-Scoped Notifications
+- When a property status changes, notifications are sent to:
+  - **Admins:** All admins receive notifications globally.
+  - **Approvers:** Only approvers whose assigned transaction types AND property types include the property's types.
+- This ensures notifications are relevant to the approver's assigned types.
 
 ### File Content Hashing
 - Each uploaded file gets a SHA-256 content hash stored for deduplication and integrity verification.
+
+### User Soft Deletion
+- When a user is deleted, the system checks if they have created data (properties, approvals, hot listings, notifications, or reviews).
+- If they have data, the user is **soft deleted** — hidden from the system but the record is preserved.
+- If they have no data, the user is **permanently removed**.
+- Soft-deleted users cannot sign in, refresh sessions, or receive notifications.
+- Their properties, reviews, and files remain available to other users.
+- Usernames and email addresses of soft-deleted users become available for reuse.
+- An administrator can restore a soft-deleted user by reactivating their account.
 
 ---
 
@@ -130,6 +153,7 @@ Business rules for all Biglands APIs, organized by domain.
 | **System** | | | | |
 | `GET /geography/*` | - | - | - | Y |
 | `GET /master-data` | Y | Y | Y | - |
+| `GET /permissions` | Y | Y | Y | - |
 | `GET /supports` | Y | Y | Y | - |
 | `POST /backfills` | Y | 403 | 403 | - |
 | `GET /backfills` | Y | 403 | 403 | - |
@@ -137,9 +161,9 @@ Business rules for all Biglands APIs, organized by domain.
 | **Carts** | | | | |
 | `GET /carts/counts` | Y | Y | Y | - |
 
-\* SALE: owner only, ADMIN/APPROVER: any
-\** SALE: owner only, ADMIN/APPROVER: any
-\*** Submit/withdraw/deposit/soldout/cancel/complete/reopen: SALE must be owner
+\* SALE: owner only + type check, ADMIN: any, APPROVER: any + type check
+\** SALE: owner only + type check, ADMIN: any, APPROVER: any + type check
+\*** Submit/withdraw/deposit/soldout/cancel/complete/reopen: SALE must be owner + type check
 
 ---
 
@@ -193,16 +217,19 @@ The following statuses indicate a request is waiting for approval: `POST_PENDING
 The following statuses are final and cannot be changed directly: `DEPOSITED`, `SOLDOUT`, `EXPIRED`, `COMPLETED`
 
 ### SALE vs ADMIN/APPROVER behavior
-| Action | Sales Staff | Admin / Approver |
-|---|---|---|
-| Submit draft | Goes to approval queue; admins/approvers notified | Published immediately |
-| Deposit | Goes to approval queue; admins/approvers notified | Confirmed immediately |
-| Sold out | Goes to approval queue; admins/approvers notified | Confirmed immediately |
-| Cancel | Goes to approval queue; admins/approvers notified | Cancelled immediately |
-| Complete | Goes to approval queue; admins/approvers notified | Completed immediately |
-| Reopen | Goes to approval queue; admins/approvers notified | Reopened immediately |
-| Edit (available listing) | Goes to approval queue; admins/approvers notified | Changes applied immediately |
-| Withdraw | Reverts to previous status | Not applicable |
+| Action | Sales Staff | Admin | Approver |
+|---|---|---|---|
+| Submit draft | Goes to approval queue; admins/approvers notified | Published immediately | Published immediately |
+| Deposit | Goes to approval queue; admins/approvers notified | Confirmed immediately | Confirmed immediately |
+| Sold out | Goes to approval queue; admins/approvers notified | Confirmed immediately | Confirmed immediately |
+| Cancel | Goes to approval queue; admins/approvers notified | Cancelled immediately | Cancelled immediately |
+| Complete | Goes to approval queue; admins/approvers notified | Completed immediately | Completed immediately |
+| Reopen | Goes to approval queue; admins/approvers notified | Reopened immediately | Reopened immediately |
+| Edit (available listing) | Goes to approval queue; admins/approvers notified | Changes applied immediately | Changes applied immediately |
+| Withdraw | Reverts to previous status | Not applicable | Not applicable |
+| Approve/Reject | Not applicable | Any property | **Type-scoped only** |
+
+**Note:** SALE and APPROVER are restricted to their assigned transaction/property types for all actions.
 
 ### Withdraw revert mapping
 | From Status | Returns To |

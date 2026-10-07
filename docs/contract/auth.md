@@ -15,6 +15,7 @@ See [types.md](./types.md) for request/response schemas. See [README.md](./READM
 - Each refresh session can only be used once. A new one is issued automatically after each refresh.
 - Signing out cancels the current session and all other active sessions for that user.
 - Changing your password does not invalidate existing sessions.
+- Deleted users cannot sign in or refresh their sessions.
 
 ### Device Limit
 - Only enforced for Sales staff and Approvers.
@@ -46,6 +47,7 @@ Desc: Sign in with username or email.
 - If the input contains `@`, it is treated as an email; otherwise as a username.
 - Returns "Invalid credentials" for both wrong username/email and wrong password.
 - Returns "Account is deactivated" if the account has been deactivated.
+- Returns "Account has been deleted" if the account has been soft-deleted.
 - Device limit enforcement applies for Sales staff and Approvers (see Global Rules).
 - On success: issues a signed-in session and a refresh session.
 
@@ -63,7 +65,7 @@ Desc: Refresh your session and get a new signed-in session.
 **Rules:**
 - Verifies the token is a valid refresh session.
 - Checks the refresh session has not been revoked.
-- Checks the user exists and is active.
+- Checks the user exists, is active, and has not been deleted.
 - On success: revokes the old refresh session, issues a new signed-in session and refresh session.
 
 **Request:** `RefreshTokenRequest`
@@ -108,7 +110,7 @@ Desc: Request a password reset email.
 **Access:** Public
 
 **Rules:**
-- Looks up the user by email; returns "User not found" if the email is not registered.
+- Looks up the user by email; returns "User not found" if the email is not registered or the user has been deleted.
 - Generates a password reset link (valid for 15 minutes).
 - Sends the email asynchronously if the user has an email on file; silently skips if no email is set.
 - No rate limiting is applied.
@@ -127,6 +129,7 @@ Desc: Reset your password using a link from your email.
 **Rules:**
 - The reset link must be valid and not expired (within 15-minute window).
 - Returns an error for invalid or expired links.
+- Returns an error if the user has been deleted.
 - Updates the password on file.
 - Does not invalidate existing sessions.
 - The same reset link can be reused multiple times within the 15-minute window.

@@ -13,14 +13,26 @@ See [types.md](./types.md) for request/response schemas. See [README.md](./READM
 - When listing properties, other users' drafts are automatically hidden.
 - When viewing a specific property that is a draft created by someone else, access is denied.
 
-### Sales Staff Type Guard
-- When creating or updating a property, Sales staff can only choose from the property types and transaction types they are assigned to.
-- If the selected types are not in the staff member's assignments, the request is denied.
+### Type Guard (Sales Staff & Approvers)
+- When creating or updating a property, Sales staff and Approvers can only choose from the property types and transaction types they are assigned to.
+- If the selected types are not in the user's assignments, the request is denied.
+- This also applies to property transitions (deposit, soldout, cancel, complete, reopen).
+- Approvers can only approve/reject requests for properties with matching assigned types.
 
 ### Phone Number Privacy
 - Creator phone number is visible to all authenticated users.
-- House holder phone number is visible only to: the property creator, admins, and approvers.
-- Sales staff who are not the creator cannot see the house holder phone number.
+- House holder phone number (`owner_phone`) visibility:
+  - **Admin:** Always visible.
+  - **Approver:** Visible if the property's transaction type AND property type are in the approver's assigned types; otherwise masked.
+  - **Sales staff:** Visible only if they are the creator; otherwise visible **only if** the sales user holds the `view_householder_phone` permission; otherwise hidden.
+
+### House Number Privacy
+- For a Sales user viewing a property they did not create, the house number is returned **only if** the sales user holds the `view_house_number` permission; otherwise it is `null`.
+- Admin and Approver house number visibility follow the same role-based rules as the house holder phone number (see above).
+- A sales user who created the property always sees the full house number regardless of permission.
+
+### Change History Privacy
+- Phone and house number privacy rules apply to change history and approval reviews exactly as they do in the property detail view.
 
 ### Property Code
 - Each property is assigned a unique 14-character code: date prefix (YYMMDD) + 7-digit random number.
@@ -36,6 +48,16 @@ See [types.md](./types.md) for request/response schemas. See [README.md](./READM
 
 ### First Image as Primary
 - When creating or updating a property, the first image in the list is automatically set as the primary image.
+
+### Stale Properties
+- A property is stale if it hasn't been updated in 3 or more calendar months.
+- Users can filter and count stale properties to identify listings that may need attention.
+- Stale is a computed filter flag, not a status — stale properties can exist in any status (AVAILABLE, DEPOSITED, etc.).
+- Filter with `?is_stale=true` query parameter.
+
+### Listing Sort Priority
+- Sold out, expired, and completed listings always appear after active listings, no matter how you sort the list.
+- This means active and in-progress listings are always visible first, and sold-out listings never push them out of view.
 
 ### Terminal Statuses
 - DEPOSITED, SOLDOUT, EXPIRED, and COMPLETED are terminal statuses.
@@ -54,7 +76,7 @@ Desc: Create a property listing.
 - Saving as draft (`is_draft=true`, default): listing is saved privately; no approval needed; no one is notified.
 - Publishing immediately (`is_draft=false`) by Sales staff: listing goes to approval queue; admins and approvers are notified.
 - Publishing immediately (`is_draft=false`) by Admin/Approver: listing is published right away; no approval needed; no one is notified.
-- Sales staff type guard applies (see Global Rules).
+- Type guard applies for Sales staff and Approvers (see Global Rules).
 
 **Required fields for publish:**
 - Title: minimum 1 character.
@@ -130,11 +152,14 @@ Desc: Update a property listing.
 |---|---|---|---|---|---|
 | DRAFT | Owner | Yes, immediately | DRAFT | No | None |
 | POST_PENDING | Owner (Sales) | Yes, immediately | POST_PENDING | No | None |
-| POST_PENDING | Admin/Approver | Yes, immediately | POST_PENDING | No | Owner notified (listing updated) |
+| POST_PENDING | Admin | Yes, immediately | POST_PENDING | No | Owner notified (listing updated) |
+| POST_PENDING | Approver (type match) | Yes, immediately | POST_PENDING | No | Owner notified (listing updated) |
 | AVAILABLE | Sales | No (deferred) | EDIT_PENDING | Yes (new) | Admins/approvers notified |
-| AVAILABLE | Admin/Approver | Yes, immediately | AVAILABLE | No | None |
+| AVAILABLE | Admin | Yes, immediately | AVAILABLE | No | None |
+| AVAILABLE | Approver (type match) | Yes, immediately | AVAILABLE | No | None |
 | EDIT_PENDING | Owner (Sales) | No (overwrites approval diff) | EDIT_PENDING | Overwrites existing | None |
-| EDIT_PENDING | Non-owner Admin/Approver | No (overwrites approval diff) | EDIT_PENDING | Overwrites existing | Owner notified (listing updated) |
+| EDIT_PENDING | Non-owner Admin | No (overwrites approval diff) | EDIT_PENDING | Overwrites existing | Owner notified (listing updated) |
+| EDIT_PENDING | Non-owner Approver (type match) | No (overwrites approval diff) | EDIT_PENDING | Overwrites existing | Owner notified (listing updated) |
 
 **Conflict rules:**
 - Sales staff editing an AVAILABLE listing: if there is already a pending edit request, the update is rejected.
@@ -142,6 +167,7 @@ Desc: Update a property listing.
 
 **Other rules:**
 - Sales staff can only update their own properties.
+- Approvers can update any property with matching assigned types.
 - Only listings in the following statuses can be edited: DRAFT, POST_PENDING, AVAILABLE, EDIT_PENDING.
 - Tag handling: `null` = leave unchanged, `[]` = clear all tags, `[...]` = replace with new set.
 - A snapshot of changes is recorded for each modified field.
@@ -176,7 +202,9 @@ Desc: Submit a draft listing for publication.
 **Rules:**
 - Listing must be in DRAFT status.
 - Sales staff: listing goes to approval queue; admins and approvers are notified.
-- Admin/Approver: listing is published immediately; no approval needed; no one is notified.
+- Admin: listing is published immediately; no approval needed; no one is notified.
+- Approver (type match): listing is published immediately; no approval needed; no one is notified.
+- Type guard applies for Sales staff and Approvers (see Global Rules).
 
 **Request:** `NotesRequest`
 **Response:** `PropertyResponse`
@@ -221,7 +249,9 @@ Desc: Report a deposit or confirm a deposit.
 - Maximum of 10 supporting files allowed (including deposit images and certificate images).
 - Customer name and customer phone are required.
 - Sales staff: deposit goes to approval queue; admins and approvers are notified.
-- Admin/Approver: deposit is confirmed immediately; no approval needed.
+- Admin: deposit is confirmed immediately; no approval needed.
+- Approver (type match): deposit is confirmed immediately; no approval needed.
+- Type guard applies for Sales staff and Approvers (see Global Rules).
 
 **Request:** `DepositRequest`
 **Response:** `PropertyResponse`
@@ -237,7 +267,9 @@ Desc: Report a listing as sold out or confirm it is sold out.
 **Rules:**
 - Listing must be in AVAILABLE or DEPOSITED status.
 - Sales staff: sold-out request goes to approval queue; admins and approvers are notified.
-- Admin/Approver: listing is marked as sold out immediately; no approval needed.
+- Admin: listing is marked as sold out immediately; no approval needed.
+- Approver (type match): listing is marked as sold out immediately; no approval needed.
+- Type guard applies for Sales staff and Approvers (see Global Rules).
 
 **Request:** `NotesRequest`
 **Response:** `PropertyResponse`
@@ -253,7 +285,9 @@ Desc: Cancel a deposit or confirm cancellation.
 **Rules:**
 - Listing must be in DEPOSITED status.
 - Sales staff: cancellation goes to approval queue; admins and approvers are notified.
-- Admin/Approver: listing is returned to AVAILABLE immediately; no approval needed.
+- Admin: listing is returned to AVAILABLE immediately; no approval needed.
+- Approver (type match): listing is returned to AVAILABLE immediately; no approval needed.
+- Type guard applies for Sales staff and Approvers (see Global Rules).
 
 **Request:** `NotesRequest`
 **Response:** `PropertyResponse`
@@ -272,7 +306,9 @@ Desc: Complete a sale or confirm completion.
 - Maximum of 10 supporting files allowed (including completion images and certificate images).
 - Customer name and customer phone are required.
 - Sales staff: completion goes to approval queue; admins and approvers are notified.
-- Admin/Approver: listing is marked as completed immediately; no approval needed.
+- Admin: listing is marked as completed immediately; no approval needed.
+- Approver (type match): listing is marked as completed immediately; no approval needed.
+- Type guard applies for Sales staff and Approvers (see Global Rules).
 
 **Request:** `CompleteRequest`
 **Response:** `PropertyResponse`
@@ -288,7 +324,9 @@ Desc: Reopen a completed, sold-out, or expired listing.
 **Rules:**
 - Can only reopen from SOLDOUT, EXPIRED, or COMPLETED status.
 - Sales staff: must be the owner of the listing; reopen goes to approval queue; admins and approvers are notified.
-- Admin/Approver: listing is reopened immediately; if not the owner, the owner is notified.
+- Admin: listing is reopened immediately; if not the owner, the owner is notified.
+- Approver (type match): listing is reopened immediately; if not the owner, the owner is notified.
+- Type guard applies for Sales staff and Approvers (see Global Rules).
 
 **Request:** `NotesRequest`
 **Response:** `PropertyResponse`

@@ -102,7 +102,7 @@ Desc: View your property counts by status category.
 - All counts are scoped to properties you created.
 - Default categories (when no `statuses` parameter): total, pinned, hot, rejected, plus all pending statuses and available, deposited, completed, sold out, expired.
 - If specific statuses are requested, only those categories are returned.
-- Special categories: `total` (all properties), `pinned`, `hot`, `rejected`.
+- Special categories: `total` (all properties), `pinned`, `hot`, `rejected`, `stale`.
 
 **Response:** `CartCountResponse` (dict of category → count)
 
